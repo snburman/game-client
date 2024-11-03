@@ -14,26 +14,21 @@ type CanvasData = {
     cells: Array<CellData[][]>;
     cellSize: number;
     setCellSize: (size: number) => void;
-    // Layers are for storing the color data for the server
-    getLayer: (index: number) => LayerMap;
-    setLayer: (index: number, layer: LayerMap) => void;
-    selectedLayer: number;
-    setSelectedLayer: (index: number) => void;
+    selectedLayerIndex: number;
+    setSelectedLayerIndex: (index: number) => void;
     currentColor: string;
     setCurrentColor: (color: string) => void;
+    update: (x: number, y: number) => void;
 }
 
 const CanvasContext = createContext<CanvasData | undefined>(undefined);
 
 export default function CanvasProvider({children}: React.PropsWithChildren) {
-    const [coords, setCoords] = useState({ x: 0, y: 0 });
-    const [isPanning, setIsPanning] = useState(false);
-    const [isPointerDown, setIsPointerDown] = useState(false);
     const [currentColor, setCurrentColor] = useState("#000000");
     // initialize with a single layer
     const layers = useRef<LayerMap[]>([generateLayer(16, 16)]);
     // const [layers, setLayers] = useState<LayerMap[]>([generateLayer(16, 16)]);
-    const [selectedLayer, setSelectedLayer] = useState(0);
+    const [selectedLayerIndex, setSelectedLayerIndex] = useState(0);
     const [cells, setCells] = useState<Array<CellData[][]>>([generateCellsFromLayer(layers.current[0], 16, 16)]);
     const [cellSize, setCellSize] = useState(20);
 
@@ -59,27 +54,33 @@ export default function CanvasProvider({children}: React.PropsWithChildren) {
         return cells;
     }
 
-    function setLayer(index: number, layer: LayerMap) {
-        layers.current[index] = layer;
-        const _cells = generateCellsFromLayer(layer, 16, 16);
-        cells[index] = _cells;
-        setCells([...cells]);
-    }
+    function update(x: number, y: number) {
+        const layer = layers.current[selectedLayerIndex];
+        if (!layer) {
+            throw new Error(`Layer ${selectedLayerIndex} not found`);
+        }
+        // Gesture handler will fire multiple times for the same cell
+        const cell_color = layer.get(`${x}-${y}`);
+        if (cell_color === currentColor) return;
 
-    function getLayer(index: number) {
-        return layers.current[index];
+        // Update layer
+        layer.set(`${x}-${y}`, currentColor);
+        layers.current[selectedLayerIndex] = layer
+
+        // Update cells
+        cells[selectedLayerIndex][x][y].color = currentColor;
+        setCells([...cells]);
     }
 
     const initialValue: CanvasData = {
         cells: cells,
         cellSize: cellSize,
         setCellSize: setCellSize,
-        getLayer: getLayer,
-        setLayer: setLayer,
-        selectedLayer: selectedLayer,
-        setSelectedLayer: setSelectedLayer,
+        selectedLayerIndex: selectedLayerIndex,
+        setSelectedLayerIndex: setSelectedLayerIndex,
         currentColor: currentColor,
         setCurrentColor,
+        update: update,
     };
 
     return (

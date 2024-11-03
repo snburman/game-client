@@ -10,23 +10,7 @@ export default function Canvas({
     width: number;
     height: number;
 }) {
-    const {
-        getLayer,
-        setLayer,
-        selectedLayer,
-        currentColor,
-    } = useCanvas();
-
-    function updateLayer(index: number, x: number, y: number) {
-        const layer = getLayer(index);
-        if (!layer) {
-            throw new Error(`Layer ${index} not found`);
-        }
-        const cell_color = layer.get(`${x}-${y}`);
-        if (cell_color === currentColor) return;
-        layer.set(`${x}-${y}`, currentColor);
-        setLayer(index, layer);
-    }
+    const { update } = useCanvas();
 
     const longPress = Gesture.LongPress()
         .minDuration(0)
@@ -57,7 +41,7 @@ export default function Canvas({
         if (x > width * 20 || y > height * 20) return;
         const _x = Math.floor(y / 20);
         const _y = Math.floor(x / 20);
-        updateLayer(selectedLayer, _x, _y);
+        update(_x, _y);
     }
 
     return (
@@ -67,7 +51,6 @@ export default function Canvas({
                     index={0}
                     width={width}
                     height={height}
-                    update={updateLayer}
                 />
             </View>
         </GestureDetector>
@@ -78,9 +61,8 @@ const Layer = (props: {
     index: number;
     width: number;
     height: number;
-    update(index: number, x: number, y: number): void;
 }) => {
-    const { index, width, height, update } = props;
+    const { index, width, height } = props;
     const { cells } = useCanvas();
 
     if (!cells[index]) return null;
