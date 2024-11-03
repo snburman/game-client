@@ -65,7 +65,7 @@ const Layer = (props: {
     const { index, width, height } = props;
     const { cells, getCells } = useCanvas();
 
-    const _cells = useCallback(() => getCells(index), [cells, index])();
+    const _cells = useCallback(() => getCells(index), [cells[index], index])();
 
     if(!_cells) return null;
     return (
