@@ -12,6 +12,7 @@ type CanvasData = {
     // Cells and layers share an array index
     // Cells are for rendering by the canvas
     cells: Array<CellData[][]>;
+    getCells: (index: number) => CellData[][];
     cellSize: number;
     setCellSize: (size: number) => void;
     selectedLayerIndex: number;
@@ -54,6 +55,10 @@ export default function CanvasProvider({children}: React.PropsWithChildren) {
         return cells;
     }
 
+    function getCells(index: number): CellData[][] {
+        return cells[index];
+    }
+
     function update(x: number, y: number) {
         const layer = layers.current[selectedLayerIndex];
         if (!layer) {
@@ -74,6 +79,7 @@ export default function CanvasProvider({children}: React.PropsWithChildren) {
 
     const initialValue: CanvasData = {
         cells,
+        getCells,
         cellSize,
         setCellSize,
         selectedLayerIndex,

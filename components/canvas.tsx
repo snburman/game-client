@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { useCanvas } from "@/app/context/canvas_context";
 import { Pressable, StyleSheet, View } from "react-native";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
@@ -63,9 +63,11 @@ const Layer = (props: {
     height: number;
 }) => {
     const { index, width, height } = props;
-    const { cells } = useCanvas();
+    const { cells, getCells } = useCanvas();
 
-    if (!cells[index]) return null;
+    const _cells = useCallback(() => getCells(index), [cells, index])();
+
+    if(!_cells) return null;
     return (
         <View
             style={[
@@ -73,7 +75,7 @@ const Layer = (props: {
                 { width: 20 * width, height: 20 * height },
             ]}
         >
-            {cells[index].map((row, x) =>
+            {_cells.map((row, x) =>
                 row.map((cell, y) => (
                     <Pressable
                         style={{ zIndex: index }}
