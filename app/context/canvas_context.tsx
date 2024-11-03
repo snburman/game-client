@@ -15,6 +15,9 @@ type CanvasData = {
     getCells: (index: number) => CellData[][];
     cellSize: number;
     setCellSize: (size: number) => void;
+    // Grid controls grid markers on the canvas
+    grid: boolean;
+    setGrid: (grid: boolean) => void;
     selectedLayerIndex: number;
     setSelectedLayerIndex: (index: number) => void;
     currentColor: string;
@@ -32,6 +35,7 @@ export default function CanvasProvider({children}: React.PropsWithChildren) {
     const [selectedLayerIndex, setSelectedLayerIndex] = useState(0);
     const [cells, setCells] = useState<Array<CellData[][]>>([generateCellsFromLayer(layers.current[0], 16, 16)]);
     const [cellSize, setCellSize] = useState(20);
+    const [grid, setGrid] = useState(true);
 
     function generateLayer(width: number, height: number): Map<string, string> {
         const layer = new Map();
@@ -82,6 +86,8 @@ export default function CanvasProvider({children}: React.PropsWithChildren) {
         getCells,
         cellSize,
         setCellSize,
+        grid,
+        setGrid,
         selectedLayerIndex,
         setSelectedLayerIndex,
         currentColor,
