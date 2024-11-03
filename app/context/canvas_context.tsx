@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useRef, useState } from "react";
 
 export type LayerMap = Map<string, string>;
 function generateLayer(width: number, height: number): Map<string, string> {
@@ -33,7 +33,7 @@ type CanvasData = {
     // Cells are for rendering by the canvas
     cells: Array<CellData[][]>;
     // Layers are for storing the color data for the server
-    layers: LayerMap[];
+    getLayer: (index: number) => LayerMap;
     setLayer: (index: number, layer: LayerMap) => void;
     selectedLayer: number;
     setSelectedLayer: (index: number) => void;
@@ -55,32 +55,35 @@ export default function CanvasProvider({children}: React.PropsWithChildren) {
     const [isPointerDown, setIsPointerDown] = useState(false);
     const [currentColor, setCurrentColor] = useState("#000000");
     // initialize with a single layer
-    const [layers, setLayers] = useState<LayerMap[]>([generateLayer(16, 16)]);
+    const layers = useRef<LayerMap[]>([generateLayer(16, 16)]);
+    // const [layers, setLayers] = useState<LayerMap[]>([generateLayer(16, 16)]);
     const [selectedLayer, setSelectedLayer] = useState(0);
-    const [cells, setCells] = useState<Array<CellData[][]>>([generateCellsFromLayer(layers[0], 16, 16)]);
+    const [cells, setCells] = useState<Array<CellData[][]>>([generateCellsFromLayer(layers.current[0], 16, 16)]);
 
     function setLayer(index: number, layer: LayerMap) {
-        const newLayers = [...layers];
-        newLayers[index] = layer;
-        setLayers(newLayers);
+        layers.current[index] = layer;
         const _cells = generateCellsFromLayer(layer, 16, 16);
         cells[index] = _cells;
         setCells([...cells]);
     }
 
+    function getLayer(index: number) {
+        return layers.current[index];
+    }
+
     const initialValue: CanvasData = {
         cells: cells,
-        layers: layers,
+        getLayer: getLayer,
         setLayer: setLayer,
         selectedLayer: selectedLayer,
         setSelectedLayer: setSelectedLayer,
         coords: coords,
         setCoords: setCoords,
         isPanning: isPanning,
-        isPointerDown: isPointerDown,
-        currentColor: currentColor,
         setIsPanning,
+        isPointerDown: isPointerDown,
         setIsPointerDown,
+        currentColor: currentColor,
         setCurrentColor,
     };
 
