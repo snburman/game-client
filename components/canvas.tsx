@@ -3,28 +3,57 @@ import { CellData, useCanvas } from "@/app/context/canvas_context";
 import { Pressable, StyleSheet, View } from "react-native";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
 
-export default function Canvas({width, height}: { width: number; height: number }) {
-    const { setCoords, setIsPanning, setIsPointerDown, getLayer, setLayer, selectedLayer, currentColor } =
-        useCanvas();
+export default function Canvas({
+    width,
+    height,
+}: {
+    width: number;
+    height: number;
+}) {
+    const {
+        setCoords,
+        setIsPanning,
+        setIsPointerDown,
+        getLayer,
+        setLayer,
+        selectedLayer,
+        currentColor,
+    } = useCanvas();
 
     function updateLayer(index: number, x: number, y: number) {
         const layer = getLayer(index);
-        if(!layer) {
+        if (!layer) {
             throw new Error(`Layer ${index} not found`);
-        };
+        }
+        const cell_color = layer.get(`${x}-${y}`);
+        if (cell_color === currentColor) return;
         layer.set(`${x}-${y}`, currentColor);
         setLayer(index, layer);
     }
 
-    const gesture = Gesture.Pan()
-    .onStart((event) => {
-        const { x, y } = event;
-        handleGesture(x, y);
-    })
-    .onChange((event) => {
+    const longPress = Gesture.LongPress()
+        .minDuration(0)
+        .onStart((event) => {
+            const { x, y } = event;
+            handleGesture(x, y);
+        });
+
+    const pan = Gesture.Pan()
+        .onStart((event) => {
+            const { x, y } = event;
+            handleGesture(x, y);
+        })
+        .onChange((event) => {
+            const { x, y } = event;
+            handleGesture(x, y);
+        });
+
+    const tap = Gesture.Tap().onStart((event) => {
         const { x, y } = event;
         handleGesture(x, y);
     });
+
+    const gesture = Gesture.Simultaneous(tap, pan, longPress);
 
     function handleGesture(x: number, y: number) {
         setCoords({ x, y });
@@ -58,7 +87,7 @@ const Layer = (props: {
     height: number;
     update(index: number, x: number, y: number): void;
 }) => {
-    const { index,  width, height, update } = props;
+    const { index, width, height, update } = props;
     const { cells } = useCanvas();
 
     if (!cells[index]) return null;
@@ -74,7 +103,6 @@ const Layer = (props: {
                     <Pressable
                         style={{ zIndex: index }}
                         key={`${x}-${y}`}
-                        onPress={() => update(index, x, y)}
                     >
                         <Cell color={cell.color} />
                     </Pressable>
