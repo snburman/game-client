@@ -3,6 +3,7 @@ import Canvas, { EraserButton, GridButton } from "@/components/canvas";
 import ColorPicker from "@/components/color_picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet, View } from "react-native";
+import { CANVAS_SIZE } from "../context/canvas_context";
 
 export default function Draw() {
     const [modalVisible, setModalVisible] = useState(false);
@@ -15,7 +16,7 @@ export default function Draw() {
             }}
         >
             <View>
-                <Canvas width={16} height={16} />
+                <Canvas width={CANVAS_SIZE} height={CANVAS_SIZE} />
                 <View style={styles.toolContainer}>
                     <GridButton />
                     <EraserButton />

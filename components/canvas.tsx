@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { useCanvas } from "@/app/context/canvas_context";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
@@ -13,7 +13,7 @@ export default function Canvas({
     width: number;
     height: number;
 }) {
-    const { update } = useCanvas();
+    const { update, layers } = useCanvas();
 
     const longPress = Gesture.LongPress()
         .minDuration(0)
@@ -50,7 +50,14 @@ export default function Canvas({
     return (
         <GestureDetector gesture={gesture}>
             <View style={styles.allLayersContainer}>
-                <Layer index={0} width={width} height={height} />
+                {layers.map((_, index) => (
+                    <Layer
+                        key={index}
+                        index={index}
+                        width={width}
+                        height={height}
+                    />
+                ))}
             </View>
         </GestureDetector>
     );
@@ -103,7 +110,10 @@ const Cell = ({
     const { grid } = useCanvas();
     return (
         <View
-            style={{ backgroundColor: color, width, height,
+            style={{
+                backgroundColor: color,
+                width,
+                height,
                 borderTopWidth: x === 0 && grid ? 1 : 0,
                 borderRightWidth: grid ? 1 : 0,
                 borderLeftWidth: y === 0 && grid ? 1 : 0,
@@ -117,25 +127,49 @@ const Cell = ({
 // Grid button controls the visibility of the canvas grid
 export const GridButton = () => {
     const { grid, setGrid } = useCanvas();
-    const gridOn = <MaterialCommunityIcons name="grid" style={styles.toolIcon}/>;
-    const gridOff = <MaterialCommunityIcons name="grid-off" style={styles.toolIcon}/>;
+    const gridOn = (
+        <MaterialCommunityIcons name="grid" style={styles.toolIcon} />
+    );
+    const gridOff = (
+        <MaterialCommunityIcons name="grid-off" style={styles.toolIcon} />
+    );
     return (
         <Button onPress={() => setGrid(!grid)} style={styles.toolButton}>
-                {grid ? gridOn : gridOff }
+            {grid ? gridOn : gridOff}
         </Button>
     );
-}
+};
 
 export const EraserButton = () => {
     const { currentColor, setCurrentColor } = useCanvas();
+    const [previousColor, setPreviousColor] = useState(currentColor);
+
+    function handlePress() {
+        if (currentColor !== "transparent") {
+            setPreviousColor(currentColor);
+            setCurrentColor("transparent");
+        } else {
+            setCurrentColor(previousColor);
+        }
+    }
+
     return (
-        <Button onPress={() => setCurrentColor("transparent")} style={[styles.toolButton, {
-            backgroundColor: currentColor === "transparent" ? "rgba(0,0,0,0.2)" : "#FFFFFF",
-        }]}>
-            <MaterialCommunityIcons name="eraser" style={styles.toolIcon}/>
+        <Button
+            onPress={handlePress}
+            style={[
+                styles.toolButton,
+                {
+                    backgroundColor:
+                        currentColor === "transparent"
+                            ? "rgba(0,0,0,0.2)"
+                            : "#FFFFFF",
+                },
+            ]}
+        >
+            <MaterialCommunityIcons name="eraser" style={styles.toolIcon} />
         </Button>
     );
-}
+};
 
 const styles = StyleSheet.create({
     allLayersContainer: {

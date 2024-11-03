@@ -1,5 +1,7 @@
 import { createContext, useContext, useRef, useState } from "react";
 
+export const CANVAS_SIZE = 16;
+
 export type LayerMap = Map<string, string>;
 
 export type CellData = {
@@ -18,6 +20,7 @@ type CanvasData = {
     // Grid controls grid markers on the canvas
     grid: boolean;
     setGrid: (grid: boolean) => void;
+    layers: LayerMap[];
     selectedLayerIndex: number;
     setSelectedLayerIndex: (index: number) => void;
     currentColor: string;
@@ -30,10 +33,9 @@ const CanvasContext = createContext<CanvasData | undefined>(undefined);
 export default function CanvasProvider({children}: React.PropsWithChildren) {
     const [currentColor, setCurrentColor] = useState("#000000");
     // initialize with a single layer
-    const layers = useRef<LayerMap[]>([generateLayer(16, 16)]);
-    // const [layers, setLayers] = useState<LayerMap[]>([generateLayer(16, 16)]);
+    const layers = useRef<LayerMap[]>([generateLayer(CANVAS_SIZE, CANVAS_SIZE)]);
     const [selectedLayerIndex, setSelectedLayerIndex] = useState(0);
-    const [cells, setCells] = useState<Array<CellData[][]>>([generateCellsFromLayer(layers.current[0], 16, 16)]);
+    const [cells, setCells] = useState<Array<CellData[][]>>([generateCellsFromLayer(layers.current[0], CANVAS_SIZE, CANVAS_SIZE)]);
     const [cellSize, setCellSize] = useState(20);
     const [grid, setGrid] = useState(true);
 
@@ -57,6 +59,16 @@ export default function CanvasProvider({children}: React.PropsWithChildren) {
             }
         }
         return cells;
+    }
+
+    function clearLayer(index: number) {
+        const layer = layers.current[index];
+        if (!layer) {
+            throw new Error(`Layer ${index} not found`);
+        }
+        layers.current[index] = generateLayer(CANVAS_SIZE, CANVAS_SIZE);
+        cells[index] = generateCellsFromLayer(layer, CANVAS_SIZE, CANVAS_SIZE);
+        setCells([...cells]);
     }
 
     function getCells(index: number): CellData[][] {
@@ -88,6 +100,7 @@ export default function CanvasProvider({children}: React.PropsWithChildren) {
         setCellSize,
         grid,
         setGrid,
+        layers: layers.current,
         selectedLayerIndex,
         setSelectedLayerIndex,
         currentColor,
