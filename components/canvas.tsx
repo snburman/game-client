@@ -1,5 +1,5 @@
 import React from "react";
-import { CellData, useCanvas } from "@/app/context/canvas_context";
+import { useCanvas } from "@/app/context/canvas_context";
 import { Pressable, StyleSheet, View } from "react-native";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
 
@@ -11,9 +11,6 @@ export default function Canvas({
     height: number;
 }) {
     const {
-        setCoords,
-        setIsPanning,
-        setIsPointerDown,
         getLayer,
         setLayer,
         selectedLayer,
@@ -56,10 +53,6 @@ export default function Canvas({
     const gesture = Gesture.Simultaneous(tap, pan, longPress);
 
     function handleGesture(x: number, y: number) {
-        setCoords({ x, y });
-        setIsPanning(true);
-        setIsPointerDown(true);
-
         if (x < 0 || y < 0) return;
         if (x > width * 20 || y > height * 20) return;
         const _x = Math.floor(y / 20);
@@ -115,27 +108,6 @@ const Layer = (props: {
 const Cell = ({ color }: { color: string }) => {
     return <View style={[styles.cell, { backgroundColor: color }]} />;
 };
-
-function generateCells(width: number, height: number): CellData[][] {
-    const cells: CellData[][] = [];
-    for (let x = 0; x < width; x++) {
-        cells.push([]);
-        for (let y = 0; y < height; y++) {
-            cells[x].push({ x, y, color: "transparent" });
-        }
-    }
-    return cells;
-}
-
-function generateLayer(width: number, height: number): Map<string, string> {
-    const layer = new Map();
-    for (let x = 0; x < width; x++) {
-        for (let y = 0; y < height; y++) {
-            layer.set(`${x}-${y}`, "transparent");
-        }
-    }
-    return layer;
-}
 
 const styles = StyleSheet.create({
     layerContainer: {
