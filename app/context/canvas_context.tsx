@@ -73,12 +73,12 @@ export default function CanvasProvider({children}: React.PropsWithChildren) {
     }
 
     const initialValue: CanvasData = {
-        cells: cells,
-        cellSize: cellSize,
-        setCellSize: setCellSize,
-        selectedLayerIndex: selectedLayerIndex,
-        setSelectedLayerIndex: setSelectedLayerIndex,
-        currentColor: currentColor,
+        cells,
+        cellSize,
+        setCellSize,
+        selectedLayerIndex,
+        setSelectedLayerIndex,
+        currentColor,
         setCurrentColor,
         update: update,
     };

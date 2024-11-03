@@ -10,17 +10,18 @@ export const theme = {
         button: {
             textTransform: "none",
             color: "#000000",
-        }
+        },
     },
     shadow: {
         small: {
-            shadowColor: "black",
-            shadowOpacity: 0.2,
-            shadowRadius: 4,
+            shadowColor: "#000",
             shadowOffset: {
                 width: 0,
-                height: 0,
+                height: 2,
             },
-        }
-    }
-}
+            shadowOpacity: 0.25,
+            shadowRadius: 4,
+            elevation: 5,
+        },
+    },
+};
