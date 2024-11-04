@@ -23,6 +23,7 @@ type CanvasData = {
     layers: LayerMap[];
     selectedLayerIndex: number;
     setSelectedLayerIndex: (index: number) => void;
+    clearLayer: (index: number) => void;
     currentColor: string;
     setCurrentColor: (color: string) => void;
     update: (x: number, y: number) => void;
@@ -67,7 +68,7 @@ export default function CanvasProvider({children}: React.PropsWithChildren) {
             throw new Error(`Layer ${index} not found`);
         }
         layers.current[index] = generateLayer(CANVAS_SIZE, CANVAS_SIZE);
-        cells[index] = generateCellsFromLayer(layer, CANVAS_SIZE, CANVAS_SIZE);
+        cells[index] = generateCellsFromLayer(layers.current[index], CANVAS_SIZE, CANVAS_SIZE);
         setCells([...cells]);
     }
 
@@ -103,6 +104,7 @@ export default function CanvasProvider({children}: React.PropsWithChildren) {
         layers: layers.current,
         selectedLayerIndex,
         setSelectedLayerIndex,
+        clearLayer,
         currentColor,
         setCurrentColor,
         update: update,

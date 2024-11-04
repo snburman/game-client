@@ -171,6 +171,15 @@ export const EraserButton = () => {
     );
 };
 
+export const ClearButton = () => {
+    const { clearLayer, selectedLayerIndex } = useCanvas();
+    return (
+        <Button onPress={() => clearLayer(selectedLayerIndex)} style={styles.toolButton}>
+            <MaterialCommunityIcons name="delete" style={styles.toolIcon} />
+        </Button>
+    );
+}
+
 const styles = StyleSheet.create({
     allLayersContainer: {
         ...theme.shadow.small,

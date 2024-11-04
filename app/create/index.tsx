@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Canvas, { EraserButton, GridButton } from "@/components/canvas";
+import Canvas, { ClearButton, EraserButton, GridButton } from "@/components/canvas";
 import ColorPicker from "@/components/color_picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet, View } from "react-native";
@@ -18,6 +18,7 @@ export default function Draw() {
             <View>
                 <Canvas width={CANVAS_SIZE} height={CANVAS_SIZE} />
                 <View style={styles.toolContainer}>
+                    <ClearButton />
                     <GridButton />
                     <EraserButton />
                     <ColorPicker
@@ -34,8 +35,9 @@ const styles = StyleSheet.create({
     toolContainer: {
         display: "flex",
         flexDirection: "row",
-        justifyContent: "flex-end",
-        gap: 15,
+        justifyContent: "space-between",
+        flexWrap: "wrap",
+        // gap: 15,
         width: "100%",
         marginTop: 15,
     }
