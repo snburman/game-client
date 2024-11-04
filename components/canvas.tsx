@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useCallback, useState } from "react";
 import { useCanvas } from "@/app/context/canvas_context";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
+import { theme } from "@/app/_theme";
+import { Button } from "react-native-paper";
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
 export default function Canvas({
     width,
@@ -10,7 +13,7 @@ export default function Canvas({
     width: number;
     height: number;
 }) {
-    const { update } = useCanvas();
+    const { update, layers } = useCanvas();
 
     const longPress = Gesture.LongPress()
         .minDuration(0)
@@ -46,40 +49,44 @@ export default function Canvas({
 
     return (
         <GestureDetector gesture={gesture}>
-            <View>
-                <Layer
-                    index={0}
-                    width={width}
-                    height={height}
-                />
+            <View style={styles.allLayersContainer}>
+                {layers.map((_, index) => (
+                    <Layer
+                        key={index}
+                        index={index}
+                        width={width}
+                        height={height}
+                    />
+                ))}
             </View>
         </GestureDetector>
     );
 }
 
-const Layer = (props: {
-    index: number;
-    width: number;
-    height: number;
-}) => {
+const Layer = (props: { index: number; width: number; height: number }) => {
     const { index, width, height } = props;
-    const { cells } = useCanvas();
+    const { cells, getCells, cellSize } = useCanvas();
 
-    if (!cells[index]) return null;
+    const _cells = useCallback(() => getCells(index), [cells[index], index])();
+
+    if (!_cells) return null;
     return (
         <View
             style={[
                 styles.layerContainer,
-                { width: 20 * width, height: 20 * height },
+                { width: cellSize * width, height: cellSize * height },
             ]}
         >
-            {cells[index].map((row, x) =>
+            {_cells.map((row, x) =>
                 row.map((cell, y) => (
-                    <Pressable
-                        style={{ zIndex: index }}
-                        key={`${x}-${y}`}
-                    >
-                        <Cell color={cell.color} />
+                    <Pressable style={{ zIndex: index }} key={`${x}-${y}`}>
+                        <Cell
+                            x={cell.x}
+                            y={cell.y}
+                            color={cell.color}
+                            width={cellSize}
+                            height={cellSize}
+                        />
                     </Pressable>
                 ))
             )}
@@ -87,19 +94,113 @@ const Layer = (props: {
     );
 };
 
-const Cell = ({ color }: { color: string }) => {
-    return <View style={[styles.cell, { backgroundColor: color }]} />;
+const Cell = ({
+    x,
+    y,
+    color,
+    width,
+    height,
+}: {
+    x: number;
+    y: number;
+    color: string;
+    width: number;
+    height: number;
+}) => {
+    const { grid } = useCanvas();
+    return (
+        <View
+            style={{
+                backgroundColor: color,
+                width,
+                height,
+                borderTopWidth: x === 0 && grid ? 1 : 0,
+                borderRightWidth: grid ? 1 : 0,
+                borderLeftWidth: y === 0 && grid ? 1 : 0,
+                borderBottomWidth: grid ? 1 : 0,
+                borderColor: "#000000",
+            }}
+        />
+    );
 };
 
+// Grid button controls the visibility of the canvas grid
+export const GridButton = () => {
+    const { grid, setGrid } = useCanvas();
+    const gridOn = (
+        <MaterialCommunityIcons name="grid" style={styles.toolIcon} />
+    );
+    const gridOff = (
+        <MaterialCommunityIcons name="grid-off" style={styles.toolIcon} />
+    );
+    return (
+        <Button onPress={() => setGrid(!grid)} style={styles.toolButton}>
+            {grid ? gridOn : gridOff}
+        </Button>
+    );
+};
+
+export const EraserButton = () => {
+    const { currentColor, setCurrentColor } = useCanvas();
+    const [previousColor, setPreviousColor] = useState(currentColor);
+
+    function handlePress() {
+        if (currentColor !== "transparent") {
+            setPreviousColor(currentColor);
+            setCurrentColor("transparent");
+        } else {
+            setCurrentColor(previousColor);
+        }
+    }
+
+    return (
+        <Button
+            onPress={handlePress}
+            style={[
+                styles.toolButton,
+                {
+                    backgroundColor:
+                        currentColor === "transparent"
+                            ? "rgba(0,0,0,0.2)"
+                            : "#FFFFFF",
+                },
+            ]}
+        >
+            <MaterialCommunityIcons name="eraser" style={styles.toolIcon} />
+        </Button>
+    );
+};
+
+export const ClearButton = () => {
+    const { clearLayer, selectedLayerIndex } = useCanvas();
+    return (
+        <Button onPress={() => clearLayer(selectedLayerIndex)} style={styles.toolButton}>
+            <MaterialCommunityIcons name="delete" style={styles.toolIcon} />
+        </Button>
+    );
+}
+
 const styles = StyleSheet.create({
+    allLayersContainer: {
+        ...theme.shadow.small,
+        borderWidth: 1,
+        borderColor: "rgba(0, 0, 0, 0.2)",
+    },
     layerContainer: {
         flexDirection: "row",
         flexWrap: "wrap",
     },
-    cell: {
-        width: 20,
-        height: 20,
-        borderColor: "#000000",
-        borderWidth: 1,
+    toolButton: {
+        height: 50,
+        width: 50,
+        backgroundColor: "#FFFFFF",
+        borderRadius: 5,
+        ...theme.shadow.small,
+    },
+    toolIcon: {
+        fontSize: 35,
+        fontWeight: "light",
+        color: "rgba(0, 0, 0, 0.7)",
+        padding: 0,
     },
 });

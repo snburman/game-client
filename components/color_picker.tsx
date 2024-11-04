@@ -25,7 +25,7 @@ export default function ColorSelector({
                     style={[styles.preview, { backgroundColor: currentColor }]}
                 />
             </Pressable>
-            <Modal transparent animationType="slide" visible={visible}>
+            <Modal transparent animationType="fade" visible={visible}>
                 <Pressable
                     style={styles.modalContainer}
                     onPress={() => setVisible(false)}

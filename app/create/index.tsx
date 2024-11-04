@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import Canvas from "@/components/canvas";
+import Canvas, { ClearButton, EraserButton, GridButton } from "@/components/canvas";
 import ColorPicker from "@/components/color_picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet, View } from "react-native";
+import { CANVAS_SIZE } from "../context/canvas_context";
 
 export default function Draw() {
     const [modalVisible, setModalVisible] = useState(false);
@@ -15,8 +16,11 @@ export default function Draw() {
             }}
         >
             <View>
-                <Canvas width={16} height={16} />
-                <View style={styles.colorPickerContainer}>
+                <Canvas width={CANVAS_SIZE} height={CANVAS_SIZE} />
+                <View style={styles.toolContainer}>
+                    <ClearButton />
+                    <GridButton />
+                    <EraserButton />
                     <ColorPicker
                         visible={modalVisible}
                         setVisible={setModalVisible}
@@ -28,9 +32,12 @@ export default function Draw() {
 }
 
 const styles = StyleSheet.create({
-    colorPickerContainer: {
+    toolContainer: {
         display: "flex",
-        alignItems: "flex-end",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        flexWrap: "wrap",
+        // gap: 15,
         width: "100%",
         marginTop: 15,
     }
