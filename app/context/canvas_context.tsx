@@ -50,6 +50,16 @@ export default function CanvasProvider({children}: React.PropsWithChildren) {
         return layer;
     }
 
+    function clearLayer(index: number) {
+        const layer = layers.current[index];
+        if (!layer) {
+            throw new Error(`Layer ${index} not found`);
+        }
+        layers.current[index] = generateLayer(CANVAS_SIZE, CANVAS_SIZE);
+        cells[index] = generateCellsFromLayer(layers.current[index], CANVAS_SIZE, CANVAS_SIZE);
+        setCells([...cells]);
+    }
+    
     function generateCellsFromLayer(layer: LayerMap, width: number, height: number): CellData[][] {
         const cells: CellData[][] = [];
         for (let x = 0; x < width; x++) {
@@ -62,15 +72,6 @@ export default function CanvasProvider({children}: React.PropsWithChildren) {
         return cells;
     }
 
-    function clearLayer(index: number) {
-        const layer = layers.current[index];
-        if (!layer) {
-            throw new Error(`Layer ${index} not found`);
-        }
-        layers.current[index] = generateLayer(CANVAS_SIZE, CANVAS_SIZE);
-        cells[index] = generateCellsFromLayer(layers.current[index], CANVAS_SIZE, CANVAS_SIZE);
-        setCells([...cells]);
-    }
 
     function getCells(index: number): CellData[][] {
         return cells[index];
