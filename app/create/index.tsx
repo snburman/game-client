@@ -37,7 +37,6 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         flexWrap: "wrap",
-        // gap: 15,
         width: "100%",
         marginTop: 15,
     }
