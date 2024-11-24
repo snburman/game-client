@@ -180,6 +180,15 @@ export const ClearButton = () => {
     );
 }
 
+export const SaveButton = () => {
+    const { save } = useCanvas();
+    return (
+        <Button onPress={save} style={styles.toolButton}>
+            <MaterialCommunityIcons name="content-save" style={styles.toolIcon} />
+        </Button>
+    );
+}
+
 const styles = StyleSheet.create({
     allLayersContainer: {
         ...theme.shadow.small,

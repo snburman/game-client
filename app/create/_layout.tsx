@@ -15,6 +15,7 @@ export default function DrawLayout() {
                         height: 60,
                         ...theme.shadow.small,
                     },
+                    
                 }}
             >
                 <Tabs.Screen

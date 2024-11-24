@@ -1,4 +1,6 @@
+import { usePostImageMutation } from "@/redux/image.slice";
 import { createContext, useContext, useRef, useState } from "react";
+import { Image } from "@/redux/models/image.model";
 
 export const CANVAS_SIZE = 16;
 
@@ -8,6 +10,10 @@ export type CellData = {
     x: number;
     y: number;
     color: string;
+    r?: number;
+    g?: number;
+    b?: number;
+    a?: number;
 };
 
 type CanvasData = {
@@ -27,18 +33,28 @@ type CanvasData = {
     currentColor: string;
     setCurrentColor: (color: string) => void;
     update: (x: number, y: number) => void;
-}
+    name: string;
+    setName: (name: string) => void;
+    save: () => void;
+};
 
 const CanvasContext = createContext<CanvasData | undefined>(undefined);
 
-export default function CanvasProvider({children}: React.PropsWithChildren) {
+export default function CanvasProvider({ children }: React.PropsWithChildren) {
     const [currentColor, setCurrentColor] = useState("#000000");
     // initialize with a single layer
-    const layers = useRef<LayerMap[]>([generateLayer(CANVAS_SIZE, CANVAS_SIZE)]);
+    const layers = useRef<LayerMap[]>([
+        generateLayer(CANVAS_SIZE, CANVAS_SIZE),
+    ]);
     const [selectedLayerIndex, setSelectedLayerIndex] = useState(0);
-    const [cells, setCells] = useState<Array<CellData[][]>>([generateCellsFromLayer(layers.current[0], CANVAS_SIZE, CANVAS_SIZE)]);
+    const [cells, setCells] = useState<Array<CellData[][]>>([
+        generateCellsFromLayer(layers.current[0], CANVAS_SIZE, CANVAS_SIZE),
+    ]);
     const [cellSize, setCellSize] = useState(20);
     const [grid, setGrid] = useState(true);
+    const [name, setName] = useState("untitled");
+    const [postImage, { isLoading, isError, isSuccess }] =
+        usePostImageMutation();
 
     function generateLayer(width: number, height: number): Map<string, string> {
         const layer = new Map();
@@ -56,22 +72,29 @@ export default function CanvasProvider({children}: React.PropsWithChildren) {
             throw new Error(`Layer ${index} not found`);
         }
         layers.current[index] = generateLayer(CANVAS_SIZE, CANVAS_SIZE);
-        cells[index] = generateCellsFromLayer(layers.current[index], CANVAS_SIZE, CANVAS_SIZE);
+        cells[index] = generateCellsFromLayer(
+            layers.current[index],
+            CANVAS_SIZE,
+            CANVAS_SIZE
+        );
         setCells([...cells]);
     }
-    
-    function generateCellsFromLayer(layer: LayerMap, width: number, height: number): CellData[][] {
+
+    function generateCellsFromLayer(
+        layer: LayerMap,
+        width: number,
+        height: number
+    ): CellData[][] {
         const cells: CellData[][] = [];
         for (let x = 0; x < width; x++) {
             cells.push([]);
             for (let y = 0; y < height; y++) {
-                const color = layer.get(`${x}-${y}`)
-                cells[x].push({ x, y, color:  color  || "transparent" });
+                const color = layer.get(`${x}-${y}`);
+                cells[x].push({ x, y, color: color || "transparent" });
             }
         }
         return cells;
     }
-
 
     function getCells(index: number): CellData[][] {
         return cells[index];
@@ -88,11 +111,39 @@ export default function CanvasProvider({children}: React.PropsWithChildren) {
 
         // Update layer
         layer.set(`${x}-${y}`, currentColor);
-        layers.current[selectedLayerIndex] = layer
+        layers.current[selectedLayerIndex] = layer;
 
         // Update cells
         cells[selectedLayerIndex][x][y].color = currentColor;
         setCells([...cells]);
+    }
+
+    async function save() {
+        let _cells = getCells(selectedLayerIndex);
+        for (let x = 0; x < CANVAS_SIZE; x++) {
+            for (let y = 0; y < CANVAS_SIZE; y++) {
+                let cell = _cells[x][y];
+                const { r, g, b, a } = hexToRgba(cell.color);
+                _cells[x][y] = { ...cell, r, g, b, a };
+            }
+        }
+
+        // TODO: user can reopen and edit image, coordinates should come from existing document or 0,0
+        const image: Image = {
+            x: 0,
+            y: 0,
+            name: name,
+            width: CANVAS_SIZE,
+            height: CANVAS_SIZE,
+            data: JSON.stringify(_cells),
+        };
+
+        await postImage(image);
+        if (isSuccess) {
+            alert("Image saved successfully");
+        } else if (isError) {
+            alert("Failed to save image");
+        }
     }
 
     const initialValue: CanvasData = {
@@ -108,7 +159,10 @@ export default function CanvasProvider({children}: React.PropsWithChildren) {
         clearLayer,
         currentColor,
         setCurrentColor,
-        update: update,
+        update,
+        name,
+        setName,
+        save,
     };
 
     return (
@@ -124,4 +178,17 @@ export function useCanvas() {
         throw new Error("useCanvas must be used within a CanvasProvider");
     }
     return context;
+}
+
+function hexToRgba(hex: string) {
+    const bigint = parseInt(hex.slice(1), 16);
+    if (hex === "transparent") {
+        return { r: 0, g: 0, b: 0, a: 0 };
+    }
+    return {
+        r: (bigint >> 16) & 255,
+        g: (bigint >> 8) & 255,
+        b: bigint & 255,
+        a: 255,
+    };
 }
