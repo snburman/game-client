@@ -16,7 +16,7 @@ export default function PlainModal({ visible, setVisible, children }: Props) {
                 style={styles.modalContainer}
                 onPress={() => setVisible(false)}
             >
-                <View style={styles.modalContent}>{children}</View>
+                <Pressable style={styles.modalContent}>{children}</Pressable>
             </Pressable>
         </Modal>
     )
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         padding: 35,
         backgroundColor: "rgba(0, 0, 0, 0.6)",
-        zIndex: 100,
+        zIndex: 50,
         ...theme.shadow.small,
     },
     modalContent: {
@@ -41,5 +41,6 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         backgroundColor: "#FFFFFF",
         cursor: "auto",
+        zIndex: 100,
     }
 });

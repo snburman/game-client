@@ -5,6 +5,8 @@ import { GestureDetector, Gesture } from "react-native-gesture-handler";
 import { theme } from "@/app/_theme";
 import { Button } from "react-native-paper";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import PlainModal from "./modal";
+import { Input, Typography } from "@mui/joy";
 
 export default function Canvas({
     width,
@@ -174,20 +176,63 @@ export const EraserButton = () => {
 export const ClearButton = () => {
     const { clearLayer, selectedLayerIndex } = useCanvas();
     return (
-        <Button onPress={() => clearLayer(selectedLayerIndex)} style={styles.toolButton}>
+        <Button
+            onPress={() => clearLayer(selectedLayerIndex)}
+            style={styles.toolButton}
+        >
             <MaterialCommunityIcons name="delete" style={styles.toolIcon} />
         </Button>
     );
-}
+};
 
 export const SaveButton = () => {
-    const { save } = useCanvas();
+    const { save, name, setName } = useCanvas();
+    const [modalVisible, setModalVisible] = useState(false);
+
+    function handleSave() {
+        save();
+        setModalVisible(false);
+    }
+
     return (
-        <Button onPress={save} style={styles.toolButton}>
-            <MaterialCommunityIcons name="content-save" style={styles.toolIcon} />
-        </Button>
+        <>
+            <PlainModal visible={modalVisible} setVisible={setModalVisible}>
+                <Typography
+                    style={{ alignSelf: "flex-start", paddingBottom: 5 }}
+                >
+                    Title
+                </Typography>
+                <Input
+                    variant="outlined"
+                    onChange={(e) => setName(e.target.value)}
+                    value={name === "untitled" ? "" : name}
+                    placeholder={name}
+                    size="lg"
+                />
+                <View style={styles.modalButtonContainer}>
+                    <Button onPress={handleSave} style={styles.modalButton}>
+                        <Text>Save</Text>
+                    </Button>
+                    <Button
+                        onPress={() => setModalVisible(false)}
+                        style={styles.modalButton}
+                    >
+                        <Text>Cancel</Text>
+                    </Button>
+                </View>
+            </PlainModal>
+            <Button
+                onPress={() => setModalVisible(true)}
+                style={styles.toolButton}
+            >
+                <MaterialCommunityIcons
+                    name="content-save"
+                    style={styles.toolIcon}
+                />
+            </Button>
+        </>
     );
-}
+};
 
 const styles = StyleSheet.create({
     allLayersContainer: {
@@ -211,5 +256,17 @@ const styles = StyleSheet.create({
         fontWeight: "light",
         color: "rgba(0, 0, 0, 0.7)",
         padding: 0,
+    },
+    modalButtonContainer: {
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "center",
+        gap: 10,
+        marginTop: 10,
+    },
+    modalButton: {
+        backgroundColor: "#FFFFFF",
+        borderRadius: 5,
+        ...theme.shadow.small,
     },
 });

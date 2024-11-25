@@ -27,9 +27,9 @@ export default function RootLayout() {
                         }}
                         drawerContent={(props) => DrawerContent(props)}
                     >
-                        <Drawer.Screen name="index" />
-                        <Drawer.Screen name="create" />
-                        <Drawer.Screen name="game" />
+                        <Drawer.Screen name="index" options={{headerTitle: "Home"}}/>
+                        <Drawer.Screen name="create" options={{headerTitle: "Create"}}/>
+                        <Drawer.Screen name="game" options={{headerTitle: "Play"}}/>
                     </Drawer>
                 </SafeAreaProvider>
             </PaperProvider>
