@@ -5,9 +5,6 @@ export const imageSlice = createApi({
     reducerPath: "imageApi",
     baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:9191/game" }),
     endpoints: (builder) => ({
-        getImage: builder.query<Image, string>({
-            query: (name) => `pokemon/${name}`,
-        }),
         postImage: builder.mutation<Image, Image>({
             query: (newImage: Image) => ({
                 url: `/player/assets`,
@@ -18,4 +15,4 @@ export const imageSlice = createApi({
     }),
 });
 
-export const { useGetImageQuery, usePostImageMutation } = imageSlice;
+export const { usePostImageMutation } = imageSlice;
