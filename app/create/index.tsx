@@ -1,5 +1,10 @@
 import React, { useState } from "react";
-import Canvas, { ClearButton, EraserButton, GridButton, SaveButton } from "@/components/canvas";
+import Canvas, {
+    ClearButton,
+    EraserButton,
+    GridButton,
+    SaveButton,
+} from "@/components/canvas";
 import ColorPicker from "@/components/color_picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet, View } from "react-native";
@@ -8,13 +13,7 @@ import { CANVAS_SIZE } from "../context/canvas_context";
 export default function Draw() {
     const [modalVisible, setModalVisible] = useState(false);
     return (
-        <SafeAreaView
-            style={{
-                flex: 1,
-                justifyContent: "center",
-                alignItems: "center",
-            }}
-        >
+        <SafeAreaView style={styles.wrapper}>
             <View>
                 <Canvas width={CANVAS_SIZE} height={CANVAS_SIZE} />
                 <View style={styles.toolContainer}>
@@ -33,6 +32,11 @@ export default function Draw() {
 }
 
 const styles = StyleSheet.create({
+    wrapper: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+    },
     toolContainer: {
         display: "flex",
         flexDirection: "row",
@@ -40,5 +44,5 @@ const styles = StyleSheet.create({
         flexWrap: "wrap",
         width: "100%",
         marginTop: 15,
-    }
+    },
 });
