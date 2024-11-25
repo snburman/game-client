@@ -1,6 +1,5 @@
 import { theme } from "@/app/_theme";
 import { useCanvas } from "@/app/context/canvas_context";
-import { useState } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { Button } from "react-native-paper";
 
