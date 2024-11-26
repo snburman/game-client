@@ -5,7 +5,7 @@ import { GestureDetector, Gesture } from "react-native-gesture-handler";
 import { theme } from "@/app/_theme";
 import { Button } from "react-native-paper";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import PlainModal from "./modal";
+import PlainModal, { ConfirmModal, modalStyles } from "./modal";
 import { Input, Typography } from "@mui/joy";
 
 export default function Canvas({
@@ -175,13 +175,31 @@ export const EraserButton = () => {
 
 export const ClearButton = () => {
     const { clearLayer, selectedLayerIndex } = useCanvas();
+    const [modalVisible, setModalVisible] = useState(false);
+
+    function handlePress() {
+        setModalVisible(true);
+    }
+
+    function handleConfirm(confirm: boolean) {
+        if (confirm) {
+            clearLayer(selectedLayerIndex);
+        }
+        setModalVisible(false);
+    }
+
     return (
-        <Button
-            onPress={() => clearLayer(selectedLayerIndex)}
-            style={styles.toolButton}
-        >
-            <MaterialCommunityIcons name="delete" style={styles.toolIcon} />
-        </Button>
+        <>
+            <ConfirmModal
+                visible={modalVisible}
+                setVisible={setModalVisible}
+                onConfirm={handleConfirm}
+                message="Erase drawing?"
+            />
+            <Button onPress={handlePress} style={styles.toolButton}>
+                <MaterialCommunityIcons name="delete" style={styles.toolIcon} />
+            </Button>
+        </>
     );
 };
 
@@ -209,13 +227,16 @@ export const SaveButton = () => {
                     placeholder={name}
                     size="lg"
                 />
-                <View style={styles.modalButtonContainer}>
-                    <Button onPress={handleSave} style={styles.modalButton}>
+                <View style={modalStyles.modalButtonContainer}>
+                    <Button
+                        onPress={handleSave}
+                        style={modalStyles.modalButton}
+                    >
                         <Text>Save</Text>
                     </Button>
                     <Button
                         onPress={() => setModalVisible(false)}
-                        style={styles.modalButton}
+                        style={modalStyles.modalButton}
                     >
                         <Text>Cancel</Text>
                     </Button>
@@ -256,17 +277,5 @@ const styles = StyleSheet.create({
         fontWeight: "light",
         color: "rgba(0, 0, 0, 0.7)",
         padding: 0,
-    },
-    modalButtonContainer: {
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "center",
-        gap: 10,
-        marginTop: 10,
-    },
-    modalButton: {
-        backgroundColor: "#FFFFFF",
-        borderRadius: 5,
-        ...theme.shadow.small,
     },
 });
