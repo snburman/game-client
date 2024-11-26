@@ -36,6 +36,9 @@ type CanvasData = {
     name: string;
     setName: (name: string) => void;
     save: () => void;
+    fill: boolean;
+    setFill: (fill: boolean) => void;
+    fillColor: (x: number, y: number) => void;
 };
 
 const CanvasContext = createContext<CanvasData | undefined>(undefined);
@@ -53,6 +56,9 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     const [cellSize, setCellSize] = useState(20);
     const [grid, setGrid] = useState(true);
     const [name, setName] = useState("untitled");
+    const [fill, setFill] = useState(false);
+
+    // TODO: use isLoading and isError to show loading and error states
     const [postImage, { isLoading, isError, isSuccess }] =
         usePostImageMutation();
 
@@ -105,7 +111,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         if (!layer) {
             throw new Error(`Layer ${selectedLayerIndex} not found`);
         }
-        // Gesture handler will fire multiple times for the same cell
+        // Gesture handler should not fire multiple times for the same cell
         const cell_color = layer.get(`${x}-${y}`);
         if (cell_color === currentColor) return;
 
@@ -115,6 +121,41 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
 
         // Update cells
         cells[selectedLayerIndex][x][y].color = currentColor;
+        setCells([...cells]);
+    }
+
+    // bucket tool implementation using flood fill algorithm
+    function fillColor(x: number, y: number){
+        const layer = layers.current[selectedLayerIndex];
+        if (!layer) {
+            throw new Error(`Layer ${selectedLayerIndex} not found`);
+        }
+        
+        const target_color = layer.get(`${x}-${y}`);
+        // get adjacent cells
+        const queue = [{x, y}];
+        while(queue.length > 0){
+            let {x, y} = queue.shift()!;
+            // if not iniside canvas, continue
+            if(x < 0 || y < 0 || x >= CANVAS_SIZE || y >= CANVAS_SIZE) continue;
+            // if not target color, continue
+            const cell_color = layer.get(`${x}-${y}`);
+            if(cell_color !== target_color) continue;
+            // if already painted with current color, continue
+            if(cell_color === currentColor) continue;
+            
+            // update cell
+            layer.set(`${x}-${y}`, currentColor);
+            cells[selectedLayerIndex][x][y].color = currentColor;
+            
+            // add adjacent cells
+            // west, east, north, south
+            if(x > 0) queue.push({x: x-1, y});
+            if(x < CANVAS_SIZE - 1) queue.push({x: x+1, y});
+            if(y > 0) queue.push({x, y: y-1});
+            if(y < CANVAS_SIZE - 1) queue.push({x, y: y+1});
+        }
+        layers.current[selectedLayerIndex] = layer;
         setCells([...cells]);
     }
 
@@ -163,6 +204,9 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         name,
         setName,
         save,
+        fill,
+        setFill,
+        fillColor,
     };
 
     return (

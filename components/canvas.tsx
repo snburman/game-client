@@ -8,6 +8,7 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import PlainModal, { ConfirmModal, modalStyles } from "./modal";
 import { Input, Typography } from "@mui/joy";
 
+// Canvas component represents the drawing area containing width * height pixels
 export default function Canvas({
     width,
     height,
@@ -15,7 +16,7 @@ export default function Canvas({
     width: number;
     height: number;
 }) {
-    const { update, layers } = useCanvas();
+    const { update, fill, fillColor, layers, cellSize } = useCanvas();
 
     const longPress = Gesture.LongPress()
         .minDuration(0)
@@ -43,9 +44,13 @@ export default function Canvas({
 
     function handleGesture(x: number, y: number) {
         if (x < 0 || y < 0) return;
-        if (x > width * 20 || y > height * 20) return;
-        const _x = Math.floor(y / 20);
-        const _y = Math.floor(x / 20);
+        if (x > width * cellSize || y > height * cellSize) return;
+        const _x = Math.floor(y / cellSize);
+        const _y = Math.floor(x / cellSize);
+        if (fill) {
+            fillColor(_x, _y);
+            return;
+        }
         update(_x, _y);
     }
 
@@ -65,6 +70,8 @@ export default function Canvas({
     );
 }
 
+// Layer component represents a single layer of the canvas
+// Multiple layers are currently slated for future development
 const Layer = (props: { index: number; width: number; height: number }) => {
     const { index, width, height } = props;
     const { cells, getCells, cellSize } = useCanvas();
@@ -82,7 +89,7 @@ const Layer = (props: { index: number; width: number; height: number }) => {
             {_cells.map((row, x) =>
                 row.map((cell, y) => (
                     <Pressable style={{ zIndex: index }} key={`${x}-${y}`}>
-                        <Cell
+                        <Pixel
                             x={cell.x}
                             y={cell.y}
                             color={cell.color}
@@ -96,7 +103,8 @@ const Layer = (props: { index: number; width: number; height: number }) => {
     );
 };
 
-const Cell = ({
+// Pixel component represents a single pixel on the canvas of dimensions width * height
+const Pixel = ({
     x,
     y,
     color,
@@ -126,6 +134,11 @@ const Cell = ({
     );
 };
 
+///////////////////////////////////////////////////////////////////////////
+// Tool Buttons
+// Buttons used to control the canvas, displayed in the toolbar
+///////////////////////////////////////////////////////////////////////////
+
 // Grid button controls the visibility of the canvas grid
 export const GridButton = () => {
     const { grid, setGrid } = useCanvas();
@@ -136,12 +149,13 @@ export const GridButton = () => {
         <MaterialCommunityIcons name="grid-off" style={styles.toolIcon} />
     );
     return (
-        <Button onPress={() => setGrid(!grid)} style={styles.toolButton}>
+        <Pressable onPress={() => setGrid(!grid)} style={styles.toolButton}>
             {grid ? gridOn : gridOff}
-        </Button>
+        </Pressable>
     );
 };
 
+// Eraser button toggles between eraser and previous color
 export const EraserButton = () => {
     const { currentColor, setCurrentColor } = useCanvas();
     const [previousColor, setPreviousColor] = useState(currentColor);
@@ -156,7 +170,7 @@ export const EraserButton = () => {
     }
 
     return (
-        <Button
+        <Pressable
             onPress={handlePress}
             style={[
                 styles.toolButton,
@@ -169,10 +183,11 @@ export const EraserButton = () => {
             ]}
         >
             <MaterialCommunityIcons name="eraser" style={styles.toolIcon} />
-        </Button>
+        </Pressable>
     );
 };
 
+// Clear button erases the canvas
 export const ClearButton = () => {
     const { clearLayer, selectedLayerIndex } = useCanvas();
     const [modalVisible, setModalVisible] = useState(false);
@@ -196,9 +211,9 @@ export const ClearButton = () => {
                 onConfirm={handleConfirm}
                 message="Erase drawing?"
             />
-            <Button onPress={handlePress} style={styles.toolButton}>
+            <Pressable onPress={handlePress} style={styles.toolButton}>
                 <MaterialCommunityIcons name="delete" style={styles.toolIcon} />
-            </Button>
+            </Pressable>
         </>
     );
 };
@@ -242,7 +257,7 @@ export const SaveButton = () => {
                     </Button>
                 </View>
             </PlainModal>
-            <Button
+            <Pressable
                 onPress={() => setModalVisible(true)}
                 style={styles.toolButton}
             >
@@ -250,8 +265,31 @@ export const SaveButton = () => {
                     name="content-save"
                     style={styles.toolIcon}
                 />
-            </Button>
+            </Pressable>
         </>
+    );
+};
+
+export const FillButton = () => {
+    const { selectedLayerIndex, fill, setFill } = useCanvas();
+    // const { fill, selectedLayerIndex } = useCanvas();
+
+    return (
+        <Pressable
+            onPress={() => setFill(!fill)}
+            // onPress={() => fill(selectedLayerIndex)}
+            style={[
+                styles.toolButton,
+                {
+                    backgroundColor: fill ? "rgba(0,0,0,0.2)" : "#FFFFFF",
+                },
+            ]}
+        >
+            <MaterialCommunityIcons
+                name="format-color-fill"
+                style={[styles.toolIcon, { paddingTop: 5 }]}
+            />
+        </Pressable>
     );
 };
 
@@ -266,15 +304,18 @@ const styles = StyleSheet.create({
         flexWrap: "wrap",
     },
     toolButton: {
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
         height: 50,
         width: 50,
         backgroundColor: "#FFFFFF",
         borderRadius: 5,
+        marginBottom: 5,
         ...theme.shadow.small,
     },
     toolIcon: {
         fontSize: 35,
-        fontWeight: "light",
         color: "rgba(0, 0, 0, 0.7)",
         padding: 0,
     },

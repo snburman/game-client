@@ -61,7 +61,7 @@ export const modalStyles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        padding: 35,
+        padding: 50,
         backgroundColor: "rgba(0, 0, 0, 0.6)",
         zIndex: 50,
         ...theme.shadow.small,
