@@ -1,8 +1,12 @@
 import { usePostImageMutation } from "@/redux/image.slice";
 import { createContext, useContext, useRef, useState } from "react";
 import { Image } from "@/redux/models/image.model";
+import cloneDeep from "lodash/cloneDeep";
 
 export const CANVAS_SIZE = 16;
+export const CELL_SIZE = 20;
+export const DEFAULT_COLOR = "#000000";
+export const DEFAULT_NAME = "untitled";
 
 export type LayerMap = Map<string, string>;
 
@@ -33,35 +37,58 @@ type CanvasData = {
     currentColor: string;
     setCurrentColor: (color: string) => void;
     update: (x: number, y: number) => void;
+    // Name of the image
     name: string;
     setName: (name: string) => void;
     save: () => void;
     fill: boolean;
     setFill: (fill: boolean) => void;
     fillColor: (x: number, y: number) => void;
+    undo: () => void;
+    redo: () => void;
+    isPressed: boolean;
+    setIsPressed: (pressed: boolean) => void;
 };
 
 const CanvasContext = createContext<CanvasData | undefined>(undefined);
 
 export default function CanvasProvider({ children }: React.PropsWithChildren) {
-    const [currentColor, setCurrentColor] = useState("#000000");
+    //////////////////////////////////////////
+    // Config
+    //////////////////////////////////////////
+    const [cellSize, setCellSize] = useState(CELL_SIZE);
+    const [name, setName] = useState(DEFAULT_NAME);
+
+    //////////////////////////////////////////
+    // Canvas State
+    //////////////////////////////////////////
     // initialize with a single layer
     const layers = useRef<LayerMap[]>([
         generateLayer(CANVAS_SIZE, CANVAS_SIZE),
     ]);
-    const [selectedLayerIndex, setSelectedLayerIndex] = useState(0);
     const [cells, setCells] = useState<Array<CellData[][]>>([
         generateCellsFromLayer(layers.current[0], CANVAS_SIZE, CANVAS_SIZE),
     ]);
-    const [cellSize, setCellSize] = useState(20);
+    
+    //////////////////////////////////////////
+    // Tool button state
+    //////////////////////////////////////////
+    const [currentColor, setCurrentColor] = useState(DEFAULT_COLOR);
     const [grid, setGrid] = useState(true);
-    const [name, setName] = useState("untitled");
     const [fill, setFill] = useState(false);
 
-    // TODO: use isLoading and isError to show loading and error states
-    const [postImage, { isLoading, isError, isSuccess }] =
-        usePostImageMutation();
+    //////////////////////////////////////////
+    // Layer state
+    //////////////////////////////////////////
+    const [layerHistory, setLayerHistory] = useState<LayerMap[][]>([layers.current]);
+    const [selectedLayerIndex, setSelectedLayerIndex] = useState(0);
+    const [historyIndex, setHistoryIndex] = useState(0);
+    // state to track continuous drawing which should only trigger addLayerHistory once
+    const [isPressed, setIsPressed] = useState(false);
 
+    //////////////////////////////////////////
+    // Layer management
+    //////////////////////////////////////////
     function generateLayer(width: number, height: number): Map<string, string> {
         const layer = new Map();
         for (let x = 0; x < width; x++) {
@@ -102,6 +129,49 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         return cells;
     }
 
+    //////////////////////////////////////////
+    // Layer history
+    //////////////////////////////////////////
+
+    function addLayerHistory() {
+        const history = cloneDeep(layerHistory).splice(0, historyIndex + 1);
+        history.push(layers.current);
+        setLayerHistory(history);
+        setHistoryIndex(historyIndex + 1);
+    }
+
+    function undo() {
+        console.log("undo")
+        console.log("history length: " + layerHistory.length)
+        console.log("history index: " + historyIndex)
+        if (historyIndex === 0) return;
+        layers.current = layerHistory[historyIndex -1];
+        const _cells = generateCellsFromLayer(
+            layers.current[selectedLayerIndex],
+            CANVAS_SIZE,
+            CANVAS_SIZE,
+        );
+        if(historyIndex !== 0) {
+            setHistoryIndex(historyIndex - 1);
+        }
+        setCells([_cells]);
+    }
+
+    function redo() {
+        if (historyIndex === layerHistory.length - 1) return;
+        setHistoryIndex(historyIndex + 1);
+        layers.current = layerHistory[historyIndex + 1];
+        const _cells = generateCellsFromLayer(
+            layers.current[selectedLayerIndex],
+            CANVAS_SIZE,
+            CANVAS_SIZE
+        );
+        setCells([_cells]);
+    }
+
+    //////////////////////////////////////////
+    // Cell manipulation
+    //////////////////////////////////////////
     function getCells(index: number): CellData[][] {
         return cells[index];
     }
@@ -111,54 +181,63 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         if (!layer) {
             throw new Error(`Layer ${selectedLayerIndex} not found`);
         }
-        // Gesture handler should not fire multiple times for the same cell
+        // gesture handler should not fire multiple times for the same cell
         const cell_color = layer.get(`${x}-${y}`);
         if (cell_color === currentColor) return;
 
-        // Update layer
+        // history should only be added once for continuous drawing
+        if(!isPressed) addLayerHistory();
+        setIsPressed(true);
+
+        // update layer
         layer.set(`${x}-${y}`, currentColor);
         layers.current[selectedLayerIndex] = layer;
 
-        // Update cells
+        // update cells
         cells[selectedLayerIndex][x][y].color = currentColor;
         setCells([...cells]);
     }
 
     // bucket tool implementation using flood fill algorithm
-    function fillColor(x: number, y: number){
+    function fillColor(x: number, y: number) {
         const layer = layers.current[selectedLayerIndex];
         if (!layer) {
             throw new Error(`Layer ${selectedLayerIndex} not found`);
         }
-        
+
         const target_color = layer.get(`${x}-${y}`);
         // get adjacent cells
-        const queue = [{x, y}];
-        while(queue.length > 0){
-            let {x, y} = queue.shift()!;
+        const queue = [{ x, y }];
+        while (queue.length > 0) {
+            let { x, y } = queue.shift()!;
             // if not iniside canvas, continue
-            if(x < 0 || y < 0 || x >= CANVAS_SIZE || y >= CANVAS_SIZE) continue;
+            if (x < 0 || y < 0 || x >= CANVAS_SIZE || y >= CANVAS_SIZE)
+                continue;
             // if not target color, continue
             const cell_color = layer.get(`${x}-${y}`);
-            if(cell_color !== target_color) continue;
+            if (cell_color !== target_color) continue;
             // if already painted with current color, continue
-            if(cell_color === currentColor) continue;
-            
+            if (cell_color === currentColor) continue;
+
             // update cell
             layer.set(`${x}-${y}`, currentColor);
             cells[selectedLayerIndex][x][y].color = currentColor;
-            
+
             // add adjacent cells
             // west, east, north, south
-            if(x > 0) queue.push({x: x-1, y});
-            if(x < CANVAS_SIZE - 1) queue.push({x: x+1, y});
-            if(y > 0) queue.push({x, y: y-1});
-            if(y < CANVAS_SIZE - 1) queue.push({x, y: y+1});
+            if (x > 0) queue.push({ x: x - 1, y });
+            if (x < CANVAS_SIZE - 1) queue.push({ x: x + 1, y });
+            if (y > 0) queue.push({ x, y: y - 1 });
+            if (y < CANVAS_SIZE - 1) queue.push({ x, y: y + 1 });
         }
+        addLayerHistory();
         layers.current[selectedLayerIndex] = layer;
         setCells([...cells]);
     }
 
+    //////////////////////////////////////////
+    // API calls
+    //////////////////////////////////////////
     async function save() {
         let _cells = getCells(selectedLayerIndex);
         for (let x = 0; x < CANVAS_SIZE; x++) {
@@ -179,6 +258,9 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
             data: JSON.stringify(_cells),
         };
 
+        // TODO: use isLoading and isError to show loading and error states
+        const [postImage, { isLoading, isSuccess, isError }] =
+            usePostImageMutation();
         await postImage(image);
         if (isSuccess) {
             alert("Image saved successfully");
@@ -207,6 +289,10 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         fill,
         setFill,
         fillColor,
+        undo,
+        redo,
+        isPressed,
+        setIsPressed, 
     };
 
     return (

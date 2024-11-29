@@ -16,13 +16,24 @@ export default function Canvas({
     width: number;
     height: number;
 }) {
-    const { update, fill, fillColor, layers, cellSize } = useCanvas();
+    const {
+        update,
+        fill,
+        fillColor,
+        layers,
+        cellSize,
+        isPressed,
+        setIsPressed,
+    } = useCanvas();
 
     const longPress = Gesture.LongPress()
         .minDuration(0)
         .onStart((event) => {
             const { x, y } = event;
             handleGesture(x, y);
+        })
+        .onEnd(() => {
+            setIsPressed(false);
         });
 
     const pan = Gesture.Pan()
@@ -30,15 +41,22 @@ export default function Canvas({
             const { x, y } = event;
             handleGesture(x, y);
         })
+        .onEnd(() => {
+            setIsPressed(false);
+        })
         .onChange((event) => {
             const { x, y } = event;
             handleGesture(x, y);
         });
 
-    const tap = Gesture.Tap().onStart((event) => {
-        const { x, y } = event;
-        handleGesture(x, y);
-    });
+    const tap = Gesture.Tap()
+        .onStart((event) => {
+            const { x, y } = event;
+            handleGesture(x, y);
+        })
+        .onEnd(() => {
+            setIsPressed(false);
+        });
 
     const gesture = Gesture.Simultaneous(tap, pan, longPress);
 
@@ -76,7 +94,10 @@ const Layer = (props: { index: number; width: number; height: number }) => {
     const { index, width, height } = props;
     const { cells, getCells, cellSize } = useCanvas();
 
-    const _cells = useCallback(() => getCells(index), [cells[index], index])();
+    const _cells = useCallback(() => {
+        console.log("getCells callback");
+        return getCells(index);
+    }, [cells[index], index])();
 
     if (!_cells) return null;
     return (
@@ -89,7 +110,7 @@ const Layer = (props: { index: number; width: number; height: number }) => {
             {_cells.map((row, x) =>
                 row.map((cell, y) => (
                     <Pressable style={{ zIndex: index }} key={`${x}-${y}`}>
-                        <Pixel
+                        <Cell
                             x={cell.x}
                             y={cell.y}
                             color={cell.color}
@@ -103,8 +124,8 @@ const Layer = (props: { index: number; width: number; height: number }) => {
     );
 };
 
-// Pixel component represents a single pixel on the canvas of dimensions width * height
-const Pixel = ({
+// Cell component represents a single pixel on the canvas of dimensions width * height
+const Cell = ({
     x,
     y,
     color,
@@ -270,6 +291,7 @@ export const SaveButton = () => {
     );
 };
 
+// Fill button toggles the bucket fill tool
 export const FillButton = () => {
     const { selectedLayerIndex, fill, setFill } = useCanvas();
     // const { fill, selectedLayerIndex } = useCanvas();
@@ -289,6 +311,26 @@ export const FillButton = () => {
                 name="format-color-fill"
                 style={[styles.toolIcon, { paddingTop: 5 }]}
             />
+        </Pressable>
+    );
+};
+
+export const UndoButton = () => {
+    const { undo } = useCanvas();
+
+    return (
+        <Pressable onPress={undo} style={styles.toolButton}>
+            <MaterialCommunityIcons name="undo" style={styles.toolIcon} />
+        </Pressable>
+    );
+};
+
+export const RedoButton = () => {
+    const { redo } = useCanvas();
+
+    return (
+        <Pressable onPress={redo} style={styles.toolButton}>
+            <MaterialCommunityIcons name="redo" style={styles.toolIcon} />
         </Pressable>
     );
 };

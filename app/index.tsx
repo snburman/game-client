@@ -1,11 +1,10 @@
-import { StyleSheet, Text } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { StyleSheet, Text, View } from "react-native";
 
 export default function Index() {
     return (
-        <SafeAreaView style={styles.wrapper}>
+        <View>
             <Text>Home</Text>
-        </SafeAreaView>
+        </View>
     );
 }
 

@@ -1,7 +1,6 @@
 import { DrawerContentComponentProps } from "@react-navigation/drawer";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function DrawerContent(props: DrawerContentComponentProps) {
     const { navigation } = props;
@@ -11,11 +10,11 @@ export default function DrawerContent(props: DrawerContentComponentProps) {
     }
 
     return (
-        <SafeAreaView style={styles.buttonContainer}>
+        <View style={styles.buttonContainer}>
             <DrawerButton text="Home" onPress={() => handlePress("index")}/>
             <DrawerButton text="Create" onPress={() => handlePress("create")}/>
             <DrawerButton text="Play" onPress={() => handlePress("game")}/>
-        </SafeAreaView>
+        </View>
     );
 }
 

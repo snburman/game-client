@@ -1,38 +1,34 @@
-import { useMobile } from "@/hooks/useMobile";
-import { Drawer } from "expo-router/drawer";
-import DrawerContent from "@/components/drawer_content";
 import { PaperProvider } from "react-native-paper";
-import { theme } from "./_theme";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import CanvasProvider from "./context/canvas_context";
 import { Provider as ReduxProvider } from "react-redux";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import Index from ".";
+import Create from "./create";
+import Game from "./game";
 import { store } from "@/redux/store";
-
+import { View } from "react-native";
+import { Text } from "react-native";
+import { theme } from "./_theme";
+function _Index() {
+    return (
+        <View>
+            <Text>Home</Text>
+        </View>
+    );
+}
+const Tabs = createBottomTabNavigator();
 export default function RootLayout() {
-    const isMobile = useMobile();
-
     return (
         <ReduxProvider store={store}>
-            <PaperProvider theme={theme}>
-                <SafeAreaProvider>
-                    <Drawer
-                        initialRouteName="create"
-                        screenOptions={{
-                            drawerType: isMobile ? "slide" : "permanent",
-                            drawerPosition: "left",
-                            drawerStyle: {
-                                borderRightWidth: 0,
-                                ...theme.shadow.small,
-                            },
-                            headerShown: isMobile,
-                        }}
-                        drawerContent={(props) => DrawerContent(props)}
-                    >
-                        <Drawer.Screen name="index" options={{headerTitle: "Home"}}/>
-                        <Drawer.Screen name="create" options={{headerTitle: "Create"}}/>
-                        <Drawer.Screen name="game" options={{headerTitle: "Play"}}/>
-                    </Drawer>
-                </SafeAreaProvider>
-            </PaperProvider>
+            <CanvasProvider>
+                <PaperProvider theme={theme}>
+                    <Tabs.Navigator>
+                        <Tabs.Screen name="index" component={_Index} />
+                        <Tabs.Screen name="create" component={Create} />
+                        <Tabs.Screen name="game" component={Game} />
+                    </Tabs.Navigator>
+                </PaperProvider>
+            </CanvasProvider>
         </ReduxProvider>
     );
 }
