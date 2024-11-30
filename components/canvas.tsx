@@ -22,7 +22,6 @@ export default function Canvas({
         fillColor,
         layers,
         cellSize,
-        isPressed,
         setIsPressed,
     } = useCanvas();
 

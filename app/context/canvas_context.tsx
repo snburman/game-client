@@ -69,7 +69,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     const [cells, setCells] = useState<Array<CellData[][]>>([
         generateCellsFromLayer(layers.current[0], CANVAS_SIZE, CANVAS_SIZE),
     ]);
-    
+
     //////////////////////////////////////////
     // Tool button state
     //////////////////////////////////////////
@@ -80,7 +80,9 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     //////////////////////////////////////////
     // Layer state
     //////////////////////////////////////////
-    const [layerHistory, setLayerHistory] = useState<LayerMap[][]>([layers.current]);
+    const [layerHistory, setLayerHistory] = useState<LayerMap[][]>(
+        cloneDeep([layers.current])
+    );
     const [selectedLayerIndex, setSelectedLayerIndex] = useState(0);
     const [historyIndex, setHistoryIndex] = useState(0);
     // state to track continuous drawing which should only trigger addLayerHistory once
@@ -141,19 +143,18 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     }
 
     function undo() {
-        console.log("undo")
-        console.log("history length: " + layerHistory.length)
-        console.log("history index: " + historyIndex)
+        console.log("undo");
+        console.log("history length: " + layerHistory.length);
+        console.log("history index: " + historyIndex);
+        console.log(layerHistory);
         if (historyIndex === 0) return;
-        layers.current = layerHistory[historyIndex -1];
+        layers.current = layerHistory[historyIndex - 1];
         const _cells = generateCellsFromLayer(
             layers.current[selectedLayerIndex],
             CANVAS_SIZE,
             CANVAS_SIZE,
         );
-        if(historyIndex !== 0) {
-            setHistoryIndex(historyIndex - 1);
-        }
+        setHistoryIndex(historyIndex - 1);
         setCells([_cells]);
     }
 
@@ -177,7 +178,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     }
 
     function update(x: number, y: number) {
-        const layer = layers.current[selectedLayerIndex];
+        const layer = cloneDeep(layers.current[selectedLayerIndex]);
         if (!layer) {
             throw new Error(`Layer ${selectedLayerIndex} not found`);
         }
@@ -186,7 +187,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         if (cell_color === currentColor) return;
 
         // history should only be added once for continuous drawing
-        if(!isPressed) addLayerHistory();
+        if (!isPressed) addLayerHistory();
         setIsPressed(true);
 
         // update layer
@@ -200,17 +201,23 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
 
     // bucket tool implementation using flood fill algorithm
     function fillColor(x: number, y: number) {
-        const layer = layers.current[selectedLayerIndex];
+        console.log("fill");
+        console.log("history length: " + layerHistory.length);
+        console.log("history index: " + historyIndex);
+        console.log(layerHistory);
+        const layer = cloneDeep(layers.current[selectedLayerIndex]);
         if (!layer) {
             throw new Error(`Layer ${selectedLayerIndex} not found`);
         }
 
         const target_color = layer.get(`${x}-${y}`);
+        if(target_color === currentColor) return;
+
         // get adjacent cells
         const queue = [{ x, y }];
         while (queue.length > 0) {
             let { x, y } = queue.shift()!;
-            // if not iniside canvas, continue
+            // if not inside canvas, continue
             if (x < 0 || y < 0 || x >= CANVAS_SIZE || y >= CANVAS_SIZE)
                 continue;
             // if not target color, continue
@@ -230,7 +237,10 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
             if (y > 0) queue.push({ x, y: y - 1 });
             if (y < CANVAS_SIZE - 1) queue.push({ x, y: y + 1 });
         }
-        addLayerHistory();
+        if (!isPressed) {
+            addLayerHistory();
+        }
+        setIsPressed(true);
         layers.current[selectedLayerIndex] = layer;
         setCells([...cells]);
     }
@@ -292,7 +302,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         undo,
         redo,
         isPressed,
-        setIsPressed, 
+        setIsPressed,
     };
 
     return (

@@ -17,20 +17,29 @@ export default function Create() {
     const { cellSize } = useCanvas();
     return (
         <View style={styles.wrapper}>
-                <Canvas width={CANVAS_SIZE} height={CANVAS_SIZE} />
-                <View style={[styles.toolContainer, {width: cellSize * CANVAS_SIZE}]}>
+            <Canvas width={CANVAS_SIZE} height={CANVAS_SIZE} />
+            <View
+                style={[
+                    styles.toolContainer,
+                    { width: cellSize * CANVAS_SIZE },
+                ]}
+            >
+                <View style={styles.toolButtonCompartment}>
                     <SaveButton />
                     <ClearButton />
-                    <GridButton />
                     <EraserButton />
                     <ColorPicker
                         visible={modalVisible}
                         setVisible={setModalVisible}
                     />
-                    <FillButton />
+                </View>
+                <View style={styles.toolButtonCompartment}>
                     <UndoButton />
                     <RedoButton />
+                    <FillButton />
+                    <GridButton />
                 </View>
+            </View>
         </View>
     );
 }
@@ -43,11 +52,16 @@ const styles = StyleSheet.create({
     },
     toolContainer: {
         display: "flex",
-        flexDirection: "row",
-        justifyContent: "space-between",
-        gap: 5,
-        flexWrap: "wrap",
+        flexDirection: "column",
+        gap: 10,
         width: "100%",
         marginTop: 15,
+    },
+    toolButtonCompartment: {
+        flex: 1,
+        flexDirection: 'row',
+        justifyContent: "space-evenly",
+        gap: 5,
+        flexWrap: 'wrap',
     },
 });
