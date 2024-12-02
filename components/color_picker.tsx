@@ -10,7 +10,15 @@ export default function ColorSelector({
     visible: boolean;
     setVisible: (visible: boolean) => void;
 }) {
-    const { currentColor, setCurrentColor } = useCanvas();
+    const { currentColor, setCurrentColor, previousColor } =
+        useCanvas();
+
+    function handlePressColorIndicator() {
+        if(currentColor === 'transparent' && previousColor !== 'transparent') {
+            setCurrentColor(previousColor)
+        }
+        setVisible(true);
+    }
 
     function handleSelectColor(color: string) {
         setCurrentColor(color);
@@ -19,7 +27,7 @@ export default function ColorSelector({
 
     return (
         <>
-            <Pressable onPress={() => setVisible(true)}>
+            <Pressable onPress={handlePressColorIndicator}>
                 <View
                     style={[styles.preview, { backgroundColor: currentColor }]}
                 />
@@ -45,7 +53,10 @@ export default function ColorSelector({
                                 </Pressable>
                             ))}
                         </View>
-                        <Button style={styles.button} onPress={() => setVisible(false)}>
+                        <Button
+                            style={styles.button}
+                            onPress={() => setVisible(false)}
+                        >
                             <Text>Close</Text>
                         </Button>
                     </View>

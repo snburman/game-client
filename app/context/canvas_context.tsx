@@ -1,5 +1,12 @@
 import { usePostImageMutation } from "@/redux/image.slice";
-import { createContext, useContext, useRef, useState } from "react";
+import {
+    createContext,
+    useCallback,
+    useContext,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import { Image } from "@/redux/models/image.model";
 import cloneDeep from "lodash/cloneDeep";
 
@@ -36,6 +43,8 @@ type CanvasData = {
     clearLayer: (index: number) => void;
     currentColor: string;
     setCurrentColor: (color: string) => void;
+    previousColor: string;
+    setPreviousColor: (color: string) => void;
     update: (x: number, y: number) => void;
     // Name of the image
     name: string;
@@ -44,6 +53,8 @@ type CanvasData = {
     fill: boolean;
     setFill: (fill: boolean) => void;
     fillColor: (x: number, y: number) => void;
+    canUndo: boolean;
+    canRedo: boolean;
     undo: () => void;
     redo: () => void;
     isPressed: boolean;
@@ -74,6 +85,8 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     // Tool button state
     //////////////////////////////////////////
     const [currentColor, setCurrentColor] = useState(DEFAULT_COLOR);
+    const [previousColor, setPreviousColor] = useState(DEFAULT_COLOR);
+    console.log(currentColor);
     const [grid, setGrid] = useState(true);
     const [fill, setFill] = useState(false);
 
@@ -112,6 +125,8 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
             CANVAS_SIZE,
             CANVAS_SIZE
         );
+        setLayerHistory(cloneDeep([layers.current]))
+        setHistoryIndex(0);
         setCells([...cells]);
     }
 
@@ -142,24 +157,26 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         setHistoryIndex(historyIndex + 1);
     }
 
+    const canUndo = useMemo(() => !(historyIndex === 0), [historyIndex]);
+    const canRedo = useMemo(
+        () => !(historyIndex === layerHistory.length - 1),
+        [historyIndex, layerHistory.length]
+    );
+
     function undo() {
-        console.log("undo");
-        console.log("history length: " + layerHistory.length);
-        console.log("history index: " + historyIndex);
-        console.log(layerHistory);
-        if (historyIndex === 0) return;
+        if (!canUndo) return;
         layers.current = layerHistory[historyIndex - 1];
         const _cells = generateCellsFromLayer(
             layers.current[selectedLayerIndex],
             CANVAS_SIZE,
-            CANVAS_SIZE,
+            CANVAS_SIZE
         );
         setHistoryIndex(historyIndex - 1);
         setCells([_cells]);
     }
 
     function redo() {
-        if (historyIndex === layerHistory.length - 1) return;
+        if (!canRedo) return;
         setHistoryIndex(historyIndex + 1);
         layers.current = layerHistory[historyIndex + 1];
         const _cells = generateCellsFromLayer(
@@ -201,17 +218,13 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
 
     // bucket tool implementation using flood fill algorithm
     function fillColor(x: number, y: number) {
-        console.log("fill");
-        console.log("history length: " + layerHistory.length);
-        console.log("history index: " + historyIndex);
-        console.log(layerHistory);
         const layer = cloneDeep(layers.current[selectedLayerIndex]);
         if (!layer) {
             throw new Error(`Layer ${selectedLayerIndex} not found`);
         }
 
         const target_color = layer.get(`${x}-${y}`);
-        if(target_color === currentColor) return;
+        if (target_color === currentColor) return;
 
         // get adjacent cells
         const queue = [{ x, y }];
@@ -292,6 +305,8 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         clearLayer,
         currentColor,
         setCurrentColor,
+        previousColor,
+        setPreviousColor,
         update,
         name,
         setName,
@@ -299,6 +314,8 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         fill,
         setFill,
         fillColor,
+        canUndo,
+        canRedo,
         undo,
         redo,
         isPressed,

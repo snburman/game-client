@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useCanvas } from "@/app/context/canvas_context";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
@@ -16,14 +16,8 @@ export default function Canvas({
     width: number;
     height: number;
 }) {
-    const {
-        update,
-        fill,
-        fillColor,
-        layers,
-        cellSize,
-        setIsPressed,
-    } = useCanvas();
+    const { update, fill, fillColor, layers, cellSize, setIsPressed } =
+        useCanvas();
 
     const longPress = Gesture.LongPress()
         .minDuration(0)
@@ -177,8 +171,8 @@ export const GridButton = () => {
 
 // Eraser button toggles between eraser and previous color
 export const EraserButton = () => {
-    const { currentColor, setCurrentColor } = useCanvas();
-    const [previousColor, setPreviousColor] = useState(currentColor);
+    const { currentColor, setCurrentColor, previousColor, setPreviousColor } =
+        useCanvas();
 
     function handlePress() {
         if (currentColor !== "transparent") {
@@ -202,7 +196,10 @@ export const EraserButton = () => {
                 },
             ]}
         >
-            <MaterialCommunityIcons name="eraser" style={styles.toolIcon} />
+            <MaterialCommunityIcons
+                name="eraser"
+                style={[styles.toolIcon, { color: "#E771AB" }]}
+            />
         </Pressable>
     );
 };
@@ -232,7 +229,10 @@ export const ClearButton = () => {
                 message="Erase drawing?"
             />
             <Pressable onPress={handlePress} style={styles.toolButton}>
-                <MaterialCommunityIcons name="delete" style={styles.toolIcon} />
+                <MaterialCommunityIcons
+                    name="delete"
+                    style={[styles.toolIcon, { color: "#D2042D" }]}
+                />
             </Pressable>
         </>
     );
@@ -283,7 +283,7 @@ export const SaveButton = () => {
             >
                 <MaterialCommunityIcons
                     name="content-save"
-                    style={styles.toolIcon}
+                    style={[styles.toolIcon, { color: "#138007" }]}
                 />
             </Pressable>
         </>
@@ -292,44 +292,59 @@ export const SaveButton = () => {
 
 // Fill button toggles the bucket fill tool
 export const FillButton = () => {
-    const { selectedLayerIndex, fill, setFill } = useCanvas();
-    // const { fill, selectedLayerIndex } = useCanvas();
+    const { fill, setFill, currentColor } = useCanvas();
+
+    const iconColor = useMemo(() => {
+        if (currentColor === "transparent") return "rgba(0,0,0,0.3)";
+        return currentColor;
+    }, [currentColor]);
 
     return (
         <Pressable
             onPress={() => setFill(!fill)}
-            // onPress={() => fill(selectedLayerIndex)}
             style={[
                 styles.toolButton,
                 {
-                    backgroundColor: fill ? "rgba(0,0,0,0.2)" : "#FFFFFF",
+                    backgroundColor: fill ? "rgba(0,0,0,0.4)" : "#FFFFFF",
                 },
             ]}
         >
             <MaterialCommunityIcons
                 name="format-color-fill"
-                style={[styles.toolIcon, { paddingTop: 5 }]}
+                style={[styles.toolIcon, { paddingTop: 5, color: iconColor }]}
             />
         </Pressable>
     );
 };
 
 export const UndoButton = () => {
-    const { undo } = useCanvas();
+    const { canUndo, undo } = useCanvas();
 
     return (
-        <Pressable onPress={undo} style={styles.toolButton}>
-            <MaterialCommunityIcons name="undo" style={styles.toolIcon} />
+        <Pressable onPress={undo} style={styles.toolButton} disabled={!canUndo}>
+            <MaterialCommunityIcons
+                name="undo"
+                style={[
+                    styles.toolIcon,
+                    { color: "#0E4DC4", opacity: !canUndo ? 0.5 : 1 },
+                ]}
+            />
         </Pressable>
     );
 };
 
 export const RedoButton = () => {
-    const { redo } = useCanvas();
+    const { canRedo, redo } = useCanvas();
 
     return (
-        <Pressable onPress={redo} style={styles.toolButton}>
-            <MaterialCommunityIcons name="redo" style={styles.toolIcon} />
+        <Pressable onPress={redo} style={styles.toolButton} disabled={!canRedo}>
+            <MaterialCommunityIcons
+                name="redo"
+                style={[
+                    styles.toolIcon,
+                    { color: "#0E4DC4", opacity: !canRedo ? 0.5 : 1 },
+                ]}
+            />
         </Pressable>
     );
 };
