@@ -11,6 +11,10 @@ export const theme = {
             textTransform: "none",
             color: "#000000",
         },
+        text: {
+            color: "#000000",
+            fontSize: 32,
+        }
     },
     shadow: {
         small: {

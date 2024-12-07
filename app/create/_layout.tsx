@@ -1,10 +1,5 @@
-import CanvasProvider from "../context/canvas_context";
-import Draw from ".";
+import Create from ".";
 
-export default function DrawLayout() {
-    return (
-        <CanvasProvider>
-            <Draw />
-        </CanvasProvider>
-    );
+export default function CreateLayout() {
+    return <Create />;
 }

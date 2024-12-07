@@ -2,32 +2,45 @@ import React, { useState } from "react";
 import Canvas, {
     ClearButton,
     EraserButton,
+    FillButton,
     GridButton,
+    RedoButton,
     SaveButton,
+    UndoButton,
 } from "@/components/canvas";
 import ColorPicker from "@/components/color_picker";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet, View } from "react-native";
-import { CANVAS_SIZE } from "../context/canvas_context";
+import { CANVAS_SIZE, useCanvas } from "../context/canvas_context";
 
-export default function Draw() {
+export default function Create() {
     const [modalVisible, setModalVisible] = useState(false);
+    const { cellSize } = useCanvas();
     return (
-        <SafeAreaView style={styles.wrapper}>
-            <View>
-                <Canvas width={CANVAS_SIZE} height={CANVAS_SIZE} />
-                <View style={styles.toolContainer}>
+        <View style={styles.wrapper}>
+            <Canvas width={CANVAS_SIZE} height={CANVAS_SIZE} />
+            <View
+                style={[
+                    styles.toolContainer,
+                    { width: cellSize * CANVAS_SIZE },
+                ]}
+            >
+                <View style={styles.toolButtonCompartment}>
                     <SaveButton />
                     <ClearButton />
-                    <GridButton />
                     <EraserButton />
                     <ColorPicker
                         visible={modalVisible}
                         setVisible={setModalVisible}
                     />
                 </View>
+                <View style={styles.toolButtonCompartment}>
+                    <UndoButton />
+                    <RedoButton />
+                    <FillButton />
+                    <GridButton />
+                </View>
             </View>
-        </SafeAreaView>
+        </View>
     );
 }
 
@@ -39,10 +52,16 @@ const styles = StyleSheet.create({
     },
     toolContainer: {
         display: "flex",
-        flexDirection: "row",
-        justifyContent: "space-between",
-        flexWrap: "wrap",
+        flexDirection: "column",
+        gap: 10,
         width: "100%",
         marginTop: 15,
+    },
+    toolButtonCompartment: {
+        flex: 1,
+        flexDirection: 'row',
+        justifyContent: "space-evenly",
+        gap: 5,
+        flexWrap: 'wrap',
     },
 });
