@@ -88,7 +88,6 @@ const Layer = (props: { index: number; width: number; height: number }) => {
     const { cells, getCells, cellSize } = useCanvas();
 
     const _cells = useCallback(() => {
-        console.log("getCells callback");
         return getCells(index);
     }, [cells[index], index])();
 
@@ -171,13 +170,14 @@ export const GridButton = () => {
 
 // Eraser button toggles between eraser and previous color
 export const EraserButton = () => {
-    const { currentColor, setCurrentColor, previousColor, setPreviousColor } =
+    const { currentColor, setCurrentColor, previousColor, setPreviousColor, setFill } =
         useCanvas();
 
     function handlePress() {
         if (currentColor !== "transparent") {
             setPreviousColor(currentColor);
             setCurrentColor("transparent");
+            setFill(false);
         } else {
             setCurrentColor(previousColor);
         }
@@ -292,12 +292,7 @@ export const SaveButton = () => {
 
 // Fill button toggles the bucket fill tool
 export const FillButton = () => {
-    const { fill, setFill, currentColor } = useCanvas();
-
-    const iconColor = useMemo(() => {
-        if (currentColor === "transparent") return "rgba(0,0,0,0.3)";
-        return currentColor;
-    }, [currentColor]);
+    const { fill, setFill } = useCanvas();
 
     return (
         <Pressable
@@ -311,7 +306,7 @@ export const FillButton = () => {
         >
             <MaterialCommunityIcons
                 name="format-color-fill"
-                style={[styles.toolIcon, { paddingTop: 5, color: iconColor }]}
+                style={[styles.toolIcon, { paddingTop: 5, color: "#000000" }]}
             />
         </Pressable>
     );

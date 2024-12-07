@@ -1,19 +1,21 @@
 import { usePostImageMutation } from "@/redux/image.slice";
 import {
     createContext,
-    useCallback,
     useContext,
+    useEffect,
     useMemo,
     useRef,
     useState,
 } from "react";
 import { Image } from "@/redux/models/image.model";
 import cloneDeep from "lodash/cloneDeep";
+import { isEqual } from "lodash";
 
 export const CANVAS_SIZE = 16;
 export const CELL_SIZE = 20;
 export const DEFAULT_COLOR = "#000000";
 export const DEFAULT_NAME = "untitled";
+const HISTORY_LIMIT = 20;
 
 export type LayerMap = Map<string, string>;
 
@@ -86,7 +88,6 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     //////////////////////////////////////////
     const [currentColor, setCurrentColor] = useState(DEFAULT_COLOR);
     const [previousColor, setPreviousColor] = useState(DEFAULT_COLOR);
-    console.log(currentColor);
     const [grid, setGrid] = useState(true);
     const [fill, setFill] = useState(false);
 
@@ -125,7 +126,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
             CANVAS_SIZE,
             CANVAS_SIZE
         );
-        setLayerHistory(cloneDeep([layers.current]))
+        setLayerHistory(cloneDeep([layers.current]));
         setHistoryIndex(0);
         setCells([...cells]);
     }
@@ -151,10 +152,25 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     //////////////////////////////////////////
 
     function addLayerHistory() {
-        const history = cloneDeep(layerHistory).splice(0, historyIndex + 1);
+        const _historyIndex =
+            historyIndex === HISTORY_LIMIT ? historyIndex : historyIndex + 1;
+        const history = cloneDeep(layerHistory.splice(0, _historyIndex));
+        // Avoid duplicate histories
+        if (
+            isEqual(
+                history[history.length - 1],
+                layerHistory[layerHistory.length - 1]
+            )
+        ) {
+            return;
+        }
+        if (history.length === HISTORY_LIMIT) {
+            history.shift();
+        }
         history.push(layers.current);
+        console.log(history);
         setLayerHistory(history);
-        setHistoryIndex(historyIndex + 1);
+        setHistoryIndex(_historyIndex);
     }
 
     const canUndo = useMemo(() => !(historyIndex === 0), [historyIndex]);
@@ -250,9 +266,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
             if (y > 0) queue.push({ x, y: y - 1 });
             if (y < CANVAS_SIZE - 1) queue.push({ x, y: y + 1 });
         }
-        if (!isPressed) {
-            addLayerHistory();
-        }
+        if (!isPressed) addLayerHistory();
         setIsPressed(true);
         layers.current[selectedLayerIndex] = layer;
         setCells([...cells]);
@@ -261,6 +275,9 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     //////////////////////////////////////////
     // API calls
     //////////////////////////////////////////
+    // TODO: use isLoading and isError to show loading and error states
+    const [postImage, { isLoading, isSuccess, isError }] =
+        usePostImageMutation();
     async function save() {
         let _cells = getCells(selectedLayerIndex);
         for (let x = 0; x < CANVAS_SIZE; x++) {
@@ -281,9 +298,6 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
             data: JSON.stringify(_cells),
         };
 
-        // TODO: use isLoading and isError to show loading and error states
-        const [postImage, { isLoading, isSuccess, isError }] =
-            usePostImageMutation();
         await postImage(image);
         if (isSuccess) {
             alert("Image saved successfully");
