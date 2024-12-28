@@ -1,3 +1,4 @@
+import React from 'react';
 import { theme } from "@/app/_theme";
 import { useCanvas } from "@/app/context/canvas_context";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
