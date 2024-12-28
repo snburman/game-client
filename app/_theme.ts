@@ -1,4 +1,4 @@
-import { MD2LightTheme as DefaultTheme } from "react-native-paper";
+import { MD2LightTheme as DefaultTheme, TextInput } from "react-native-paper";
 
 export const theme = {
     ...DefaultTheme,
@@ -14,7 +14,7 @@ export const theme = {
         text: {
             color: "#000000",
             fontSize: 32,
-        }
+        },
     },
     shadow: {
         small: {
