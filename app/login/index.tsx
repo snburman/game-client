@@ -1,70 +1,106 @@
+import {
+    useLoginUserMutation,
+    useRegisterUserMutation,
+} from "@/redux/auth.slice";
 import { validateEmail } from "@/validate/email";
 import { every } from "lodash";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Button, TextInput } from "react-native-paper";
 
 export default function Login() {
+    const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [confirmEmail, setConfirmEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [register, setRegister] = useState(false);
     const [message, setMessage] = useState("");
+    const [loginUser, {isError: isLoginError }] = useLoginUserMutation();
+    const [registerUser, { error: registerError }] = useRegisterUserMutation();
+
+    useEffect(() => {
+        if(isLoginError) {
+            setMessage("Incorrect email / password")
+        }
+        if(registerError) {
+            
+        }
+    }, [isLoginError, registerError])
 
     const validEmail = useCallback(() => {
-        if(!validateEmail(email)) {
+        if (!validateEmail(email)) {
             setMessage("Please enter a valid email address");
             return false;
         }
         return true;
-    },[email, confirmEmail])
+    }, [email, confirmEmail]);
 
     const requiredFields = useCallback(() => {
-        const error_msg = "Please fill out all fields"
-        if(register && !every([email, confirmEmail, password, confirmPassword])) {
+        const error_msg = "Please fill out all fields";
+        if (
+            register &&
+            !every([username, email, confirmEmail, password, confirmPassword])
+        ) {
             setMessage(error_msg);
             return false;
         }
-        if(!register && !every([email, password])) {
+        if (!register && !every([email, password])) {
             setMessage(error_msg);
             return false;
         }
         return true;
-    },[email, confirmEmail, password, confirmPassword])
+    }, [email, confirmEmail, password, confirmPassword]);
 
     function handleLogin() {
         if (register) {
             setRegister(false);
+            setMessage("");
             return;
         }
-        if(!requiredFields()) return;
-        if(!validEmail()) return;
-        setMessage("")
+        if (!requiredFields()) return;
+        if (!validEmail()) return;
+        setMessage("");
+        loginUser({ email, password });
     }
 
     function handleRegister() {
         if (!register) {
             setRegister(true);
+            setMessage("");
             return;
         }
-        if(!requiredFields()) return;
-        if(!validEmail()) return;
-        if(email !== confirmEmail) {
+        if (!requiredFields()) return;
+        if (!validEmail()) return;
+        if (email !== confirmEmail) {
             setMessage("Emails do not match");
             return;
         }
-        if(password !== confirmPassword) {
+        if (password !== confirmPassword) {
             setMessage("Passwords do not match");
             return;
         }
         setMessage("");
+        registerUser({
+            username,
+            email,
+            password,
+        });
     }
 
     return (
         <View style={styles.container}>
             <Text style={styles.message}>{message}</Text>
             <View>
+                {register && (
+                    <TextInput
+                        label="Username"
+                        value={username}
+                        onChangeText={(username) => setUsername(username)}
+                        mode="outlined"
+                        style={styles.input}
+                    />
+                )}
                 <TextInput
                     label="Email"
                     value={email}
@@ -94,7 +130,9 @@ export default function Login() {
                         label="Confirm Password"
                         value={confirmPassword}
                         secureTextEntry
-                        onChangeText={(password) => setConfirmPassword(password)}
+                        onChangeText={(password) =>
+                            setConfirmPassword(password)
+                        }
                         mode="outlined"
                         style={styles.input}
                     />
@@ -122,10 +160,6 @@ export default function Login() {
     );
 }
 
-function Register() {
-    return <></>;
-}
-
 const styles = StyleSheet.create({
     container: {
         display: "flex",
@@ -150,6 +184,6 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     message: {
-        color: "red"
-    }
+        color: "red",
+    },
 });
