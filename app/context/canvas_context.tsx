@@ -168,7 +168,6 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
             history.shift();
         }
         history.push(layers.current);
-        console.log(history);
         setLayerHistory(history);
         setHistoryIndex(_historyIndex);
     }

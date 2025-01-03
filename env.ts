@@ -1,1 +1,1 @@
-export const API_ENDPOINT = process.env.REACT_APP_DB_ENDPOINT as string;
+export const API_ENDPOINT = process.env.EXPO_PUBLIC_API_ENDPOINT as string;

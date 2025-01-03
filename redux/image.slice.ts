@@ -1,14 +1,11 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type { Image } from "./models/image.model";
-import { API_ENDPOINT } from "@/env";
+import { api } from "./api";
 
-export const imageSlice = createApi({
-    reducerPath: "imageApi",
-    baseQuery: fetchBaseQuery({ baseUrl: API_ENDPOINT + "/assets" }),
+export const imageSlice = api.injectEndpoints({
     endpoints: (builder) => ({
         postImage: builder.mutation<Image, Image>({
             query: (newImage: Image) => ({
-                url: `/player/assets`,
+                url: `/assets/player`,
                 method: "POST",
                 body: newImage,
             }),

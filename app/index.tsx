@@ -1,48 +1,26 @@
 import React from "react";
-import { StyleSheet } from "react-native";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { HomeTabsParamList } from "./types/navigation";
-import BottomTabBar from "@/components/bottom_tab_bar";
-import Create from "./create";
-import Game from "./game";
-import { useAuth } from "./context/auth_context";
+import { createStackNavigator } from "@react-navigation/stack";
 import Login from "./login";
+import Tabs from "./tabs";
+import { useAuth } from "./context/auth_context";
+import { RootStackParamList, TabsProps } from "./types/navigation";
 
 export default function Index() {
-    const Tabs = createBottomTabNavigator<HomeTabsParamList>();
+    const Stack = createStackNavigator<RootStackParamList>();
     const { user } = useAuth();
 
-    if (!user) {
-        return <Login />
-    }
-
     return (
-        <>
-            <Tabs.Navigator tabBar={BottomTabBar}>
-                {/* <Tabs.Screen
-                    name="index"
-                    component={Index}
-                    options={{ title: "Home" }}
-                /> */}
-                <Tabs.Screen
-                    name="create"
-                    component={Create}
-                    options={{ title: "Create" }}
-                />
-                <Tabs.Screen
-                    name="game"
-                    component={Game}
-                    options={{ title: "Play" }}
-                />
-            </Tabs.Navigator>
-        </>
+        <Stack.Navigator
+            screenOptions={{
+                headerShown: false,
+            }}
+        >
+            {!user ? (
+                <Stack.Screen name="login" component={Login}/>
+            ) : (
+                <Stack.Screen name="tabs" component={Tabs}/>
+          
+            )}
+        </Stack.Navigator>
     );
 }
-
-const styles = StyleSheet.create({
-    wrapper: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-});

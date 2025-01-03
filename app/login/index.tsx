@@ -1,64 +1,112 @@
-import { validateEmail } from "@/validate/email";
-import { every } from "lodash";
-import React, { useCallback, useState } from "react";
+import {
+    AuthResponse,
+    useLoginUserMutation,
+    useRegisterUserMutation,
+} from "@/redux/auth.slice";
+import { every, update } from "lodash";
+import React, { useCallback, useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Button, TextInput } from "react-native-paper";
+import { useAuth } from "../context/auth_context";
+import { HomeStackProps } from "../types/navigation";
 
-export default function Login() {
-    const [email, setEmail] = useState("");
-    const [confirmEmail, setConfirmEmail] = useState("");
+export default function Login(props: HomeStackProps) {
+    const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [passwordVisible, setPasswordVisible] = useState(false);
     const [register, setRegister] = useState(false);
     const [message, setMessage] = useState("");
-
-    const validEmail = useCallback(() => {
-        if(!validateEmail(email)) {
-            setMessage("Please enter a valid email address");
-            return false;
-        }
-        return true;
-    },[email, confirmEmail])
+    const [loginUser] = useLoginUserMutation();
+    const [registerUser] = useRegisterUserMutation();
+    const { setToken, setRefreshTokenStorage } = useAuth();
 
     const requiredFields = useCallback(() => {
-        const error_msg = "Please fill out all fields"
-        if(register && !every([email, confirmEmail, password, confirmPassword])) {
+        const error_msg = "Please fill out all fields";
+        if (register && !every([username, password, confirmPassword])) {
             setMessage(error_msg);
             return false;
         }
-        if(!register && !every([email, password])) {
+        if (!register && !every([username, password])) {
             setMessage(error_msg);
             return false;
         }
         return true;
-    },[email, confirmEmail, password, confirmPassword])
+    }, [username, password, confirmPassword]);
+
+    function setTokens(auth: AuthResponse) {
+        if (auth.token && auth.refresh_token) {
+            setToken(auth.token);
+            setRefreshTokenStorage(auth.refresh_token);
+        }
+    }
 
     function handleLogin() {
         if (register) {
             setRegister(false);
+            setMessage("");
             return;
         }
-        if(!requiredFields()) return;
-        if(!validEmail()) return;
-        setMessage("")
+        if (!requiredFields()) return;
+        setMessage("");
+        loginUser({ username, password }).then((res) => {
+            if(res.error) {
+                const err = res.error as { data: AuthResponse };
+                switch(err.data.error) {
+                    case "user_banned":
+                        setMessage("Account disabled");
+                        break;
+                    case "invalid_credentials":
+                        setMessage("Invalid username / password")
+                }
+                return;
+            }
+            if (res.data) {
+                setTokens(res.data);
+            } else {
+                setMessage("Error logging in");
+            }
+        });
     }
 
     function handleRegister() {
         if (!register) {
             setRegister(true);
+            setMessage("");
             return;
         }
-        if(!requiredFields()) return;
-        if(!validEmail()) return;
-        if(email !== confirmEmail) {
-            setMessage("Emails do not match");
-            return;
-        }
-        if(password !== confirmPassword) {
+        if (!requiredFields()) return;
+        if (password !== confirmPassword) {
             setMessage("Passwords do not match");
             return;
         }
         setMessage("");
+        registerUser({
+            username,
+            password,
+        }).then((res) => {
+            if (res.error) {
+                const err = res.error as { data: AuthResponse };
+                switch (err.data.error) {
+                    case "user_exists":
+                        setMessage("Username already exists");
+                        break;
+                    case "weak_password":
+                        setMessage("Password must contain at least:\none uppercase letter, one lowercase letter,\none symbol, and one number");
+                        break;
+                    default:
+                        setMessage("Error creating user");
+                }
+            } else if (res.data) {
+                setTokens(res.data);
+            } else {
+                setMessage("Error creating user");
+            }
+        });
+    }
+
+    function togglePasswordVisible() {
+        setPasswordVisible(!passwordVisible);
     }
 
     return (
@@ -66,37 +114,42 @@ export default function Login() {
             <Text style={styles.message}>{message}</Text>
             <View>
                 <TextInput
-                    label="Email"
-                    value={email}
-                    onChangeText={(email) => setEmail(email)}
+                    label="Username"
+                    value={username}
+                    onChangeText={(username) => setUsername(username)}
                     mode="outlined"
                     style={styles.input}
                 />
-                {register && (
-                    <TextInput
-                        label="Confirm Email"
-                        value={confirmEmail}
-                        onChangeText={(email) => setConfirmEmail(email)}
-                        mode="outlined"
-                        style={styles.input}
-                    />
-                )}
                 <TextInput
                     label="Password"
                     value={password}
-                    secureTextEntry
+                    secureTextEntry={!passwordVisible}
                     onChangeText={(password) => setPassword(password)}
                     mode="outlined"
                     style={styles.input}
+                    right={
+                        <TextInput.Icon
+                            icon="eye"
+                            onPress={togglePasswordVisible}
+                        />
+                    }
                 />
                 {register && (
                     <TextInput
                         label="Confirm Password"
                         value={confirmPassword}
-                        secureTextEntry
-                        onChangeText={(password) => setConfirmPassword(password)}
+                        secureTextEntry={!passwordVisible}
+                        onChangeText={(password) =>
+                            setConfirmPassword(password)
+                        }
                         mode="outlined"
                         style={styles.input}
+                        right={
+                            <TextInput.Icon
+                                icon="eye"
+                                onPress={togglePasswordVisible}
+                            />
+                        }
                     />
                 )}
                 <View style={styles.buttonContainer}>
@@ -120,10 +173,6 @@ export default function Login() {
             </View>
         </View>
     );
-}
-
-function Register() {
-    return <></>;
 }
 
 const styles = StyleSheet.create({
@@ -150,6 +199,8 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     message: {
-        color: "red"
-    }
+        color: "red",
+        textAlign: 'center',
+        paddingBottom: 10,
+    },
 });
