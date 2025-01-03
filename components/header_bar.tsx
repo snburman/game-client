@@ -2,8 +2,6 @@ import { StyleSheet, Text, View } from "react-native";
 import { type BottomTabHeaderProps } from "@react-navigation/bottom-tabs";
 import { useAuth } from "@/app/context/auth_context";
 import { Button } from "react-native-paper";
-import { useEffect } from "react";
-import { router } from 'expo-router';
 
 export default function HeaderBar({ navigation }: BottomTabHeaderProps) {
     const { user, logOut } = useAuth();

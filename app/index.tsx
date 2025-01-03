@@ -1,50 +1,26 @@
-import React, { useState, useEffect } from "react";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { HomeTabsParamList } from "./types/navigation";
-import BottomTabBar from "@/components/bottom_tab_bar";
-import Create from "./create";
-import Game from "./game";
-import { useAuth } from "./context/auth_context";
+import React from "react";
+import { createStackNavigator } from "@react-navigation/stack";
 import Login from "./login";
-import HeaderBar from "@/components/header_bar";
+import Tabs from "./tabs";
+import { useAuth } from "./context/auth_context";
+import { RootStackParamList, TabsProps } from "./types/navigation";
 
 export default function Index() {
-    const Tabs = createBottomTabNavigator<HomeTabsParamList>();
+    const Stack = createStackNavigator<RootStackParamList>();
     const { user } = useAuth();
 
-    if (!user) {
-        return <Login />;
-    }
-
     return (
-        <Tabs.Navigator
-            tabBar={user ? BottomTabBar : () => <></>}
+        <Stack.Navigator
             screenOptions={{
-                header(props) {
-                    return <HeaderBar {...props} />;
-                },
+                headerShown: false,
             }}
         >
-            <Tabs.Screen
-                name="login"
-                component={Login}
-                options={{
-                    title: "Login",
-                    header(props) {
-                        return null;
-                    },
-                }}
-            />
-            <Tabs.Screen
-                name="create"
-                component={Create}
-                options={{ title: "Create" }}
-            />
-            <Tabs.Screen
-                name="game"
-                component={Game}
-                options={{ title: "Play" }}
-            />
-        </Tabs.Navigator>
+            {!user ? (
+                <Stack.Screen name="login" component={Login}/>
+            ) : (
+                <Stack.Screen name="tabs" component={Tabs}/>
+          
+            )}
+        </Stack.Navigator>
     );
 }

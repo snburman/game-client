@@ -2,19 +2,22 @@ import { User } from "./models/user.model";
 import { API_ENDPOINT } from "@/env";
 import { api } from "./api";
 
+export type AuthResponse = {
+    token: string;
+    refresh_token: string;
+    error: string | undefined;
+};
+
 export const authSlice = api.injectEndpoints({
     endpoints: (build) => ({
-        loginUser: build.mutation<
-            { token: string; refresh_token: string },
-            User
-        >({
+        loginUser: build.mutation<AuthResponse, User>({
             query: (user: User) => ({
                 url: "/user/login",
                 method: "POST",
                 body: user,
             }),
         }),
-        registerUser: build.mutation<User, User>({
+        registerUser: build.mutation<AuthResponse, User>({
             query: (user: User) => ({
                 url: "/user/create",
                 method: "POST",
@@ -27,10 +30,7 @@ export const authSlice = api.injectEndpoints({
                 method: "GET",
             }),
         }),
-        refreshToken: build.mutation<
-            { token: string; refresh_token: string },
-            string
-        >({
+        refreshToken: build.mutation<AuthResponse, string>({
             query: (refreshToken: string) => ({
                 url: "/token/refresh",
                 method: "POST",

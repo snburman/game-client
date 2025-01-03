@@ -3,6 +3,8 @@ import { createContext, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { jwtDecode } from "jwt-decode";
 import { authSlice, useRefreshTokenMutation } from "@/redux/auth.slice";
+import { api } from "@/redux/api";
+import { useDispatch } from "react-redux";
 
 type AuthData = {
     user: User | undefined;
@@ -19,9 +21,10 @@ const AuthContext = createContext<AuthData | undefined>(undefined);
 
 export default function AuthProvider({ children }: React.PropsWithChildren) {
     const [user, setUser] = useState<User | undefined>(undefined);
-    const [getUser, getUserResult] = authSlice.endpoints.getUser.useLazyQuery();
+    const [ getUser, getUserResult ] = authSlice.endpoints.getUser.useLazyQuery();
     const [token, setToken] = useState<string | undefined>(undefined);
     const [_refreshTokens] = useRefreshTokenMutation();
+    const dispatch = useDispatch();
 
     useEffect(() => {
         if (!user && !token) {
@@ -86,10 +89,11 @@ export default function AuthProvider({ children }: React.PropsWithChildren) {
     const logOut = async () => {
         try {
             await AsyncStorage.removeItem("refresh_token").then(() => {
+                dispatch(api.util.resetApiState());
+                setToken(undefined);
+                setUser(undefined);
             });
         } catch {}
-        setToken(undefined);
-        setUser(undefined);
     };
 
     const initialValue: AuthData = {
@@ -97,10 +101,10 @@ export default function AuthProvider({ children }: React.PropsWithChildren) {
         setUser,
         token,
         setToken,
+        tokenIsExpired,
         getRefreshTokenStorage,
         setRefreshTokenStorage,
         logOut,
-        tokenIsExpired,
     };
 
     return (

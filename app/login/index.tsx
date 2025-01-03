@@ -1,15 +1,16 @@
 import {
+    AuthResponse,
     useLoginUserMutation,
     useRegisterUserMutation,
 } from "@/redux/auth.slice";
-import { every } from "lodash";
+import { every, update } from "lodash";
 import React, { useCallback, useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Button, TextInput } from "react-native-paper";
 import { useAuth } from "../context/auth_context";
-import { router } from 'expo-router';
+import { HomeStackProps } from "../types/navigation";
 
-export default function Login() {
+export default function Login(props: HomeStackProps) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -18,12 +19,12 @@ export default function Login() {
     const [message, setMessage] = useState("");
     const [loginUser, { isError: isLoginError, error: loginError }] =
         useLoginUserMutation();
-    const [registerUser, { error: registerError }] = useRegisterUserMutation();
+    const [registerUser, { error: registerError, status: registerStatus }] =
+        useRegisterUserMutation();
     const { setToken, setRefreshTokenStorage } = useAuth();
 
     useEffect(() => {
         if (isLoginError) {
-            console.log(loginError);
             setMessage("Incorrect email / password");
         }
         if (registerError) {
@@ -44,6 +45,13 @@ export default function Login() {
         return true;
     }, [username, password, confirmPassword]);
 
+    function setTokens(auth: AuthResponse) {
+        if (auth.token && auth.refresh_token) {
+            setToken(auth.token);
+            setRefreshTokenStorage(auth.refresh_token);
+        }
+    }
+
     function handleLogin() {
         if (register) {
             setRegister(false);
@@ -54,10 +62,7 @@ export default function Login() {
         setMessage("");
         loginUser({ username, password }).then((res) => {
             if (res.data) {
-                if (res.data.token && res.data.refresh_token) {
-                    setToken(res.data.token);
-                    setRefreshTokenStorage(res.data.refresh_token);
-                }
+                setTokens(res.data);
             } else {
                 setMessage("Error logging in");
             }
@@ -79,6 +84,24 @@ export default function Login() {
         registerUser({
             username,
             password,
+        }).then((res) => {
+            if (res.error) {
+                const err = res.error as { status: number; data: AuthResponse };
+                switch (err.data.error) {
+                    case "user_exists":
+                        setMessage("Username already exists");
+                        break;
+                    case "weak_password":
+                        setMessage("Weak password");
+                        break;
+                    default:
+                        setMessage("Error creating user");
+                }
+            } else if (res.data) {
+                setTokens(res.data);
+            } else {
+                setMessage("Error creating user");
+            }
         });
     }
 
