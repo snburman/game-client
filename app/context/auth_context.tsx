@@ -9,6 +9,7 @@ import { useDispatch } from "react-redux";
 type AuthData = {
     user: User | undefined;
     setUser: (user: User) => void;
+    isUserLoading: boolean;
     token: string | undefined;
     setToken: (token: string) => void;
     getRefreshTokenStorage: () => Promise<string | undefined>;
@@ -21,14 +22,18 @@ const AuthContext = createContext<AuthData | undefined>(undefined);
 
 export default function AuthProvider({ children }: React.PropsWithChildren) {
     const [user, setUser] = useState<User | undefined>(undefined);
-    const [ getUser, getUserResult ] = authSlice.endpoints.getUser.useLazyQuery();
+    const [getUser, getUserResult] = authSlice.endpoints.getUser.useLazyQuery();
+    const [isUserLoading, setIsUserLoading] = useState(false);
     const [token, setToken] = useState<string | undefined>(undefined);
     const [_refreshTokens] = useRefreshTokenMutation();
     const dispatch = useDispatch();
 
     useEffect(() => {
-        if (!user && !token) {
+        if (!user) {
+            setIsUserLoading(true);
             refreshTokens();
+        } else {
+            setIsUserLoading(false);
         }
     }, [user]);
 
@@ -39,10 +44,15 @@ export default function AuthProvider({ children }: React.PropsWithChildren) {
     }, [token]);
 
     useEffect(() => {
+        if(getUserResult.isLoading || getUserResult.isFetching) {
+            setIsUserLoading(true);
+        } else {
+            setIsUserLoading(false);
+        }
         if (getUserResult.data) {
             setUser(getUserResult.data);
         }
-    });
+    },[getUserResult]);
 
     const tokenIsExpired = (token: string) => {
         const t: { exp: number } = jwtDecode(token);
@@ -99,6 +109,7 @@ export default function AuthProvider({ children }: React.PropsWithChildren) {
     const initialValue: AuthData = {
         user,
         setUser,
+        isUserLoading,
         token,
         setToken,
         tokenIsExpired,
