@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { type BottomTabHeaderProps } from "@react-navigation/bottom-tabs";
 import { useAuth } from "@/app/context/auth_context";
 import { Button } from "react-native-paper";
+import { theme } from "@/app/_theme";
 
 export default function HeaderBar({ navigation }: BottomTabHeaderProps) {
     const { user, logOut } = useAuth();
@@ -21,8 +22,11 @@ export default function HeaderBar({ navigation }: BottomTabHeaderProps) {
 
 const styles = StyleSheet.create({
     container: {
-        justifyContent: "center",
-        alignItems: "flex-end",
-        backgroundColor: "red",
+        height: 60,
+        flexDirection: 'row',
+        justifyContent: "flex-end",
+        alignItems: "center",
+        backgroundColor: "#FFFFFF",
+        ...theme.shadow.small
     },
 });

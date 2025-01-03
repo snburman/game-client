@@ -10,7 +10,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { Button, TextInput } from "react-native-paper";
 import { useAuth } from "../context/auth_context";
 import { HomeStackProps } from "../types/navigation";
-import { ActivityIndicator, MD2Colors } from 'react-native-paper';
+import { ActivityIndicator, MD2Colors } from "react-native-paper";
 
 export default function Login(props: HomeStackProps) {
     const [username, setUsername] = useState("");
@@ -20,7 +20,7 @@ export default function Login(props: HomeStackProps) {
     const [register, setRegister] = useState(false);
     const [message, setMessage] = useState("");
     const [loginUser, { isLoading: loginLoading }] = useLoginUserMutation();
-    const [,getUserResult] = authSlice.endpoints.getUser.useLazyQuery();
+    const [, getUserResult] = authSlice.endpoints.getUser.useLazyQuery();
     const [registerUser] = useRegisterUserMutation();
     const { setToken, setRefreshTokenStorage, isUserLoading } = useAuth();
 
@@ -114,12 +114,16 @@ export default function Login(props: HomeStackProps) {
         setPasswordVisible(!passwordVisible);
     }
 
-    if(loginLoading || isUserLoading) {
+    if (loginLoading || isUserLoading) {
         return (
             <View style={styles.container}>
-                <ActivityIndicator animating={true} color={MD2Colors.green400} size={150}/>
+                <ActivityIndicator
+                    animating={true}
+                    color={MD2Colors.green400}
+                    size={100}
+                />
             </View>
-        )
+        );
     }
 
     return (

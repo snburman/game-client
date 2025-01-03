@@ -30,10 +30,7 @@ export default function AuthProvider({ children }: React.PropsWithChildren) {
 
     useEffect(() => {
         if (!user) {
-            setIsUserLoading(true);
             refreshTokens();
-        } else {
-            setIsUserLoading(false);
         }
     }, [user]);
 
@@ -44,7 +41,7 @@ export default function AuthProvider({ children }: React.PropsWithChildren) {
     }, [token]);
 
     useEffect(() => {
-        if(getUserResult.isLoading || getUserResult.isFetching) {
+        if (getUserResult.isLoading || getUserResult.isFetching) {
             setIsUserLoading(true);
         } else {
             setIsUserLoading(false);
@@ -52,7 +49,7 @@ export default function AuthProvider({ children }: React.PropsWithChildren) {
         if (getUserResult.data) {
             setUser(getUserResult.data);
         }
-    },[getUserResult]);
+    }, [getUserResult]);
 
     const tokenIsExpired = (token: string) => {
         const t: { exp: number } = jwtDecode(token);

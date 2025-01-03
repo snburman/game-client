@@ -37,11 +37,11 @@ export default function BottomTabBar(props: BottomTabBarProps) {
 const styles = StyleSheet.create({
     container: {
         ...theme.shadow.small,
-        // height: 70,
         display: "flex",
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",
+        backgroundColor: "#FFFFFF"
     },
     icon: {
         fontSize: 35,
