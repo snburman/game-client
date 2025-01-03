@@ -3,8 +3,8 @@ import {
     useLoginUserMutation,
     useRegisterUserMutation,
 } from "@/redux/auth.slice";
-import { every, update } from "lodash";
-import React, { useCallback, useEffect, useState } from "react";
+import { every } from "lodash";
+import React, { useCallback, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Button, TextInput } from "react-native-paper";
 import { useAuth } from "../context/auth_context";
@@ -50,14 +50,14 @@ export default function Login(props: HomeStackProps) {
         if (!requiredFields()) return;
         setMessage("");
         loginUser({ username, password }).then((res) => {
-            if(res.error) {
+            if (res.error) {
                 const err = res.error as { data: AuthResponse };
-                switch(err.data.error) {
+                switch (err.data.error) {
                     case "user_banned":
                         setMessage("Account disabled");
                         break;
                     case "invalid_credentials":
-                        setMessage("Invalid username / password")
+                        setMessage("Invalid username / password");
                 }
                 return;
             }
@@ -92,7 +92,9 @@ export default function Login(props: HomeStackProps) {
                         setMessage("Username already exists");
                         break;
                     case "weak_password":
-                        setMessage("Password must contain at least:\none uppercase letter, one lowercase letter,\none symbol, and one number");
+                        setMessage(
+                            "Password must contain at least:\none uppercase letter, one lowercase letter,\none symbol, and one number"
+                        );
                         break;
                     default:
                         setMessage("Error creating user");
@@ -182,6 +184,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         height: "100%",
         width: "100%",
+        backgroundColor: "#FFFFFF"
     },
     input: {
         backgroundColor: "#FFFFFF",
@@ -200,7 +203,7 @@ const styles = StyleSheet.create({
     },
     message: {
         color: "red",
-        textAlign: 'center',
+        textAlign: "center",
         paddingBottom: 10,
     },
 });
