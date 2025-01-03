@@ -17,20 +17,9 @@ export default function Login(props: HomeStackProps) {
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [register, setRegister] = useState(false);
     const [message, setMessage] = useState("");
-    const [loginUser, { isError: isLoginError, error: loginError }] =
-        useLoginUserMutation();
-    const [registerUser, { error: registerError, status: registerStatus }] =
-        useRegisterUserMutation();
+    const [loginUser] = useLoginUserMutation();
+    const [registerUser] = useRegisterUserMutation();
     const { setToken, setRefreshTokenStorage } = useAuth();
-
-    useEffect(() => {
-        if (isLoginError) {
-            setMessage("Incorrect email / password");
-        }
-        if (registerError) {
-            //TODO: set registration message
-        }
-    }, [isLoginError, registerError]);
 
     const requiredFields = useCallback(() => {
         const error_msg = "Please fill out all fields";
@@ -61,6 +50,17 @@ export default function Login(props: HomeStackProps) {
         if (!requiredFields()) return;
         setMessage("");
         loginUser({ username, password }).then((res) => {
+            if(res.error) {
+                const err = res.error as { data: AuthResponse };
+                switch(err.data.error) {
+                    case "user_banned":
+                        setMessage("Account disabled");
+                        break;
+                    case "invalid_credentials":
+                        setMessage("Invalid username / password")
+                }
+                return;
+            }
             if (res.data) {
                 setTokens(res.data);
             } else {
@@ -86,13 +86,13 @@ export default function Login(props: HomeStackProps) {
             password,
         }).then((res) => {
             if (res.error) {
-                const err = res.error as { status: number; data: AuthResponse };
+                const err = res.error as { data: AuthResponse };
                 switch (err.data.error) {
                     case "user_exists":
                         setMessage("Username already exists");
                         break;
                     case "weak_password":
-                        setMessage("Weak password");
+                        setMessage("Password must contain at least:\none uppercase letter, one lowercase letter,\none symbol, and one number");
                         break;
                     default:
                         setMessage("Error creating user");
@@ -200,5 +200,7 @@ const styles = StyleSheet.create({
     },
     message: {
         color: "red",
+        textAlign: 'center',
+        paddingBottom: 10,
     },
 });
