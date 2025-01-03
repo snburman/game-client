@@ -1,29 +1,51 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { User } from "./models/user.model";
 import { API_ENDPOINT } from "@/env";
+import { api } from "./api";
 
-export const authSlice = createApi({
-    reducerPath: "authApi",
-    baseQuery: fetchBaseQuery({baseUrl: API_ENDPOINT + "/user"}),
-    endpoints: (builder) => ({
-        loginUser: builder.mutation<User, User>({
+export const authSlice = api.injectEndpoints({
+    endpoints: (build) => ({
+        loginUser: build.mutation<
+            { token: string; refresh_token: string },
+            User
+        >({
             query: (user: User) => ({
-                url: '/login',
-                method: 'POST',
-                body: user
-            })
+                url: "/user/login",
+                method: "POST",
+                body: user,
+            }),
         }),
-        registerUser: builder.mutation<User, User>({
+        registerUser: build.mutation<User, User>({
             query: (user: User) => ({
-                url: '/create',
-                method: 'POST',
-                body: user
-            })
-        })
-    })
- });
+                url: "/user/create",
+                method: "POST",
+                body: user,
+            }),
+        }),
+        getUser: build.query<User, string>({
+            query: (token: string) => ({
+                url: `/user?token=${token}`,
+                method: "GET",
+            }),
+        }),
+        refreshToken: build.mutation<
+            { token: string; refresh_token: string },
+            string
+        >({
+            query: (refreshToken: string) => ({
+                url: "/token/refresh",
+                method: "POST",
+                body: {
+                    refresh_token: refreshToken,
+                },
+            }),
+        }),
+    }),
+    overrideExisting: true,
+});
 
- export const {
+export const {
     useLoginUserMutation,
-    useRegisterUserMutation
- } = authSlice;
+    useRegisterUserMutation,
+    useGetUserQuery,
+    useRefreshTokenMutation,
+} = authSlice;

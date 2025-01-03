@@ -2,55 +2,47 @@ import {
     useLoginUserMutation,
     useRegisterUserMutation,
 } from "@/redux/auth.slice";
-import { validateEmail } from "@/validate/email";
 import { every } from "lodash";
 import React, { useCallback, useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Button, TextInput } from "react-native-paper";
+import { useAuth } from "../context/auth_context";
+import { router } from 'expo-router';
 
 export default function Login() {
     const [username, setUsername] = useState("");
-    const [email, setEmail] = useState("");
-    const [confirmEmail, setConfirmEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [passwordVisible, setPasswordVisible] = useState(false);
     const [register, setRegister] = useState(false);
     const [message, setMessage] = useState("");
-    const [loginUser, {isError: isLoginError }] = useLoginUserMutation();
+    const [loginUser, { isError: isLoginError, error: loginError }] =
+        useLoginUserMutation();
     const [registerUser, { error: registerError }] = useRegisterUserMutation();
+    const { setToken, setRefreshTokenStorage } = useAuth();
 
     useEffect(() => {
-        if(isLoginError) {
-            setMessage("Incorrect email / password")
+        if (isLoginError) {
+            console.log(loginError);
+            setMessage("Incorrect email / password");
         }
-        if(registerError) {
-            
+        if (registerError) {
+            //TODO: set registration message
         }
-    }, [isLoginError, registerError])
-
-    const validEmail = useCallback(() => {
-        if (!validateEmail(email)) {
-            setMessage("Please enter a valid email address");
-            return false;
-        }
-        return true;
-    }, [email, confirmEmail]);
+    }, [isLoginError, registerError]);
 
     const requiredFields = useCallback(() => {
         const error_msg = "Please fill out all fields";
-        if (
-            register &&
-            !every([username, email, confirmEmail, password, confirmPassword])
-        ) {
+        if (register && !every([username, password, confirmPassword])) {
             setMessage(error_msg);
             return false;
         }
-        if (!register && !every([email, password])) {
+        if (!register && !every([username, password])) {
             setMessage(error_msg);
             return false;
         }
         return true;
-    }, [email, confirmEmail, password, confirmPassword]);
+    }, [username, password, confirmPassword]);
 
     function handleLogin() {
         if (register) {
@@ -59,9 +51,17 @@ export default function Login() {
             return;
         }
         if (!requiredFields()) return;
-        if (!validEmail()) return;
         setMessage("");
-        loginUser({ email, password });
+        loginUser({ username, password }).then((res) => {
+            if (res.data) {
+                if (res.data.token && res.data.refresh_token) {
+                    setToken(res.data.token);
+                    setRefreshTokenStorage(res.data.refresh_token);
+                }
+            } else {
+                setMessage("Error logging in");
+            }
+        });
     }
 
     function handleRegister() {
@@ -71,11 +71,6 @@ export default function Login() {
             return;
         }
         if (!requiredFields()) return;
-        if (!validEmail()) return;
-        if (email !== confirmEmail) {
-            setMessage("Emails do not match");
-            return;
-        }
         if (password !== confirmPassword) {
             setMessage("Passwords do not match");
             return;
@@ -83,58 +78,55 @@ export default function Login() {
         setMessage("");
         registerUser({
             username,
-            email,
             password,
         });
+    }
+
+    function togglePasswordVisible() {
+        setPasswordVisible(!passwordVisible);
     }
 
     return (
         <View style={styles.container}>
             <Text style={styles.message}>{message}</Text>
             <View>
-                {register && (
-                    <TextInput
-                        label="Username"
-                        value={username}
-                        onChangeText={(username) => setUsername(username)}
-                        mode="outlined"
-                        style={styles.input}
-                    />
-                )}
                 <TextInput
-                    label="Email"
-                    value={email}
-                    onChangeText={(email) => setEmail(email)}
+                    label="Username"
+                    value={username}
+                    onChangeText={(username) => setUsername(username)}
                     mode="outlined"
                     style={styles.input}
                 />
-                {register && (
-                    <TextInput
-                        label="Confirm Email"
-                        value={confirmEmail}
-                        onChangeText={(email) => setConfirmEmail(email)}
-                        mode="outlined"
-                        style={styles.input}
-                    />
-                )}
                 <TextInput
                     label="Password"
                     value={password}
-                    secureTextEntry
+                    secureTextEntry={!passwordVisible}
                     onChangeText={(password) => setPassword(password)}
                     mode="outlined"
                     style={styles.input}
+                    right={
+                        <TextInput.Icon
+                            icon="eye"
+                            onPress={togglePasswordVisible}
+                        />
+                    }
                 />
                 {register && (
                     <TextInput
                         label="Confirm Password"
                         value={confirmPassword}
-                        secureTextEntry
+                        secureTextEntry={!passwordVisible}
                         onChangeText={(password) =>
                             setConfirmPassword(password)
                         }
                         mode="outlined"
                         style={styles.input}
+                        right={
+                            <TextInput.Icon
+                                icon="eye"
+                                onPress={togglePasswordVisible}
+                            />
+                        }
                     />
                 )}
                 <View style={styles.buttonContainer}>

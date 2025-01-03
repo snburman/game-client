@@ -1,17 +1,14 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { imageSlice } from "./image.slice";
-import { authSlice } from "./auth.slice";
 import { setupListeners } from "@reduxjs/toolkit/query";
+import { api } from "./api";
 
 export const store = configureStore({
     reducer: {
-        [imageSlice.reducerPath]: imageSlice.reducer,
-        [authSlice.reducerPath]: authSlice.reducer,
+        [api.reducerPath]: api.reducer,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware().concat(
-            imageSlice.middleware,
-            authSlice.middleware
+            api.middleware,
         ),
 });
 
