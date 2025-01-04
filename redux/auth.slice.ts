@@ -1,6 +1,7 @@
 import { User } from "./models/user.model";
 import { api } from "./api";
 import { CLIENT_ID, CLIENT_SECRET } from "@/env";
+import { useToken } from "@/app/context/auth_context";
 
 export type AuthResponse = {
     token: string;
@@ -39,15 +40,13 @@ export const authSlice = api.injectEndpoints({
             }),
         }),
         getUser: build.query<User, string>({
-            query: (token: string) => {
-                return {
-                    url: `/user`,
-                    method: "GET",
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                };
-            },
+            query: (token: string) => ({
+                url: `/user`,
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }),
         }),
         updateUser: build.mutation<void, { user: User; token: string }>({
             query: (arg) => ({
@@ -63,9 +62,7 @@ export const authSlice = api.injectEndpoints({
             query: (refreshToken: string) => ({
                 url: "/token/refresh",
                 method: "POST",
-                body: {
-                    refresh_token: refreshToken,
-                },
+                body: createClientDataDTO(refreshToken),
             }),
         }),
     }),
