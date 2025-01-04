@@ -1,5 +1,6 @@
 import {
     AuthResponse,
+    PASSWORD_REQUIREMENTS,
     useLoginUserMutation,
     useRegisterUserMutation,
 } from "@/redux/auth.slice";
@@ -59,6 +60,7 @@ export default function Login(_: HomeStackProps) {
                         break;
                     case "invalid_credentials":
                         setMessage("Invalid username / password");
+                        break;
                     default:
                         setMessage("Error logging in");
                 }
@@ -95,9 +97,7 @@ export default function Login(_: HomeStackProps) {
                         setMessage("Username already exists");
                         break;
                     case "weak_password":
-                        setMessage(
-                            "Password must contain at least:\n- one uppercase letter\n- one lowercase letter\n- one number"
-                        );
+                        setMessage(PASSWORD_REQUIREMENTS);
                         break;
                     default:
                         setMessage("Error creating user");

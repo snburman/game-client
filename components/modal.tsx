@@ -7,17 +7,28 @@ import { Button } from "react-native-paper";
 interface Props {
     visible: boolean;
     setVisible: (visible: boolean) => void;
+    onClose?: () => void;
     children?: ReactNode;
 }
 
-export default function PlainModal({ visible, setVisible, children }: Props) {
+export default function PlainModal({
+    visible,
+    setVisible,
+    onClose,
+    children,
+}: Props) {
     if (!visible) return null;
+
+    function handleClose() {
+        setVisible(false);
+        if (onClose) {
+            onClose();
+        }
+    }
+
     return (
         <Modal transparent animationType="fade" visible={visible}>
-            <Pressable
-                style={modalStyles.modalContainer}
-                onPress={() => setVisible(false)}
-            >
+            <Pressable style={modalStyles.modalContainer} onPress={handleClose}>
                 <Pressable style={modalStyles.modalContent}>
                     {children}
                 </Pressable>
@@ -41,7 +52,7 @@ export function ConfirmModal({
             <View style={modalStyles.modalButtonContainer}>
                 <Button
                     onPress={() => onConfirm(true)}
-                    style={[modalStyles.modalButton, {marginRight: 10}]}
+                    style={[modalStyles.modalButton, { marginRight: 10 }]}
                 >
                     <Text>Yes</Text>
                 </Button>

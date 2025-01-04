@@ -17,7 +17,7 @@ export default function Create() {
     const { cellSize } = useCanvas();
     return (
         <View style={styles.wrapper}>
-            <Canvas width={CANVAS_SIZE} height={CANVAS_SIZE} />
+            <Canvas width={CANVAS_SIZE} height={CANVAS_SIZE}/>
             <View
                 style={[
                     styles.toolContainer,

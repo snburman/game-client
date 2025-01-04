@@ -54,12 +54,12 @@ export default function AuthProvider({ children }: React.PropsWithChildren) {
         }
     }, [token]);
 
-    // refresh tokens 30 seconds before token expiry
+    // refresh tokens 60 seconds before token expiry
     useEffect(() => {
         if (token) {
             const t: { exp: number } = jwtDecode(token);
-            console.log(t.exp)
-            const waitTime = t.exp - (Date.now() / 1000) - 30000;
+            const timeNow = Math.floor(Date.now() / 1000)
+            const waitTime = ((t.exp - timeNow) * 1000) - 60000;
             setTimeout(() => {
                 refreshTokens()
             }, waitTime);

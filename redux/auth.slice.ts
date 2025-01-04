@@ -1,7 +1,8 @@
 import { User } from "./models/user.model";
 import { api } from "./api";
 import { CLIENT_ID, CLIENT_SECRET } from "@/env";
-import { useToken } from "@/app/context/auth_context";
+
+export const PASSWORD_REQUIREMENTS = "Password must contain at least:\n\n- Eight (8) characters\n- one (1) uppercase letter\n- one (1) lowercase letter\n- one (1) number"
 
 export type AuthResponse = {
     token: string;
@@ -48,7 +49,7 @@ export const authSlice = api.injectEndpoints({
                 },
             }),
         }),
-        updateUser: build.mutation<void, { user: User; token: string }>({
+        updateUser: build.mutation<{error: string} | void, { user: User; token: string }>({
             query: (arg) => ({
                 url: "/user/update",
                 method: "PATCH",
