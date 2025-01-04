@@ -6,8 +6,12 @@ import { useAuth } from "../context/auth_context";
 import { useState } from "react";
 import { Typography } from "@mui/joy";
 import { cloneDeep } from "lodash";
-import PlainModal, { ConfirmModal } from "@/components/modal";
-import { PASSWORD_REQUIREMENTS, useUpdateUserMutation } from "@/redux/auth.slice";
+import PlainModal, { ConfirmModal, MessageModal } from "@/components/modal";
+import {
+    PASSWORD_REQUIREMENTS,
+    useDeleteUserMutation,
+    useUpdateUserMutation,
+} from "@/redux/auth.slice";
 
 export default function Settings(props: SettingsProps) {
     const { user, logOut, token } = useAuth();
@@ -21,6 +25,7 @@ export default function Settings(props: SettingsProps) {
     const [messageModalVisible, setMessageModalVisible] = useState(false);
     const [message, setMessage] = useState("");
     const [updateUser] = useUpdateUserMutation();
+    const [deleteUser] = useDeleteUserMutation();
 
     function togglePasswordVisible() {
         setPasswordVisible(!passwordVisible);
@@ -41,7 +46,7 @@ export default function Settings(props: SettingsProps) {
         _user.password = password;
         updateUser({ user: _user, token: token }).then((res) => {
             if (res.error) {
-                const err = res.error as {data: {error: string}};
+                const err = res.error as { data: { error: string } };
                 if (err.data.error === "weak_password") {
                     handleMessageModal(PASSWORD_REQUIREMENTS);
                 }
@@ -53,7 +58,17 @@ export default function Settings(props: SettingsProps) {
 
     function handleDeleteUser(confirm: boolean) {
         setDeleteAccountModalVisible(false);
-        if (!confirm) return;
+        if (!confirm || !token) return;
+        deleteUser(token).then((res) => {
+            if (res.error) {
+                const err = res.error as { data: { error: string } };
+                if (err.data.error) {
+                    handleMessageModal("Error deleting account");
+                }
+            } else {
+                handleMessageModal("Account deleted successfully");
+            }
+        });
     }
 
     function handleMessageModal(message: string) {
@@ -69,13 +84,25 @@ export default function Settings(props: SettingsProps) {
 
     return (
         <>
+        {/* TODO: Make message modal dynamic */}
+        {/* Account deletion should trigger log out */}
+            <MessageModal
+                visible={messageModalVisible}
+                setVisible={setMessageModalVisible}
+                onClose={handleUpdateSuccess}
+                message=""
+            />
             <PlainModal
                 visible={messageModalVisible}
                 setVisible={setMessageModalVisible}
                 onClose={handleUpdateSuccess}
             >
                 <Text style={{ marginBottom: 15 }}>{message}</Text>
-                <Button onPress={handleUpdateSuccess} uppercase={false} mode="outlined">
+                <Button
+                    onPress={handleUpdateSuccess}
+                    uppercase={false}
+                    mode="outlined"
+                >
                     <Text>Close</Text>
                 </Button>
             </PlainModal>
