@@ -11,15 +11,15 @@ export type AuthResponse = {
 type ClientDataDTO = {
     client_id: string;
     client_secret: string;
-    data: any
-}
+    data: any;
+};
 
 function createClientDataDTO(data: any): ClientDataDTO {
     return {
         client_id: CLIENT_ID,
         client_secret: CLIENT_SECRET,
-        data: data
-    }
+        data: data,
+    };
 }
 
 export const authSlice = api.injectEndpoints({
@@ -39,23 +39,25 @@ export const authSlice = api.injectEndpoints({
             }),
         }),
         getUser: build.query<User, string>({
-            query: (token: string) => ({
-                url: `/user`,
-                method: "GET",
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
-            }),
+            query: (token: string) => {
+                return {
+                    url: `/user`,
+                    method: "GET",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                };
+            },
         }),
-        updateUser: build.mutation<void, {user: User, token: string}>({
+        updateUser: build.mutation<void, { user: User; token: string }>({
             query: (arg) => ({
                 url: "/user/update",
                 method: "PATCH",
                 headers: {
-                    "Authorization": `Bearer ${arg.token}`
+                    Authorization: `Bearer ${arg.token}`,
                 },
-                body: arg.user
-            })
+                body: arg.user,
+            }),
         }),
         refreshToken: build.mutation<AuthResponse, string>({
             query: (refreshToken: string) => ({

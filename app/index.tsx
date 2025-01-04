@@ -4,6 +4,7 @@ import Login from "./login";
 import Tabs from "./tabs";
 import { useAuth } from "./context/auth_context";
 import { RootStackParamList, TabsProps } from "./types/navigation";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 export default function Index() {
     const Stack = createStackNavigator<RootStackParamList>();
@@ -16,10 +17,9 @@ export default function Index() {
             }}
         >
             {!user ? (
-                <Stack.Screen name="login" component={Login}/>
+                <Stack.Screen name="login" component={Login} />
             ) : (
-                <Stack.Screen name="tabs" component={Tabs}/>
-          
+                <Stack.Screen name="tabs" component={Tabs} />
             )}
         </Stack.Navigator>
     );

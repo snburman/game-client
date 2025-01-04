@@ -2,30 +2,40 @@ import { User } from "@/redux/models/user.model";
 import { createContext, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { jwtDecode } from "jwt-decode";
-import { authSlice, useRefreshTokenMutation } from "@/redux/auth.slice";
+import { AuthResponse, authSlice, useLoginUserMutation, useRefreshTokenMutation } from "@/redux/auth.slice";
 import { api } from "@/redux/api";
 import { useDispatch } from "react-redux";
 
 type AuthData = {
     user: User | undefined;
     setUser: (user: User) => void;
-    isUserLoading: boolean;
     token: string | undefined;
     setToken: (token: string) => void;
-    getRefreshTokenStorage: () => Promise<string | undefined>;
-    setRefreshTokenStorage: (token: string) => Promise<void>;
     logOut: () => Promise<void>;
     tokenIsExpired: (token: string) => boolean;
+    refreshTokens(): Promise<AuthResponse | undefined>;
+    setRefreshTokenStorage: (token: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthData | undefined>(undefined);
 
+export function useToken() {
+    const { token, tokenIsExpired, refreshTokens} = useAuth();
+    async function getToken() {
+        if(token && tokenIsExpired(token)) {
+            return await refreshTokens().then((data) => data?.token)
+        }
+        return token;
+    }
+    return getToken;
+}
+
 export default function AuthProvider({ children }: React.PropsWithChildren) {
     const [user, setUser] = useState<User | undefined>(undefined);
     const [getUser, getUserResult] = authSlice.endpoints.getUser.useLazyQuery();
-    const [isUserLoading, setIsUserLoading] = useState(false);
     const [token, setToken] = useState<string | undefined>(undefined);
     const [_refreshTokens] = useRefreshTokenMutation();
+    
     const dispatch = useDispatch();
 
     useEffect(() => {
@@ -41,11 +51,6 @@ export default function AuthProvider({ children }: React.PropsWithChildren) {
     }, [token]);
 
     useEffect(() => {
-        if (getUserResult.isLoading || getUserResult.isFetching) {
-            setIsUserLoading(true);
-        } else {
-            setIsUserLoading(false);
-        }
         if (getUserResult.data) {
             setUser(getUserResult.data);
         }
@@ -58,12 +63,16 @@ export default function AuthProvider({ children }: React.PropsWithChildren) {
     };
 
     async function refreshTokens() {
-        await getRefreshTokenStorage().then(async (rt) => {
+        return await getRefreshTokenStorage().then(async (rt) => {
             if (rt) {
-                await _refreshTokens(rt).then((res) => {
+                return await _refreshTokens(rt).then((res) => {
                     if (res.data) {
                         setToken(res.data.token);
                         setRefreshTokenStorage(res.data.refresh_token);
+                        return res.data;
+                    } else {
+                        // refresh token is expired
+                        logOut();
                     }
                 });
             }
@@ -106,11 +115,10 @@ export default function AuthProvider({ children }: React.PropsWithChildren) {
     const initialValue: AuthData = {
         user,
         setUser,
-        isUserLoading,
         token,
         setToken,
         tokenIsExpired,
-        getRefreshTokenStorage,
+        refreshTokens,
         setRefreshTokenStorage,
         logOut,
     };
