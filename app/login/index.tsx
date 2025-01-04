@@ -20,7 +20,6 @@ export default function Login(props: HomeStackProps) {
     const [register, setRegister] = useState(false);
     const [message, setMessage] = useState("");
     const [loginUser, { isLoading: loginLoading }] = useLoginUserMutation();
-    const [, getUserResult] = authSlice.endpoints.getUser.useLazyQuery();
     const [registerUser] = useRegisterUserMutation();
     const { setToken, setRefreshTokenStorage, isUserLoading } = useAuth();
 
@@ -96,7 +95,7 @@ export default function Login(props: HomeStackProps) {
                         break;
                     case "weak_password":
                         setMessage(
-                            "Password must contain at least:\none uppercase letter, one lowercase letter,\none symbol, and one number"
+                            "Password must contain at least:\n- one uppercase letter\n- one lowercase letter\n- one number"
                         );
                         break;
                     default:
