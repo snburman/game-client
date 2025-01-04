@@ -67,6 +67,41 @@ export function ConfirmModal({
     );
 }
 
+export function MessageModal({
+    visible,
+    setVisible,
+    onClose,
+    message,
+}: {
+    visible: boolean;
+    setVisible: (v: boolean) => void;
+    onClose: () => void;
+    message: string
+}) {
+
+    function handlePress() {
+        setVisible(false);
+        onClose();
+    }
+
+    return (
+        <PlainModal
+            visible={visible}
+            setVisible={setVisible}
+            onClose={onClose}
+        >
+            <Text style={{ marginBottom: 15 }}>{message}</Text>
+            <Button
+                onPress={handlePress}
+                uppercase={false}
+                mode="outlined"
+            >
+                <Text>Close</Text>
+            </Button>
+        </PlainModal>
+    );
+}
+
 export const modalStyles = StyleSheet.create({
     modalContainer: {
         flex: 1,
@@ -83,7 +118,7 @@ export const modalStyles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         padding: 40,
-        borderRadius: 20,
+        borderRadius: 8,
         backgroundColor: "#FFFFFF",
         cursor: "auto",
         zIndex: 100,

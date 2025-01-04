@@ -1,10 +1,5 @@
-import React from 'react';
-import Login from ".";
+import { Slot } from "expo-router";
 
 export default function LoginLayout() {
-    return (
-        <>
-            <Login />
-        </>
-    );
+    return <Slot />;
 }

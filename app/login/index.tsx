@@ -12,7 +12,7 @@ import { useAuth } from "../context/auth_context";
 import { HomeStackProps } from "../types/navigation";
 import { ActivityIndicator, MD2Colors } from "react-native-paper";
 
-export default function Login(_: HomeStackProps) {
+export default function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -20,7 +20,7 @@ export default function Login(_: HomeStackProps) {
     const [register, setRegister] = useState(false);
     const [message, setMessage] = useState("");
     const [loginUser, { isLoading: loginLoading }] = useLoginUserMutation();
-    const [registerUser] = useRegisterUserMutation();
+    const [registerUser, {isLoading: registerLoading}] = useRegisterUserMutation();
     const { setToken, setRefreshTokenStorage } = useAuth();
 
     const requiredFields = useCallback(() => {
@@ -114,7 +114,7 @@ export default function Login(_: HomeStackProps) {
         setPasswordVisible(!passwordVisible);
     }
 
-    if (loginLoading) {
+    if (loginLoading || registerLoading) {
         return (
             <View style={styles.container}>
                 <ActivityIndicator

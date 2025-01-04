@@ -25,7 +25,6 @@ const styles = StyleSheet.create({
         justifyContent: "flex-end",
         alignItems: "center",
         backgroundColor: "#FFFFFF",
-        ...theme.shadow.small
     },
     profileContainer: {
         flexDirection: 'row',
