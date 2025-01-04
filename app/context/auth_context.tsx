@@ -2,7 +2,11 @@ import { User } from "@/redux/models/user.model";
 import { createContext, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { jwtDecode } from "jwt-decode";
-import { AuthResponse, authSlice, useLoginUserMutation, useRefreshTokenMutation } from "@/redux/auth.slice";
+import {
+    AuthResponse,
+    authSlice,
+    useRefreshTokenMutation,
+} from "@/redux/auth.slice";
 import { api } from "@/redux/api";
 import { useDispatch } from "react-redux";
 
@@ -20,10 +24,10 @@ type AuthData = {
 const AuthContext = createContext<AuthData | undefined>(undefined);
 
 export function useToken() {
-    const { token, tokenIsExpired, refreshTokens} = useAuth();
+    const { token, tokenIsExpired, refreshTokens } = useAuth();
     async function getToken() {
-        if(token && tokenIsExpired(token)) {
-            return await refreshTokens().then((data) => data?.token)
+        if (token && tokenIsExpired(token)) {
+            return await refreshTokens().then((data) => data?.token);
         }
         return token;
     }
@@ -35,7 +39,7 @@ export default function AuthProvider({ children }: React.PropsWithChildren) {
     const [getUser, getUserResult] = authSlice.endpoints.getUser.useLazyQuery();
     const [token, setToken] = useState<string | undefined>(undefined);
     const [_refreshTokens] = useRefreshTokenMutation();
-    
+
     const dispatch = useDispatch();
 
     useEffect(() => {
@@ -45,8 +49,20 @@ export default function AuthProvider({ children }: React.PropsWithChildren) {
     }, [user]);
 
     useEffect(() => {
-        if (token) {
+        if (token && !user) {
             getUser(token);
+        }
+    }, [token]);
+
+    // refresh tokens 30 seconds before token expiry
+    useEffect(() => {
+        if (token) {
+            const t: { exp: number } = jwtDecode(token);
+            console.log(t.exp)
+            const waitTime = t.exp - (Date.now() / 1000) - 30000;
+            setTimeout(() => {
+                refreshTokens()
+            }, waitTime);
         }
     }, [token]);
 
