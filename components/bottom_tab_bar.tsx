@@ -4,7 +4,7 @@ import { type BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Link } from "@react-navigation/native";
 import { StyleSheet, View } from "react-native";
 import EntypoIcons from "react-native-vector-icons/Entypo";
-import FontistoIcons from "react-native-vector-icons/Fontisto";
+
 export default function BottomTabBar(props: BottomTabBarProps) {
     return (
         <View style={styles.container}>
@@ -26,10 +26,6 @@ export default function BottomTabBar(props: BottomTabBarProps) {
                     <Typography style={styles.iconText}>Play</Typography>
                 </View>
             </Link>
-            <View style={styles.iconWrapper}>
-                <FontistoIcons name="player-settings" style={[styles.icon, {color: '#616161'}]} />
-                <Typography style={styles.iconText}>Settings</Typography>
-            </View>
         </View>
     );
 }

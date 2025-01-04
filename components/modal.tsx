@@ -41,7 +41,7 @@ export function ConfirmModal({
             <View style={modalStyles.modalButtonContainer}>
                 <Button
                     onPress={() => onConfirm(true)}
-                    style={modalStyles.modalButton}
+                    style={[modalStyles.modalButton, {marginRight: 10}]}
                 >
                     <Text>Yes</Text>
                 </Button>
@@ -71,7 +71,7 @@ export const modalStyles = StyleSheet.create({
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        padding: 20,
+        padding: 40,
         borderRadius: 20,
         backgroundColor: "#FFFFFF",
         cursor: "auto",
@@ -82,7 +82,7 @@ export const modalStyles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "center",
         gap: 10,
-        marginTop: 10,
+        marginTop: 20,
     },
     modalButton: {
         backgroundColor: "#FFFFFF",

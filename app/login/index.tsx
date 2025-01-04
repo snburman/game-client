@@ -1,6 +1,5 @@
 import {
     AuthResponse,
-    authSlice,
     useLoginUserMutation,
     useRegisterUserMutation,
 } from "@/redux/auth.slice";
@@ -12,7 +11,7 @@ import { useAuth } from "../context/auth_context";
 import { HomeStackProps } from "../types/navigation";
 import { ActivityIndicator, MD2Colors } from "react-native-paper";
 
-export default function Login(props: HomeStackProps) {
+export default function Login(_: HomeStackProps) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -21,7 +20,7 @@ export default function Login(props: HomeStackProps) {
     const [message, setMessage] = useState("");
     const [loginUser, { isLoading: loginLoading }] = useLoginUserMutation();
     const [registerUser] = useRegisterUserMutation();
-    const { setToken, setRefreshTokenStorage, isUserLoading } = useAuth();
+    const { setToken, setRefreshTokenStorage } = useAuth();
 
     const requiredFields = useCallback(() => {
         const error_msg = "Please fill out all fields";
@@ -60,6 +59,8 @@ export default function Login(props: HomeStackProps) {
                         break;
                     case "invalid_credentials":
                         setMessage("Invalid username / password");
+                    default:
+                        setMessage("Error logging in");
                 }
                 return;
             }
@@ -113,7 +114,7 @@ export default function Login(props: HomeStackProps) {
         setPasswordVisible(!passwordVisible);
     }
 
-    if (loginLoading || isUserLoading) {
+    if (loginLoading) {
         return (
             <View style={styles.container}>
                 <ActivityIndicator

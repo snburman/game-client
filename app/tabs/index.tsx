@@ -4,6 +4,7 @@ import HeaderBar from "@/components/header_bar";
 import { HomeStackProps, HomeTabsParamList} from "../types/navigation";
 import Create from "../create";
 import Game from "../game";
+import Settings from "../settings";
 
 export default function Tabs(props: HomeStackProps) {
     const Tabs = createBottomTabNavigator<HomeTabsParamList>();
@@ -25,6 +26,11 @@ export default function Tabs(props: HomeStackProps) {
                 name="game"
                 component={Game}
                 options={{ title: "Play" }}
+            />
+            <Tabs.Screen
+                name="settings"
+                component={Settings}
+                options={{ title: "Settings" }}
             />
         </Tabs.Navigator>
     );
