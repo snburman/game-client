@@ -1,4 +1,5 @@
 import {
+    AuthError,
     AuthResponse,
     PASSWORD_REQUIREMENTS,
     useLoginUserMutation,
@@ -91,10 +92,10 @@ export default function Login() {
                 const err = res.error as { data: AuthResponse };
                 if(err.data?.error)
                 switch (err.data?.error) {
-                    case "user_exists":
+                    case AuthError.UserExists:
                         setMessageModal("Username already exists");
                         break;
-                    case "weak_password":
+                    case AuthError.WeakPassword:
                         setMessageModal(PASSWORD_REQUIREMENTS);
                         break;
                     default:

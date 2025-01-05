@@ -52,7 +52,7 @@ export default function ColorSelector({
                                                     width: isCurrent ? 24 : 25,
                                                     height: 25,
                                                     borderWidth: isCurrent ? 1 : 0,
-                                                    borderColor: 'red'
+                                                    borderColor: 'red',
                                                 },
                                                 { backgroundColor: color },
                                             ]}

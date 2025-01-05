@@ -33,6 +33,15 @@ export default function Settings(_: SettingsProps) {
     }
 
     function handleUpdateUser() {
+        // currently only passwords are updated in settings
+        if(password == "" || confirmPassword == "") {
+            setMessageModal("Please fill out all fields");
+            return;
+        }
+        if(password !== confirmPassword) {
+            setMessageModal("Passwords do not match");
+            return;
+        }
         setConfirmModal("Change password?", (confirm) => {
             if(!confirm || !token) return;
             const _user = cloneDeep(user);

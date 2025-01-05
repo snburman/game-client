@@ -2,6 +2,13 @@ import { User } from "./models/user.model";
 import { api } from "./api";
 import { CLIENT_ID, CLIENT_SECRET } from "@/env";
 
+export enum AuthError {
+    InvalidCredentials = "invalid_credentials",
+    WeakPassword = "weak_password",
+    UserExists = "user_exists",
+    UserBanned = "user_banned",
+}
+
 export const PASSWORD_REQUIREMENTS =
     "Password must contain at least:\n\n- Eight (8) characters\n- one (1) uppercase letter\n- one (1) lowercase letter\n- one (1) number";
 

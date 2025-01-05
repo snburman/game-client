@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useCanvas } from "@/app/context/canvas_context";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
@@ -7,6 +7,9 @@ import { Button } from "react-native-paper";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import PlainModal, { ConfirmModal, modalStyles } from "./modal";
 import { Input, Typography } from "@mui/joy";
+import { useModals } from "@/app/context/modalContext";
+import { useAuth } from "@/app/context/auth_context";
+import { useGetUserImagesQuery } from "@/redux/image.slice";
 
 // Canvas component represents the drawing area containing width * height pixels
 export default function Canvas({
@@ -18,6 +21,12 @@ export default function Canvas({
 }) {
     const { update, fill, fillColor, layers, cellSize, setIsPressed } =
         useCanvas();
+        
+        const { token } = useAuth();
+        if(token) {
+            console.log(token)
+            const {data} = useGetUserImagesQuery(token)
+        }
 
     const longPress = Gesture.LongPress()
         .minDuration(0)
@@ -207,27 +216,18 @@ export const EraserButton = () => {
 // Clear button erases the canvas
 export const ClearButton = () => {
     const { clearLayer, selectedLayerIndex } = useCanvas();
-    const [modalVisible, setModalVisible] = useState(false);
+    const { setConfirmModal } = useModals();
 
     function handlePress() {
-        setModalVisible(true);
-    }
-
-    function handleConfirm(confirm: boolean) {
-        if (confirm) {
-            clearLayer(selectedLayerIndex);
-        }
-        setModalVisible(false);
+        setConfirmModal("Erase drawing?", (confirm) => {
+            if (confirm) {
+                clearLayer(selectedLayerIndex);
+            }
+        })
     }
 
     return (
         <>
-            <ConfirmModal
-                visible={modalVisible}
-                setVisible={setModalVisible}
-                onConfirm={handleConfirm}
-                message="Erase drawing?"
-            />
             <Pressable onPress={handlePress} style={styles.toolButton}>
                 <MaterialCommunityIcons
                     name="delete"
