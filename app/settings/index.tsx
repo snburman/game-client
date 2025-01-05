@@ -6,131 +6,76 @@ import { useAuth } from "../context/auth_context";
 import { useState } from "react";
 import { Typography } from "@mui/joy";
 import { cloneDeep } from "lodash";
-import PlainModal, { ConfirmModal, MessageModal } from "@/components/modal";
 import {
     PASSWORD_REQUIREMENTS,
     useDeleteUserMutation,
     useUpdateUserMutation,
 } from "@/redux/auth.slice";
+import { useModals } from "../context/modalContext";
 
-export default function Settings(props: SettingsProps) {
+export default function Settings(_: SettingsProps) {
     const { user, logOut, token } = useAuth();
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [passwordVisible, setPasswordVisible] = useState(false);
-    const [updateModalVisible, setUpdateModalVisible] = useState(false);
-    const [logoutModalVisible, setLogoutModalVisible] = useState(false);
-    const [deleteAccountModalVisible, setDeleteAccountModalVisible] =
-        useState(false);
-    const [messageModalVisible, setMessageModalVisible] = useState(false);
-    const [message, setMessage] = useState("");
     const [updateUser] = useUpdateUserMutation();
     const [deleteUser] = useDeleteUserMutation();
+    const { setMessageModal, setConfirmModal } = useModals();
 
     function togglePasswordVisible() {
         setPasswordVisible(!passwordVisible);
     }
 
-    function handleLogout(confirm: boolean) {
-        setLogoutModalVisible(false);
-        if (confirm) {
-            logOut();
-        }
-    }
-
-    function handleUpdateUser(confirm: boolean) {
-        setUpdateModalVisible(false);
-        if (!confirm || !token) return;
-        const _user = cloneDeep(user);
-        if (!_user) return;
-        _user.password = password;
-        updateUser({ user: _user, token: token }).then((res) => {
-            if (res.error) {
-                const err = res.error as { data: { error: string } };
-                if (err.data.error === "weak_password") {
-                    handleMessageModal(PASSWORD_REQUIREMENTS);
-                }
-            } else {
-                handleMessageModal("Password changed successfully");
-            }
+    function handleLogout() {
+        setConfirmModal("Log out?", (confirm) => {
+            confirm && logOut();
         });
     }
 
-    function handleDeleteUser(confirm: boolean) {
-        setDeleteAccountModalVisible(false);
-        if (!confirm || !token) return;
-        deleteUser(token).then((res) => {
-            if (res.error) {
-                const err = res.error as { data: { error: string } };
-                if (err.data.error) {
-                    handleMessageModal("Error deleting account");
+    function handleUpdateUser() {
+        setConfirmModal("Change password?", (confirm) => {
+            if(!confirm || !token) return;
+            const _user = cloneDeep(user);
+            if (!_user) return;
+            _user.password = password;
+            updateUser({ user: _user, token: token }).then((res) => {
+                if (res.error) {
+                    const err = res.error as { data: { error: string } };
+                    if (err.data.error === "weak_password") {
+                        setMessageModal(PASSWORD_REQUIREMENTS);
+                    }
+                } else {
+                    setMessageModal("Password changed successfully");
                 }
-            } else {
-                handleMessageModal("Account deleted successfully");
-            }
-        });
+            });
+        })
     }
 
-    function handleMessageModal(message: string) {
-        setMessage(message);
-        setMessageModalVisible(true);
-    }
-
-    function handleUpdateSuccess() {
-        setPassword("");
-        setConfirmPassword("");
-        setMessageModalVisible(false);
+    function handleDeleteUser() {
+        setConfirmModal("Delete account?", (confirm) => {
+            if (!confirm || !token) return;
+            deleteUser(token).then((res) => {
+                if (res.error) {
+                    const err = res.error as { data: { error: string } };
+                    if (err.data.error) {
+                        setMessageModal("Error deleting account");
+                    }
+                } else {
+                    setMessageModal("Account deleted successfully", logOut);
+                }
+            });
+        })
     }
 
     return (
         <>
-        {/* TODO: Make message modal dynamic */}
-        {/* Account deletion should trigger log out */}
-            <MessageModal
-                visible={messageModalVisible}
-                setVisible={setMessageModalVisible}
-                onClose={handleUpdateSuccess}
-                message=""
-            />
-            <PlainModal
-                visible={messageModalVisible}
-                setVisible={setMessageModalVisible}
-                onClose={handleUpdateSuccess}
-            >
-                <Text style={{ marginBottom: 15 }}>{message}</Text>
-                <Button
-                    onPress={handleUpdateSuccess}
-                    uppercase={false}
-                    mode="outlined"
-                >
-                    <Text>Close</Text>
-                </Button>
-            </PlainModal>
-            <ConfirmModal
-                visible={logoutModalVisible}
-                setVisible={setLogoutModalVisible}
-                onConfirm={handleLogout}
-                message="Log out?"
-            />
-            <ConfirmModal
-                visible={updateModalVisible}
-                setVisible={setUpdateModalVisible}
-                onConfirm={handleUpdateUser}
-                message="Change password?"
-            />
-            <ConfirmModal
-                visible={deleteAccountModalVisible}
-                setVisible={setDeleteAccountModalVisible}
-                onConfirm={handleDeleteUser}
-                message="Delete Account?"
-            />
-            <View style={styles.wrapper}>
+            <View style={styles.container}>
                 <Typography fontSize={20}>User Settings</Typography>
                 <Button
                     uppercase={false}
                     mode={"outlined"}
                     style={[styles.button, { marginBottom: 30 }]}
-                    onPress={() => setLogoutModalVisible(true)}
+                    onPress={handleLogout}
                 >
                     <Text>Log Out</Text>
                 </Button>
@@ -144,7 +89,7 @@ export default function Settings(props: SettingsProps) {
                     style={styles.input}
                     right={
                         <TextInput.Icon
-                            icon="eye"
+                            icon={passwordVisible ? "eye" : "eye-off"}
                             onPress={togglePasswordVisible}
                         />
                     }
@@ -158,7 +103,7 @@ export default function Settings(props: SettingsProps) {
                     style={styles.input}
                     right={
                         <TextInput.Icon
-                            icon="eye"
+                            icon={passwordVisible ? "eye" : "eye-off"}
                             onPress={togglePasswordVisible}
                         />
                     }
@@ -167,7 +112,7 @@ export default function Settings(props: SettingsProps) {
                     uppercase={false}
                     mode={"outlined"}
                     style={[styles.button, { marginBottom: 30 }]}
-                    onPress={() => setUpdateModalVisible(true)}
+                    onPress={handleUpdateUser}
                 >
                     <Text>Change Password</Text>
                 </Button>
@@ -182,7 +127,7 @@ export default function Settings(props: SettingsProps) {
                         styles.button,
                         { marginBottom: 30, borderColor: "red" },
                     ]}
-                    onPress={() => setDeleteAccountModalVisible(true)}
+                    onPress={handleDeleteUser}
                 >
                     <Text style={{ color: "red" }}>Delete Account</Text>
                 </Button>
@@ -192,7 +137,7 @@ export default function Settings(props: SettingsProps) {
 }
 
 const styles = StyleSheet.create({
-    wrapper: {
+    container: {
         flex: 1,
         alignItems: "center",
         justifyContent: "center",
