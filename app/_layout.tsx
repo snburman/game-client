@@ -5,17 +5,25 @@ import { store } from "@/redux/store";
 import { theme } from "./_theme";
 import AuthProvider from "./context/auth_context";
 import Index from "./index";
+import ModalProvider from "./context/modalContext";
 
 export default function RootLayout() {
     return (
+        // global async store
         <ReduxProvider store={store}>
-            <AuthProvider>
-                <CanvasProvider>
-                    <PaperProvider theme={theme}>
-                        <Index />
-                    </PaperProvider>
-                </CanvasProvider>
-            </AuthProvider>
+            {/* alerts, confirmation modals, etc. */}
+            <ModalProvider>
+                {/* authentication provision */}
+                <AuthProvider>
+                    {/* drawing canvas data */}
+                    <CanvasProvider>
+                        {/* component theme */}
+                        <PaperProvider theme={theme}>
+                            <Index />
+                        </PaperProvider>
+                    </CanvasProvider>
+                </AuthProvider>
+            </ModalProvider>
         </ReduxProvider>
     );
 }

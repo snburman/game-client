@@ -8,9 +8,10 @@ import { every } from "lodash";
 import React, { useCallback, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Button, TextInput } from "react-native-paper";
+import Ionicons from "react-native-vector-icons/Ionicons";
 import { useAuth } from "../context/auth_context";
-import { HomeStackProps } from "../types/navigation";
 import { ActivityIndicator, MD2Colors } from "react-native-paper";
+import { useModals } from "../context/modalContext";
 
 export default function Login() {
     const [username, setUsername] = useState("");
@@ -18,19 +19,19 @@ export default function Login() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [register, setRegister] = useState(false);
-    const [message, setMessage] = useState("");
     const [loginUser, { isLoading: loginLoading }] = useLoginUserMutation();
     const [registerUser, {isLoading: registerLoading}] = useRegisterUserMutation();
     const { setToken, setRefreshTokenStorage } = useAuth();
+    const { setMessageModal } = useModals();
 
     const requiredFields = useCallback(() => {
         const error_msg = "Please fill out all fields";
-        if (register && !every([username, password, confirmPassword])) {
-            setMessage(error_msg);
+        if (register && (username == "" || password == "" || confirmPassword == "")) {
+            setMessageModal(error_msg)
             return false;
         }
         if (!register && !every([username, password])) {
-            setMessage(error_msg);
+            setMessageModal(error_msg)
             return false;
         }
         return true;
@@ -46,30 +47,28 @@ export default function Login() {
     function handleLogin() {
         if (register) {
             setRegister(false);
-            setMessage("");
             return;
         }
         if (!requiredFields()) return;
-        setMessage("");
         loginUser({ username, password }).then((res) => {
             if (res.error) {
                 const err = res.error as { data: AuthResponse };
-                switch (err.data.error) {
+                switch (err.data?.error) {
                     case "user_banned":
-                        setMessage("Account disabled");
+                        setMessageModal("Account disabled");
                         break;
                     case "invalid_credentials":
-                        setMessage("Invalid username / password");
+                        setMessageModal("Invalid username / password");
                         break;
                     default:
-                        setMessage("Error logging in");
+                        setMessageModal("Error logging in");
                 }
                 return;
             }
             if (res.data) {
                 setTokens(res.data);
             } else {
-                setMessage("Error logging in");
+                setMessageModal("Error logging in");
             }
         });
     }
@@ -77,35 +76,34 @@ export default function Login() {
     function handleRegister() {
         if (!register) {
             setRegister(true);
-            setMessage("");
             return;
         }
         if (!requiredFields()) return;
         if (password !== confirmPassword) {
-            setMessage("Passwords do not match");
+            setMessageModal("Passwords do not match");
             return;
         }
-        setMessage("");
         registerUser({
             username,
             password,
         }).then((res) => {
             if (res.error) {
                 const err = res.error as { data: AuthResponse };
-                switch (err.data.error) {
+                if(err.data?.error)
+                switch (err.data?.error) {
                     case "user_exists":
-                        setMessage("Username already exists");
+                        setMessageModal("Username already exists");
                         break;
                     case "weak_password":
-                        setMessage(PASSWORD_REQUIREMENTS);
+                        setMessageModal(PASSWORD_REQUIREMENTS);
                         break;
                     default:
-                        setMessage("Error creating user");
+                        setMessageModal("Error creating user");
                 }
             } else if (res.data) {
                 setTokens(res.data);
             } else {
-                setMessage("Error creating user");
+                setMessageModal("Error creating user");
             }
         });
     }
@@ -128,7 +126,6 @@ export default function Login() {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.message}>{message}</Text>
             <View>
                 <TextInput
                     label="Username"
@@ -146,7 +143,7 @@ export default function Login() {
                     style={styles.input}
                     right={
                         <TextInput.Icon
-                            icon="eye"
+                            icon={passwordVisible ? "eye" : "eye-off"}
                             onPress={togglePasswordVisible}
                         />
                     }
@@ -163,7 +160,7 @@ export default function Login() {
                         style={styles.input}
                         right={
                             <TextInput.Icon
-                                icon="eye"
+                            icon={passwordVisible ? "eye" : "eye-off"}
                                 onPress={togglePasswordVisible}
                             />
                         }

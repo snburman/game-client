@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import { theme } from "@/app/_theme";
 import { useCanvas } from "@/app/context/canvas_context";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
@@ -11,12 +11,11 @@ export default function ColorSelector({
     visible: boolean;
     setVisible: (visible: boolean) => void;
 }) {
-    const { currentColor, setCurrentColor, previousColor } =
-        useCanvas();
+    const { currentColor, setCurrentColor, previousColor } = useCanvas();
 
     function handlePressColorIndicator() {
-        if(currentColor === 'transparent' && previousColor !== 'transparent') {
-            setCurrentColor(previousColor)
+        if (currentColor === "transparent" && previousColor !== "transparent") {
+            setCurrentColor(previousColor);
         }
         setVisible(true);
     }
@@ -40,19 +39,27 @@ export default function ColorSelector({
                 >
                     <View style={styles.modalContent}>
                         <View style={styles.swatchContainer}>
-                            {colors.map((color, i) => (
-                                <Pressable
-                                    key={i}
-                                    onPress={() => handleSelectColor(color)}
-                                >
-                                    <View
-                                        style={[
-                                            styles.swatchItem,
-                                            { backgroundColor: color },
-                                        ]}
-                                    />
-                                </Pressable>
-                            ))}
+                            {colors.map((color, i) => {
+                                const isCurrent = color === currentColor;
+                                return (
+                                    <Pressable
+                                        key={i}
+                                        onPress={() => handleSelectColor(color)}
+                                    >
+                                        <View
+                                            style={[
+                                                {
+                                                    width: isCurrent ? 24 : 25,
+                                                    height: 25,
+                                                    borderWidth: isCurrent ? 1 : 0,
+                                                    borderColor: 'red'
+                                                },
+                                                { backgroundColor: color },
+                                            ]}
+                                        />
+                                    </Pressable>
+                                );
+                            })}
                         </View>
                         <Button
                             style={styles.button}

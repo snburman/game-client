@@ -6,24 +6,15 @@ import { Button } from "react-native-paper";
 
 interface Props {
     visible: boolean;
-    setVisible: (visible: boolean) => void;
     onClose?: () => void;
     children?: ReactNode;
 }
 
-export default function PlainModal({
-    visible,
-    setVisible,
-    onClose,
-    children,
-}: Props) {
+export default function PlainModal({ visible, onClose, children }: Props) {
     if (!visible) return null;
 
     function handleClose() {
-        setVisible(false);
-        if (onClose) {
-            onClose();
-        }
+        onClose && onClose();
     }
 
     return (
@@ -39,66 +30,71 @@ export default function PlainModal({
 
 export function ConfirmModal({
     visible,
-    setVisible,
-    onConfirm,
     message,
+    onConfirm,
 }: Props & {
-    onConfirm: (confirm: boolean) => void;
     message: string;
+    onConfirm: (confirm: boolean) => void;
 }) {
     return (
-        <PlainModal visible={visible} setVisible={setVisible}>
-            <Typography>{message}</Typography>
-            <View style={modalStyles.modalButtonContainer}>
-                <Button
-                    onPress={() => onConfirm(true)}
-                    style={[modalStyles.modalButton, { marginRight: 10 }]}
-                >
-                    <Text>Yes</Text>
-                </Button>
-                <Button
-                    onPress={() => onConfirm(false)}
-                    style={modalStyles.modalButton}
-                >
-                    <Text>No</Text>
-                </Button>
-            </View>
-        </PlainModal>
+        <Modal transparent animationType="fade" visible={visible}>
+            <Pressable
+                style={modalStyles.modalContainer}
+                onPress={() => onConfirm(false)}
+            >
+                <Pressable style={modalStyles.modalContent}>
+                    <Typography>{message}</Typography>
+                    <View style={modalStyles.modalButtonContainer}>
+                        <Button
+                            onPress={() => onConfirm(true)}
+                            style={[
+                                modalStyles.modalButton,
+                                { marginRight: 10 },
+                            ]}
+                        >
+                            <Text>Yes</Text>
+                        </Button>
+                        <Button
+                            onPress={() => onConfirm(false)}
+                            style={modalStyles.modalButton}
+                        >
+                            <Text>No</Text>
+                        </Button>
+                    </View>
+                </Pressable>
+            </Pressable>
+        </Modal>
     );
 }
 
 export function MessageModal({
     visible,
-    setVisible,
-    onClose,
     message,
+    onClose,
 }: {
     visible: boolean;
-    setVisible: (v: boolean) => void;
-    onClose: () => void;
-    message: string
+    onClose?: () => void;
+    message: string;
 }) {
-
     function handlePress() {
-        setVisible(false);
-        onClose();
+        onClose && onClose();
     }
 
     return (
-        <PlainModal
-            visible={visible}
-            setVisible={setVisible}
-            onClose={onClose}
-        >
-            <Text style={{ marginBottom: 15 }}>{message}</Text>
-            <Button
-                onPress={handlePress}
-                uppercase={false}
-                mode="outlined"
-            >
-                <Text>Close</Text>
-            </Button>
-        </PlainModal>
+        <Modal transparent animationType="fade" visible={visible}>
+            <Pressable style={modalStyles.modalContainer} onPress={handlePress}>
+                <Pressable style={modalStyles.modalContent}>
+                    <Text style={{ marginBottom: 15 }}>{message}</Text>
+                    <Button
+                        onPress={handlePress}
+                        uppercase={false}
+                        mode="outlined"
+                    >
+                        <Text>Close</Text>
+                    </Button>
+                </Pressable>
+            </Pressable>
+        </Modal>
     );
 }
 
@@ -107,7 +103,7 @@ export const modalStyles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        padding: 50,
+        padding: 10,
         backgroundColor: "rgba(0, 0, 0, 0.6)",
         zIndex: 50,
         ...theme.shadow.small,
@@ -117,7 +113,7 @@ export const modalStyles = StyleSheet.create({
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        padding: 40,
+        padding: 30,
         borderRadius: 8,
         backgroundColor: "#FFFFFF",
         cursor: "auto",
