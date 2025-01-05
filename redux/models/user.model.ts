@@ -1,6 +1,6 @@
 export type User = {
+    _id?: string;
     password?: string;
-    userId?: string;
     username?: string;
     role?: string;
 };

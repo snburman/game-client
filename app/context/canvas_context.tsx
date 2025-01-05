@@ -1,4 +1,4 @@
-import { usePostImageMutation } from "@/redux/image.slice";
+import { AssetError, usePostImageMutation, useUpdateImageMutation } from "@/redux/image.slice";
 import {
     createContext,
     useContext,
@@ -10,6 +10,9 @@ import {
 import { Image } from "@/redux/models/image.model";
 import cloneDeep from "lodash/cloneDeep";
 import { isEqual } from "lodash";
+import { useAuth } from "./auth_context";
+import { useModals } from "./modalContext";
+import { useUpdateUserMutation } from "@/redux/auth.slice";
 
 export const CANVAS_SIZE = 16;
 export const CELL_SIZE = 20;
@@ -66,6 +69,9 @@ type CanvasData = {
 const CanvasContext = createContext<CanvasData | undefined>(undefined);
 
 export default function CanvasProvider({ children }: React.PropsWithChildren) {
+    const { user, token } = useAuth();
+    const { setMessageModal, setConfirmModal } = useModals();
+
     //////////////////////////////////////////
     // Config
     //////////////////////////////////////////
@@ -274,10 +280,11 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     //////////////////////////////////////////
     // API calls
     //////////////////////////////////////////
-    // TODO: use isLoading and isError to show loading and error states
-    const [postImage, { isLoading, isSuccess, isError }] =
-        usePostImageMutation();
+    const [postImage] = usePostImageMutation();
+    const [updateImage] = useUpdateImageMutation();
+
     async function save() {
+        if(!token) return;
         let _cells = getCells(selectedLayerIndex);
         for (let x = 0; x < CANVAS_SIZE; x++) {
             for (let y = 0; y < CANVAS_SIZE; y++) {
@@ -289,20 +296,38 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
 
         // TODO: user can reopen and edit image, coordinates should come from existing document or 0,0
         const image: Image = {
+            user_id: user?._id || "",
+            name: name,
             x: 0,
             y: 0,
-            name: name,
             width: CANVAS_SIZE,
             height: CANVAS_SIZE,
             data: JSON.stringify(_cells),
         };
 
-        await postImage(image);
-        if (isSuccess) {
-            alert("Image saved successfully");
-        } else if (isError) {
-            alert("Failed to save image");
-        }
+        await postImage({token, image}).then((res) => {
+            if(res.error) {
+                const { data } = res.error as { data: {error: string} };
+                if(data && data.error == AssetError.ImageExists) {
+                    setConfirmModal("An image with this name already exists.\nUpdate image?", (confirm) => {
+                        if(confirm) {
+                            // update image
+                            updateImage({token, image}).then(res => {
+                                if(res.error) {
+                                    setMessageModal("Failed to update image");
+                                } else {
+                                    setMessageModal("Image saved successfully");
+                                }
+                            })
+                        }
+                    })
+                } else {
+                    setMessageModal("Failed to save image");
+                }
+            } else {
+                setMessageModal("Image saved successfully");
+            }
+        })
     }
 
     const initialValue: CanvasData = {
