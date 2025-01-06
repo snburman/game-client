@@ -1,8 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { type BottomTabHeaderProps } from "@react-navigation/bottom-tabs";
 import { useAuth } from "@/app/context/auth_context";
-import { Button } from "react-native-paper";
-import { theme } from "@/app/_theme";
 import FeatherIcons from "react-native-vector-icons/Feather";
 
 export default function HeaderBar({ navigation }: BottomTabHeaderProps) {
@@ -10,7 +8,10 @@ export default function HeaderBar({ navigation }: BottomTabHeaderProps) {
 
     return (
         <View style={styles.container}>
-            <Pressable style={styles.profileContainer} onPress={() => navigation.navigate('settings')}>
+            <Pressable
+                style={styles.profileContainer}
+                onPress={() => navigation.navigate("settings")}
+            >
                 <Text style={styles.userName}>{user?.username}</Text>
                 <FeatherIcons name="user" size={16}/>
             </Pressable>
@@ -21,17 +22,18 @@ export default function HeaderBar({ navigation }: BottomTabHeaderProps) {
 const styles = StyleSheet.create({
     container: {
         height: 60,
-        flexDirection: 'row',
+        flexDirection: "row",
         justifyContent: "flex-end",
         alignItems: "center",
         backgroundColor: "#FFFFFF",
     },
     profileContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
+        flexDirection: "row",
+        alignItems: "center",
         marginRight: 20,
+        cursor: "pointer",
     },
     userName: {
         marginRight: 5,
-    }
+    },
 });

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useCanvas } from "@/app/context/canvas_context";
+import { CellData, useCanvas } from "@/app/context/canvas_context";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
 import { theme } from "@/app/_theme";
@@ -8,8 +8,7 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import PlainModal, { ConfirmModal, modalStyles } from "./modal";
 import { Input, Typography } from "@mui/joy";
 import { useModals } from "@/app/context/modalContext";
-import { useAuth } from "@/app/context/auth_context";
-import { useGetUserImagesQuery } from "@/redux/image.slice";
+import { imageSlice } from "@/redux/image.slice";
 
 // Canvas component represents the drawing area containing width * height pixels
 export default function Canvas({
@@ -119,6 +118,41 @@ const Layer = (props: { index: number; width: number; height: number }) => {
     );
 };
 
+export const LayerPreview = ({
+    data,
+    cellSize,
+    width = 16,
+    height = 16,
+}: {
+    data: CellData[][];
+    cellSize: number;
+    width?: number;
+    height?: number;
+}) => {
+    return (
+        <View
+            style={[
+                theme.shadow.small,
+                styles.layerContainer,
+                { width: cellSize * width, height: cellSize * height },
+            ]}
+        >
+            {data.map((row, x) =>
+                row.map((cell, i) => (
+                    <View
+                        key={i}
+                        style={{
+                            backgroundColor: cell.color,
+                            width: cellSize,
+                            height: cellSize,
+                        }}
+                    />
+                ))
+            )}
+        </View>
+    );
+};
+
 // Cell component represents a single pixel on the canvas of dimensions width * height
 const Cell = ({
     x,
@@ -173,8 +207,13 @@ export const GridButton = () => {
 
 // Eraser button toggles between eraser and previous color
 export const EraserButton = () => {
-    const { currentColor, setCurrentColor, previousColor, setPreviousColor, setFill } =
-        useCanvas();
+    const {
+        currentColor,
+        setCurrentColor,
+        previousColor,
+        setPreviousColor,
+        setFill,
+    } = useCanvas();
 
     function handlePress() {
         if (currentColor !== "transparent") {
@@ -217,7 +256,7 @@ export const ClearButton = () => {
             if (confirm) {
                 clearLayer(selectedLayerIndex);
             }
-        })
+        });
     }
 
     return (

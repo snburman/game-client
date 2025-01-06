@@ -1,4 +1,4 @@
-export type Image = {
+export type Image<T> = {
     _id?: string;
     user_id: string;
     name: string;
@@ -6,5 +6,5 @@ export type Image = {
     y: number;
     width: number;
     height: number;
-    data: string;
+    data: T;
 }

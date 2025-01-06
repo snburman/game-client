@@ -30,6 +30,7 @@ export type CellData = {
 };
 
 type CanvasData = {
+    setEditImage(image: Image<CellData[][]>): void;
     // Cells and layers share an array index
     // Cells are for rendering by the canvas
     cells: Array<CellData[][]>;
@@ -117,6 +118,26 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         }
         return layer;
     }
+
+    function setEditImage(image: Image<CellData[][]>) {
+        const layer: LayerMap = new Map<string, string>();
+        for (let x = 0; x < image.width; x++) {
+            for (let y = 0; y < image.height; y++) {
+                layer.set(`${x}-${y}`, image.data[x][y].color);
+            }
+        }
+        layers.current = [layer];
+        setLayerHistory([layers.current]);
+        setHistoryIndex(0);
+        const _cells = generateCellsFromLayer(
+            layers.current[selectedLayerIndex],
+            CANVAS_SIZE,
+            CANVAS_SIZE
+        )
+        setCells([_cells]);
+        setName(image.name);
+    }
+    // console.log(layerHistory)
 
     function clearLayer(index: number) {
         const layer = layers.current[index];
@@ -293,7 +314,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         }
 
         // TODO: user can reopen and edit image, coordinates should come from existing document or 0,0
-        const image: Image = {
+        const image: Image<string> = {
             user_id: user?._id || "",
             name: name,
             x: 0,
@@ -308,7 +329,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
                 const { data } = res.error as { data: { error: string } };
                 if (data && data.error == AssetError.ImageExists) {
                     setConfirmModal(
-                        "An image with this name already exists.\nUpdate image?",
+                        `An image with this name already exists.\nUpdate image?`,
                         (confirm) => {
                             if (confirm) {
                                 // update image
@@ -338,6 +359,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     }
 
     const initialValue: CanvasData = {
+        setEditImage,
         cells,
         getCells,
         cellSize,
