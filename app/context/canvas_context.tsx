@@ -1,18 +1,15 @@
-import { AssetError, usePostImageMutation, useUpdateImageMutation } from "@/redux/image.slice";
 import {
-    createContext,
-    useContext,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-} from "react";
+    AssetError,
+    imageSlice,
+    usePostImageMutation,
+    useUpdateImageMutation,
+} from "@/redux/image.slice";
+import { createContext, useContext, useMemo, useRef, useState } from "react";
 import { Image } from "@/redux/models/image.model";
 import cloneDeep from "lodash/cloneDeep";
 import { isEqual } from "lodash";
 import { useAuth } from "./auth_context";
 import { useModals } from "./modalContext";
-import { useUpdateUserMutation } from "@/redux/auth.slice";
 
 export const CANVAS_SIZE = 16;
 export const CELL_SIZE = 20;
@@ -282,9 +279,10 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     //////////////////////////////////////////
     const [postImage] = usePostImageMutation();
     const [updateImage] = useUpdateImageMutation();
+    const [getUserImages] = imageSlice.endpoints.getUserImages.useLazyQuery();
 
     async function save() {
-        if(!token) return;
+        if (!token) return;
         let _cells = getCells(selectedLayerIndex);
         for (let x = 0; x < CANVAS_SIZE; x++) {
             for (let y = 0; y < CANVAS_SIZE; y++) {
@@ -305,29 +303,38 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
             data: JSON.stringify(_cells),
         };
 
-        await postImage({token, image}).then((res) => {
-            if(res.error) {
-                const { data } = res.error as { data: {error: string} };
-                if(data && data.error == AssetError.ImageExists) {
-                    setConfirmModal("An image with this name already exists.\nUpdate image?", (confirm) => {
-                        if(confirm) {
-                            // update image
-                            updateImage({token, image}).then(res => {
-                                if(res.error) {
-                                    setMessageModal("Failed to update image");
-                                } else {
-                                    setMessageModal("Image saved successfully");
-                                }
-                            })
+        await postImage({ token, image }).then((res) => {
+            if (res.error) {
+                const { data } = res.error as { data: { error: string } };
+                if (data && data.error == AssetError.ImageExists) {
+                    setConfirmModal(
+                        "An image with this name already exists.\nUpdate image?",
+                        (confirm) => {
+                            if (confirm) {
+                                // update image
+                                updateImage({ token, image }).then((res) => {
+                                    if (res.error) {
+                                        setMessageModal(
+                                            "Failed to update image"
+                                        );
+                                    } else {
+                                        getUserImages(token);
+                                        setMessageModal(
+                                            "Image saved successfully"
+                                        );
+                                    }
+                                });
+                            }
                         }
-                    })
+                    );
                 } else {
                     setMessageModal("Failed to save image");
                 }
             } else {
+                getUserImages(token);
                 setMessageModal("Image saved successfully");
             }
-        })
+        });
     }
 
     const initialValue: CanvasData = {
