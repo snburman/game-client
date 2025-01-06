@@ -1,26 +1,24 @@
 import React from "react";
 import { imageSlice } from "@/redux/image.slice";
 import { useAuth } from "../context/auth_context";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Image } from "@/redux/models/image.model";
 import { useModals } from "../context/modalContext";
 import { LayerPreview } from "@/components/canvas";
 import { CellData, useCanvas } from "../context/canvas_context";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { ImagesProps } from "../types/navigation";
+import { LoadingSpinner } from "@/components/loading";
 
 export default function Images({ navigation }: ImagesProps) {
     const { token } = useAuth();
     const { setMessageModal, setConfirmModal } = useModals();
-    const [getImages, getImagesResult] =
+    const [getImages, images] =
         imageSlice.endpoints.getUserImages.useLazyQuery();
-    const [images, setImages] = useState<Image<CellData[][]>[] | undefined>(
-        undefined
-    );
-    const { setEditImage } = useCanvas();
+    const { setEditImage, isUsingCanvas, setIsUsingCanvas } = useCanvas();
 
     useEffect(() => {
-        if (token) {
+        if (token && !images.data) {
             getImages(token).then((res) => {
                 if (res.error) {
                     setMessageModal("You have no images yet");
@@ -29,26 +27,31 @@ export default function Images({ navigation }: ImagesProps) {
         }
     }, [token]);
 
-    useEffect(() => {
-        if (getImagesResult.data) {
-            setImages(getImagesResult.data);
-        }
-    }, [getImagesResult]);
-
     function handleEdit(image: Image<CellData[][]>) {
         setConfirmModal(`Edit ${image.name}?`, (confirm) => {
-            if(confirm) {
+            if (confirm) {
+                // imageSlice.util.resetApiState();
                 setEditImage(image);
-                navigation.navigate('create')
+                setIsUsingCanvas(true);
+                navigation.navigate("create");
             }
-        })
+        });
+    }
+
+    // reduces memory overhead
+    if (isUsingCanvas) {
+        return null;
+    }
+
+    if(images.isLoading) {
+        return <LoadingSpinner />
     }
 
     return (
         <ScrollView style={styles.scrollview}>
             <View style={styles.contentContainer}>
                 <View style={styles.imagesContainer}>
-                    {images?.map((image, index) => (
+                    {images.data?.map((image, index) => (
                         <Pressable
                             key={index}
                             onPress={() => handleEdit(image)}

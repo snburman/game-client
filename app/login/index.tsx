@@ -13,6 +13,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import { useAuth } from "../context/auth_context";
 import { ActivityIndicator, MD2Colors } from "react-native-paper";
 import { useModals } from "../context/modalContext";
+import { LoadingSpinner } from "@/components/loading";
 
 export default function Login() {
     const [username, setUsername] = useState("");
@@ -115,13 +116,7 @@ export default function Login() {
 
     if (loginLoading || registerLoading) {
         return (
-            <View style={styles.container}>
-                <ActivityIndicator
-                    animating={true}
-                    color={MD2Colors.green400}
-                    size={100}
-                />
-            </View>
+            <LoadingSpinner />
         );
     }
 

@@ -8,7 +8,6 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import PlainModal, { ConfirmModal, modalStyles } from "./modal";
 import { Input, Typography } from "@mui/joy";
 import { useModals } from "@/app/context/modalContext";
-import { imageSlice } from "@/redux/image.slice";
 
 // Canvas component represents the drawing area containing width * height pixels
 export default function Canvas({
@@ -129,6 +128,7 @@ export const LayerPreview = ({
     width?: number;
     height?: number;
 }) => {
+
     return (
         <View
             style={[

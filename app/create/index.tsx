@@ -16,7 +16,12 @@ import { CreateProps } from "../types/navigation";
 
 export default function Create({ navigation }: CreateProps) {
     const [modalVisible, setModalVisible] = useState(false);
-    const { cellSize } = useCanvas();
+    const { cellSize, setIsUsingCanvas } = useCanvas();
+
+    function handlePressImages() {
+        setIsUsingCanvas(false);
+        navigation.navigate("images");
+    }
 
     return (
         <View style={styles.container}>
@@ -43,7 +48,7 @@ export default function Create({ navigation }: CreateProps) {
                     <GridButton />
                 </View>
             </View>
-            <Button onPress={() => navigation.navigate('images')}>
+            <Button onPress={handlePressImages}>
                 <Text>Images</Text>
             </Button>
         </View>

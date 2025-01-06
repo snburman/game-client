@@ -1,4 +1,5 @@
 import { theme } from "@/app/_theme";
+import { useCanvas } from "@/app/context/canvas_context";
 import { Typography } from "@mui/joy";
 import { type BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Link } from "@react-navigation/native";

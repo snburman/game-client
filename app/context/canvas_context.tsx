@@ -31,6 +31,8 @@ export type CellData = {
 
 type CanvasData = {
     setEditImage(image: Image<CellData[][]>): void;
+    isUsingCanvas: boolean;
+    setIsUsingCanvas: (isUsing: boolean) => void;
     // Cells and layers share an array index
     // Cells are for rendering by the canvas
     cells: Array<CellData[][]>;
@@ -69,6 +71,10 @@ const CanvasContext = createContext<CanvasData | undefined>(undefined);
 export default function CanvasProvider({ children }: React.PropsWithChildren) {
     const { user, token } = useAuth();
     const { setMessageModal, setConfirmModal } = useModals();
+
+    // used to communicate with other components if user is using canvas
+    // used to remove excess state to free memory before using canvas
+    const [isUsingCanvas, setIsUsingCanvas] = useState(false);
 
     //////////////////////////////////////////
     // Config
@@ -234,6 +240,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     }
 
     function update(x: number, y: number) {
+        if(!isUsingCanvas) setIsUsingCanvas(true);
         const layer = cloneDeep(layers.current[selectedLayerIndex]);
         if (!layer) {
             throw new Error(`Layer ${selectedLayerIndex} not found`);
@@ -359,6 +366,8 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     }
 
     const initialValue: CanvasData = {
+        isUsingCanvas,
+        setIsUsingCanvas,
         setEditImage,
         cells,
         getCells,
