@@ -1,5 +1,5 @@
 import {
-    AssetError,
+    ImageError,
     imageSlice,
     usePostImageMutation,
     useUpdateImageMutation,
@@ -334,9 +334,9 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         await postImage({ token, image }).then((res) => {
             if (res.error) {
                 const { data } = res.error as { data: { error: string } };
-                if (data && data.error == AssetError.ImageExists) {
+                if (data && data.error == ImageError.ImageExists) {
                     setConfirmModal(
-                        `An image with this name already exists.\nUpdate image?`,
+                        `Overwrite existing image: ${name}?`,
                         (confirm) => {
                             if (confirm) {
                                 // update image

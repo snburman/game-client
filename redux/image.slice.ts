@@ -2,7 +2,7 @@ import type { Image } from "./models/image.model";
 import { api } from "./api";
 import { CellData } from "@/app/context/canvas_context";
 
-export enum AssetError {
+export enum ImageError {
     ImageExists = "image_exists",
     ErrorCreatingImage = "error_creating_image",
 }
