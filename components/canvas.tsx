@@ -21,12 +21,6 @@ export default function Canvas({
 }) {
     const { update, fill, fillColor, layers, cellSize, setIsPressed } =
         useCanvas();
-        
-        const { token } = useAuth();
-        if(token) {
-            console.log(token)
-            const {data} = useGetUserImagesQuery(token)
-        }
 
     const longPress = Gesture.LongPress()
         .minDuration(0)

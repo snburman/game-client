@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Canvas, {
     ClearButton,
     EraserButton,
@@ -11,13 +11,24 @@ import Canvas, {
 import ColorPicker from "@/components/color_picker";
 import { StyleSheet, View } from "react-native";
 import { CANVAS_SIZE, useCanvas } from "../context/canvas_context";
+import { useAuth } from "../context/auth_context";
+import { imageSlice } from "@/redux/image.slice";
 
 export default function Create() {
     const [modalVisible, setModalVisible] = useState(false);
     const { cellSize } = useCanvas();
+    const { token } = useAuth();
+    const [getUserImages] = imageSlice.endpoints.getUserImages.useLazyQuery();
+
+    useEffect(() => {
+        if(token) {
+            getUserImages(token);
+        }
+    },[token])
+
     return (
         <View style={styles.wrapper}>
-            <Canvas width={CANVAS_SIZE} height={CANVAS_SIZE}/>
+            <Canvas width={CANVAS_SIZE} height={CANVAS_SIZE} />
             <View
                 style={[
                     styles.toolContainer,
@@ -59,9 +70,9 @@ const styles = StyleSheet.create({
     },
     toolButtonCompartment: {
         flex: 1,
-        flexDirection: 'row',
+        flexDirection: "row",
         justifyContent: "space-evenly",
         gap: 5,
-        flexWrap: 'wrap',
+        flexWrap: "wrap",
     },
 });
