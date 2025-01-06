@@ -1,5 +1,5 @@
 import {
-    AssetError,
+    ImageError,
     imageSlice,
     usePostImageMutation,
     useUpdateImageMutation,
@@ -30,6 +30,9 @@ export type CellData = {
 };
 
 type CanvasData = {
+    setEditImage(image: Image<CellData[][]>): void;
+    isUsingCanvas: boolean;
+    setIsUsingCanvas: (isUsing: boolean) => void;
     // Cells and layers share an array index
     // Cells are for rendering by the canvas
     cells: Array<CellData[][]>;
@@ -68,6 +71,10 @@ const CanvasContext = createContext<CanvasData | undefined>(undefined);
 export default function CanvasProvider({ children }: React.PropsWithChildren) {
     const { user, token } = useAuth();
     const { setMessageModal, setConfirmModal } = useModals();
+
+    // used to communicate with other components if user is using canvas
+    // used to remove excess state to free memory before using canvas
+    const [isUsingCanvas, setIsUsingCanvas] = useState(false);
 
     //////////////////////////////////////////
     // Config
@@ -117,6 +124,26 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         }
         return layer;
     }
+
+    function setEditImage(image: Image<CellData[][]>) {
+        const layer: LayerMap = new Map<string, string>();
+        for (let x = 0; x < image.width; x++) {
+            for (let y = 0; y < image.height; y++) {
+                layer.set(`${x}-${y}`, image.data[x][y].color);
+            }
+        }
+        layers.current = [layer];
+        setLayerHistory([layers.current]);
+        setHistoryIndex(0);
+        const _cells = generateCellsFromLayer(
+            layers.current[selectedLayerIndex],
+            CANVAS_SIZE,
+            CANVAS_SIZE
+        )
+        setCells([_cells]);
+        setName(image.name);
+    }
+    // console.log(layerHistory)
 
     function clearLayer(index: number) {
         const layer = layers.current[index];
@@ -213,6 +240,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     }
 
     function update(x: number, y: number) {
+        if(!isUsingCanvas) setIsUsingCanvas(true);
         const layer = cloneDeep(layers.current[selectedLayerIndex]);
         if (!layer) {
             throw new Error(`Layer ${selectedLayerIndex} not found`);
@@ -293,7 +321,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         }
 
         // TODO: user can reopen and edit image, coordinates should come from existing document or 0,0
-        const image: Image = {
+        const image: Image<string> = {
             user_id: user?._id || "",
             name: name,
             x: 0,
@@ -306,9 +334,9 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         await postImage({ token, image }).then((res) => {
             if (res.error) {
                 const { data } = res.error as { data: { error: string } };
-                if (data && data.error == AssetError.ImageExists) {
+                if (data && data.error == ImageError.ImageExists) {
                     setConfirmModal(
-                        "An image with this name already exists.\nUpdate image?",
+                        `Overwrite existing image: ${name}?`,
                         (confirm) => {
                             if (confirm) {
                                 // update image
@@ -338,6 +366,9 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     }
 
     const initialValue: CanvasData = {
+        isUsingCanvas,
+        setIsUsingCanvas,
+        setEditImage,
         cells,
         getCells,
         cellSize,

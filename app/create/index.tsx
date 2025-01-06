@@ -9,25 +9,22 @@ import Canvas, {
     UndoButton,
 } from "@/components/canvas";
 import ColorPicker from "@/components/color_picker";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { CANVAS_SIZE, useCanvas } from "../context/canvas_context";
-import { useAuth } from "../context/auth_context";
-import { imageSlice } from "@/redux/image.slice";
+import { Button } from "react-native-paper";
+import { CreateProps } from "../types/navigation";
 
-export default function Create() {
+export default function Create({ navigation }: CreateProps) {
     const [modalVisible, setModalVisible] = useState(false);
-    const { cellSize } = useCanvas();
-    const { token } = useAuth();
-    const [getUserImages] = imageSlice.endpoints.getUserImages.useLazyQuery();
+    const { cellSize, setIsUsingCanvas } = useCanvas();
 
-    useEffect(() => {
-        if(token) {
-            getUserImages(token);
-        }
-    },[token])
+    function handlePressImages() {
+        setIsUsingCanvas(false);
+        navigation.navigate("images");
+    }
 
     return (
-        <View style={styles.wrapper}>
+        <View style={styles.container}>
             <Canvas width={CANVAS_SIZE} height={CANVAS_SIZE} />
             <View
                 style={[
@@ -51,12 +48,15 @@ export default function Create() {
                     <GridButton />
                 </View>
             </View>
+            <Button onPress={handlePressImages}>
+                <Text>Images</Text>
+            </Button>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    wrapper: {
+    container: {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",

@@ -1,14 +1,15 @@
 import type { Image } from "./models/image.model";
 import { api } from "./api";
+import { CellData } from "@/app/context/canvas_context";
 
-export enum AssetError {
+export enum ImageError {
     ImageExists = "image_exists",
     ErrorCreatingImage = "error_creating_image",
 }
 
 export const imageSlice = api.injectEndpoints({
     endpoints: (builder) => ({
-        getUserImages: builder.query<Image[], string>({
+        getUserImages: builder.query<Image<CellData[][]>[], string>({
             query: (token: string) => ({
                 url: "/assets/player",
                 method: "GET",
@@ -19,9 +20,9 @@ export const imageSlice = api.injectEndpoints({
         }),
         postImage: builder.mutation<
             { inserted_id: string },
-            { token: string; image: Image }
+            { token: string; image: Image<string> }
         >({
-            query: (args: { token: string; image: Image }) => ({
+            query: (args: { token: string; image: Image<string> }) => ({
                 url: "/assets/player",
                 method: "POST",
                 headers: {
@@ -30,8 +31,8 @@ export const imageSlice = api.injectEndpoints({
                 body: args.image,
             }),
         }),
-        updateImage: builder.mutation<void, { token: string; image: Image }>({
-            query: (args: { token: string; image: Image }) => ({
+        updateImage: builder.mutation<void, { token: string; image: Image<string> }>({
+            query: (args: { token: string; image: Image<string> }) => ({
                 url: "/assets/player",
                 method: "PATCH",
                 headers: {
