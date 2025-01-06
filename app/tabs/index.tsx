@@ -6,6 +6,7 @@ import Create from "../create";
 import Game from "../game";
 import Settings from "../settings";
 import Images from "../images";
+import Map from "../map";
 
 export default function Tabs(props: HomeStackProps) {
     const Tabs = createBottomTabNavigator<HomeTabsParamList>();
@@ -37,6 +38,11 @@ export default function Tabs(props: HomeStackProps) {
                 name="images"
                 component={Images}
                 options={{ title: "Images" }}
+            />
+            <Tabs.Screen
+                name="map"
+                component={Map}
+                options={{ title: "Map" }}
             />
         </Tabs.Navigator>
     );

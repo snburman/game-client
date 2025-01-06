@@ -12,69 +12,79 @@ import { LoadingSpinner } from "@/components/loading";
 import { Button } from "react-native-paper";
 
 export default function Images({ navigation }: ImagesProps) {
-    const { token } = useAuth();
-    const { setMessageModal, setConfirmModal } = useModals();
-    const [getImages, images] =
-        imageSlice.endpoints.getUserImages.useLazyQuery();
-    const { setEditImage, isUsingCanvas, setIsUsingCanvas } = useCanvas();
+    const { setConfirmModal } = useModals();
+    const { setEditImage } = useCanvas();
 
-    useEffect(() => {
-        if (token && !images.data) {
-            getImages(token).then((res) => {
-                if (res.error) {
-                    setMessageModal("You have no images yet");
-                }
-            });
-        }
-    }, [token]);
-
-    function handleUseCanvas() {
-        setIsUsingCanvas(true);
-        navigation.navigate("create");
-    }
-
+    // TODO: Provide Edit, Delete, Cancel button options
     function handleEdit(image: Image<CellData[][]>) {
         setConfirmModal(`Edit ${image.name}?`, (confirm) => {
             if (confirm) {
                 // imageSlice.util.resetApiState();
                 setEditImage(image);
-                handleUseCanvas();
+                navigation.navigate("create");
             }
         });
     }
 
-    // reduces memory overhead
-    if (isUsingCanvas) {
-        return null;
+    return (
+        <ImagesScrollView
+            onPress={(image) => handleEdit(image)}
+            navigateToCanvas={() => navigation.navigate("create")}
+        />
+    );
+}
+
+export const ImagesScrollView = ({
+    onPress,
+    navigateToCanvas,
+}: {
+    onPress: (image: Image<CellData[][]>) => void;
+    navigateToCanvas: () => void;
+}) => {
+    const { token } = useAuth();
+    const [getImages, images] =
+        imageSlice.endpoints.getUserImages.useLazyQuery();
+    const { isUsingCanvas } = useCanvas();
+    const { setMessageModal } = useModals();
+
+    useEffect(() => {
+        if (token && !images.data) {
+            getImages(token).then((res) => {
+                if (res.error) {
+                    setMessageModal("Error getting images");
+                }
+            });
+        }
+    }, [token]);
+
+    if (images.isLoading || images.isFetching) {
+        return <LoadingSpinner />;
     }
 
-    
-    if(images.isLoading) {
-        return <LoadingSpinner />
-    }
-
-    if(!images.data || (images.data && images.data.length === 0)) {
-        return(
+    if (!images.data || (images.data && images.data.length === 0)) {
+        return (
             <View style={styles.noDataContainer}>
                 <Text>No saved images</Text>
-                <Button uppercase={false} mode="outlined" onPress={handleUseCanvas}>
+                <Button
+                    uppercase={false}
+                    mode="outlined"
+                    onPress={navigateToCanvas}
+                >
                     <Text>Start Drawing</Text>
                 </Button>
             </View>
-        )
+        );
     }
 
+    if (isUsingCanvas) return null;
     return (
         <ScrollView style={styles.scrollview}>
             <View style={styles.contentContainer}>
                 <View style={styles.imagesContainer}>
                     {images.data?.map((image, index) => (
-                        <Pressable
-                            key={index}
-                            onPress={() => handleEdit(image)}
-                        >
+                        <Pressable key={index} onPress={() => onPress(image)}>
                             <View style={styles.previewContainer}>
-                                <LayerPreview data={image.data} cellSize={8} />
+                                <LayerPreview data={image.data} cellSize={6}/>
                                 <Text>{image.name}</Text>
                             </View>
                         </Pressable>
@@ -83,19 +93,19 @@ export default function Images({ navigation }: ImagesProps) {
             </View>
         </ScrollView>
     );
-}
+};
 
 const styles = StyleSheet.create({
     noDataContainer: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
+        justifyContent: "center",
+        alignItems: "center",
         backgroundColor: "#FFFFFF",
         gap: 20,
     },
     scrollview: {
-        paddingTop: 15,
-        paddingBottom: 15,
+        paddingTop: 10,
+        paddingBottom: 10,
         backgroundColor: "#FFFFFF",
     },
     contentContainer: {
@@ -104,11 +114,11 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     imagesContainer: {
-        width: "75%",
+        width: "90%",
         flexDirection: "row",
         flexWrap: "wrap",
         gap: 20,
-        // padding: 6,
+        // backgroundColor: 'red'
     },
     previewContainer: {
         justifyContent: "center",

@@ -41,19 +41,20 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFFFFF"
     },
     icon: {
-        fontSize: 35,
+        fontSize: 25,
     },
     iconWrapper: {
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        paddingTop: 15,
-        paddingBottom: 15,
-        paddingLeft: 25,
-        paddingRight: 25
+        paddingTop: 10,
+        paddingBottom: 10,
+        paddingLeft: 20,
+        paddingRight: 20
     },
     iconText: {
-        fontWeight: 'bold'
+        // fontSize: 16,
+        // fontWeight: 'bold'
     }
 });
