@@ -143,7 +143,6 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         setCells([_cells]);
         setName(image.name);
     }
-    // console.log(layerHistory)
 
     function clearLayer(index: number) {
         const layer = layers.current[index];

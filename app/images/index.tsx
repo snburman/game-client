@@ -9,6 +9,7 @@ import { CellData, useCanvas } from "../context/canvas_context";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { ImagesProps } from "../types/navigation";
 import { LoadingSpinner } from "@/components/loading";
+import { Button } from "react-native-paper";
 
 export default function Images({ navigation }: ImagesProps) {
     const { token } = useAuth();
@@ -27,13 +28,17 @@ export default function Images({ navigation }: ImagesProps) {
         }
     }, [token]);
 
+    function handleUseCanvas() {
+        setIsUsingCanvas(true);
+        navigation.navigate("create");
+    }
+
     function handleEdit(image: Image<CellData[][]>) {
         setConfirmModal(`Edit ${image.name}?`, (confirm) => {
             if (confirm) {
                 // imageSlice.util.resetApiState();
                 setEditImage(image);
-                setIsUsingCanvas(true);
-                navigation.navigate("create");
+                handleUseCanvas();
             }
         });
     }
@@ -43,8 +48,20 @@ export default function Images({ navigation }: ImagesProps) {
         return null;
     }
 
+    
     if(images.isLoading) {
         return <LoadingSpinner />
+    }
+
+    if(!images.data || (images.data && images.data.length === 0)) {
+        return(
+            <View style={styles.noDataContainer}>
+                <Text>No saved images</Text>
+                <Button uppercase={false} mode="outlined" onPress={handleUseCanvas}>
+                    <Text>Start Drawing</Text>
+                </Button>
+            </View>
+        )
     }
 
     return (
@@ -69,6 +86,13 @@ export default function Images({ navigation }: ImagesProps) {
 }
 
 const styles = StyleSheet.create({
+    noDataContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: "#FFFFFF",
+        gap: 20,
+    },
     scrollview: {
         paddingTop: 15,
         paddingBottom: 15,
