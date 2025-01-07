@@ -17,6 +17,7 @@ export type HomeTabsParamList = {
     game: undefined;
     settings: undefined;
     images: undefined;
+    map: undefined;
 };
 
 export type IndexProps = BottomTabScreenProps<HomeTabsParamList, "index">;
@@ -24,5 +25,6 @@ export type CreateProps = BottomTabScreenProps<HomeTabsParamList, "create">;
 export type GameProps = BottomTabScreenProps<HomeTabsParamList, "game">;
 export type SettingsProps = BottomTabScreenProps<HomeTabsParamList, "settings">;
 export type ImagesProps = BottomTabScreenProps<HomeTabsParamList, "images">;
+export type MapProps = BottomTabScreenProps<HomeTabsParamList, "map">;
 
 export type HomeTabsProps = NavigatorScreenParams<HomeTabsParamList>

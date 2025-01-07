@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Canvas, {
     ClearButton,
     EraserButton,
@@ -18,9 +18,9 @@ export default function Create({ navigation }: CreateProps) {
     const [modalVisible, setModalVisible] = useState(false);
     const { cellSize, setIsUsingCanvas } = useCanvas();
 
-    function handlePressImages() {
+    function handlePress(path: "images" | "map" ) {
         setIsUsingCanvas(false);
-        navigation.navigate("images");
+        navigation.navigate(path);
     }
 
     return (
@@ -32,7 +32,7 @@ export default function Create({ navigation }: CreateProps) {
                     { width: cellSize * CANVAS_SIZE },
                 ]}
             >
-                <View style={styles.toolButtonCompartment}>
+                <View style={styles.toolButtons}>
                     <SaveButton />
                     <ClearButton />
                     <EraserButton />
@@ -41,22 +41,39 @@ export default function Create({ navigation }: CreateProps) {
                         setVisible={setModalVisible}
                     />
                 </View>
-                <View style={styles.toolButtonCompartment}>
+                <View style={styles.toolButtons}>
                     <UndoButton />
                     <RedoButton />
                     <FillButton />
                     <GridButton />
                 </View>
             </View>
-            <Button onPress={handlePressImages}>
-                <Text>Images</Text>
-            </Button>
+            <View style={styles.navButtonContainer}>
+                <Button
+                    onPress={() => handlePress("images")}
+                    uppercase={false}
+                    mode="outlined"
+                    style={styles.navButton}
+                >
+                    <Text>Images</Text>
+                </Button>
+                <Button
+                    onPress={() => handlePress("map")}
+                    uppercase={false}
+                    mode="outlined"
+                    style={styles.navButton}
+                >
+                    <Text>Map</Text>
+                </Button>
+            </View>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
+        backgroundColor: "#b3b2b2",
+        paddingTop: 10,
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
@@ -68,11 +85,21 @@ const styles = StyleSheet.create({
         width: "100%",
         marginTop: 15,
     },
-    toolButtonCompartment: {
+    toolButtons: {
         flex: 1,
         flexDirection: "row",
         justifyContent: "space-evenly",
         gap: 5,
         flexWrap: "wrap",
     },
+    navButtonContainer: {
+        flex: 1,
+        alignItems: 'center',
+        flexDirection: 'row',
+        gap: 15
+    },
+    navButton: {
+        width: 150,
+        backgroundColor: "#FFFFFF"
+    }
 });

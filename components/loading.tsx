@@ -7,7 +7,7 @@ export function LoadingSpinner() {
             <ActivityIndicator
                 animating={true}
                 color={MD2Colors.green400}
-                size={100}
+                size={75}
             />
         </View>
     );
