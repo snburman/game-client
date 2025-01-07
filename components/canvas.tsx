@@ -386,6 +386,7 @@ const styles = StyleSheet.create({
     layerContainer: {
         flexDirection: "row",
         flexWrap: "wrap",
+        backgroundColor: "#DDDDDD"
     },
     toolButton: {
         display: "flex",

@@ -13,7 +13,7 @@ export default function HeaderBar({ navigation }: BottomTabHeaderProps) {
                 onPress={() => navigation.navigate("settings")}
             >
                 <Text style={styles.userName}>{user?.username}</Text>
-                <FeatherIcons name="user" size={16}/>
+                <FeatherIcons name="user" size={16} color={"#FFFFFF"}/>
             </Pressable>
         </View>
     );
@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "flex-end",
         alignItems: "center",
-        backgroundColor: "#FFFFFF",
+        backgroundColor: "#009D17",
     },
     profileContainer: {
         flexDirection: "row",
@@ -35,5 +35,6 @@ const styles = StyleSheet.create({
     },
     userName: {
         marginRight: 5,
+        color: "#FFFFFF"
     },
 });

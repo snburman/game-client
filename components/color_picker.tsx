@@ -11,7 +11,11 @@ export default function ColorSelector({
     visible: boolean;
     setVisible: (visible: boolean) => void;
 }) {
-    const { currentColor, setCurrentColor, previousColor } = useCanvas();
+    const {
+        currentColor,
+        setCurrentColor,
+        previousColor,
+    } = useCanvas();
 
     function handlePressColorIndicator() {
         if (currentColor === "transparent" && previousColor !== "transparent") {
@@ -51,8 +55,10 @@ export default function ColorSelector({
                                                 {
                                                     width: isCurrent ? 24 : 25,
                                                     height: 25,
-                                                    borderWidth: isCurrent ? 1 : 0,
-                                                    borderColor: 'red',
+                                                    borderWidth: isCurrent
+                                                        ? 1
+                                                        : 0,
+                                                    borderColor: "red",
                                                 },
                                                 { backgroundColor: color },
                                             ]}

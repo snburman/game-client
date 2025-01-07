@@ -10,6 +10,9 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { ImagesProps } from "../types/navigation";
 import { LoadingSpinner } from "@/components/loading";
 import { Button } from "react-native-paper";
+import { DrawerButton } from "@/components/draw_drawer_content";
+import { Typography } from "@mui/joy";
+import { theme } from "../_theme";
 
 export default function Images({ navigation }: ImagesProps) {
     const { setConfirmModal } = useModals();
@@ -21,16 +24,22 @@ export default function Images({ navigation }: ImagesProps) {
             if (confirm) {
                 // imageSlice.util.resetApiState();
                 setEditImage(image);
-                navigation.navigate("create");
+                navigation.navigate("draw");
             }
         });
     }
 
     return (
-        <ImagesScrollView
-            onPress={(image) => handleEdit(image)}
-            navigateToCanvas={() => navigation.navigate("create")}
-        />
+        <>
+            <DrawerButton onPress={() => navigation.openDrawer()} />
+            <View style={styles.header}>
+                <Typography fontSize={16}>Saved Images</Typography>
+            </View>
+            <ImagesScrollView
+                onPress={(image) => handleEdit(image)}
+                navigateToCanvas={() => navigation.navigate("draw")}
+            />
+        </>
     );
 }
 
@@ -84,8 +93,8 @@ export const ImagesScrollView = ({
                     {images.data?.map((image, index) => (
                         <Pressable key={index} onPress={() => onPress(image)}>
                             <View style={styles.previewContainer}>
-                                <LayerPreview data={image.data} cellSize={6}/>
-                                <Text>{image.name}</Text>
+                                <LayerPreview data={image.data} cellSize={6} />
+                                <Typography fontSize={16}>{image.name}</Typography>
                             </View>
                         </Pressable>
                     ))}
@@ -103,10 +112,17 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFFFFF",
         gap: 20,
     },
+    header: {
+        ...theme.shadow.small,
+        height: 50,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: "#FFFFFF"
+    },
     scrollview: {
         paddingTop: 10,
         paddingBottom: 10,
-        backgroundColor: "#ECECEC",
+        backgroundColor: "#FFFFFF",
     },
     contentContainer: {
         flex: 1,
@@ -118,7 +134,6 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         flexWrap: "wrap",
         gap: 20,
-        // backgroundColor: 'red'
     },
     previewContainer: {
         justifyContent: "center",

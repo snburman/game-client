@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { CANVAS_SIZE, CELL_SIZE, CellData, useCanvas } from "../context/canvas_context";
-import { ImagesScrollView } from "../images";
+import { ImagesScrollView } from "./images";
 import { MapProps } from "../types/navigation";
 import { Image } from "@/redux/models/image.model";
 import { LayerPreview } from "@/components/canvas";
@@ -21,7 +21,7 @@ type MapCoords = {
     mapY: number;
 };
 
-export default function Map({ navigation }: MapProps) {
+export default function Map() {
     const [imageMap, setImageMap] = useState<MapCoords[][]>(createImageMap());
     const [selectedImage, setSelectedImage] = useState<
         Image<CellData[][]> | undefined
@@ -128,7 +128,9 @@ export default function Map({ navigation }: MapProps) {
                 <View style={styles.imagesContainer}>
                     <ImagesScrollView
                         onPress={handleSelectImage}
-                        navigateToCanvas={() => navigation.navigate("create")}
+                        // TODO: use drawer navigation
+                        // navigateToCanvas={() => navigation.navigate("create")}
+                        navigateToCanvas={() => {}}
                     />
                 </View>
             </View>

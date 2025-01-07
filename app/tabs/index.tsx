@@ -5,8 +5,8 @@ import { HomeStackProps, HomeTabsParamList} from "../types/navigation";
 import Create from "../create";
 import Game from "../game";
 import Settings from "../settings";
-import Images from "../images";
-import Map from "../map";
+import Images from "../create/images";
+import Map from "../create/map";
 
 export default function Tabs(props: HomeStackProps) {
     const Tabs = createBottomTabNavigator<HomeTabsParamList>();

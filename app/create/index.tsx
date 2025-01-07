@@ -1,105 +1,31 @@
-import React, { useState } from "react";
-import Canvas, {
-    ClearButton,
-    EraserButton,
-    FillButton,
-    GridButton,
-    RedoButton,
-    SaveButton,
-    UndoButton,
-} from "@/components/canvas";
-import ColorPicker from "@/components/color_picker";
-import { StyleSheet, Text, View } from "react-native";
-import { CANVAS_SIZE, useCanvas } from "../context/canvas_context";
-import { Button } from "react-native-paper";
-import { CreateProps } from "../types/navigation";
+import React from "react";
+import { CreateDrawerParamList, CreateProps } from "../types/navigation";
+import { createDrawerNavigator } from "@react-navigation/drawer";
+import Draw from "./draw";
+import Images from "./images";
+import Map from "./map";
+import DrawDrawerContent from "@/components/draw_drawer_content";
+import { useDevice } from "../hooks/device";
 
 export default function Create({ navigation }: CreateProps) {
-    const [modalVisible, setModalVisible] = useState(false);
-    const { cellSize, setIsUsingCanvas } = useCanvas();
-
-    function handlePress(path: "images" | "map" ) {
-        setIsUsingCanvas(false);
-        navigation.navigate(path);
-    }
+    const Drawer = createDrawerNavigator<CreateDrawerParamList>();
+    const {isMobile} = useDevice();
 
     return (
-        <View style={styles.container}>
-            <Canvas width={CANVAS_SIZE} height={CANVAS_SIZE} />
-            <View
-                style={[
-                    styles.toolContainer,
-                    { width: cellSize * CANVAS_SIZE },
-                ]}
-            >
-                <View style={styles.toolButtons}>
-                    <SaveButton />
-                    <ClearButton />
-                    <EraserButton />
-                    <ColorPicker
-                        visible={modalVisible}
-                        setVisible={setModalVisible}
-                    />
-                </View>
-                <View style={styles.toolButtons}>
-                    <UndoButton />
-                    <RedoButton />
-                    <FillButton />
-                    <GridButton />
-                </View>
-            </View>
-            <View style={styles.navButtonContainer}>
-                <Button
-                    onPress={() => handlePress("images")}
-                    uppercase={false}
-                    mode="outlined"
-                    style={styles.navButton}
-                >
-                    <Text>Images</Text>
-                </Button>
-                <Button
-                    onPress={() => handlePress("map")}
-                    uppercase={false}
-                    mode="outlined"
-                    style={styles.navButton}
-                >
-                    <Text>Map</Text>
-                </Button>
-            </View>
-        </View>
+        <Drawer.Navigator
+            initialRouteName="draw"
+            screenOptions={{
+                headerShown: false,
+                drawerType: isMobile? "slide" : "permanent",
+                drawerStyle: {
+                    width: 300
+                }
+            }}
+            drawerContent={DrawDrawerContent}
+        >
+            <Drawer.Screen name="draw" component={Draw} />
+            <Drawer.Screen name="images" component={Images} />
+            <Drawer.Screen name="map" component={Map} />
+        </Drawer.Navigator>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        backgroundColor: "#b3b2b2",
-        paddingTop: 10,
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    toolContainer: {
-        display: "flex",
-        flexDirection: "column",
-        gap: 10,
-        width: "100%",
-        marginTop: 15,
-    },
-    toolButtons: {
-        flex: 1,
-        flexDirection: "row",
-        justifyContent: "space-evenly",
-        gap: 5,
-        flexWrap: "wrap",
-    },
-    navButtonContainer: {
-        flex: 1,
-        alignItems: 'center',
-        flexDirection: 'row',
-        gap: 15
-    },
-    navButton: {
-        width: 150,
-        backgroundColor: "#FFFFFF"
-    }
-});
