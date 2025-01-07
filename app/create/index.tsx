@@ -72,7 +72,7 @@ export default function Create({ navigation }: CreateProps) {
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: "#FFFFFF",
+        backgroundColor: "#b3b2b2",
         paddingTop: 10,
         flex: 1,
         justifyContent: "center",

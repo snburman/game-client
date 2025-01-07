@@ -1,18 +1,19 @@
 import React, { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import { CANVAS_SIZE, CELL_SIZE, CellData } from "../context/canvas_context";
+import { CANVAS_SIZE, CELL_SIZE, CellData, useCanvas } from "../context/canvas_context";
 import { ImagesScrollView } from "../images";
 import { MapProps } from "../types/navigation";
 import { Image } from "@/redux/models/image.model";
 import { LayerPreview } from "@/components/canvas";
 import { cloneDeep } from "lodash";
 import { theme } from "@/app/_theme";
+import { useModals } from "../context/modalContext";
 
 const MAP_DIMENSIONS = 6;
 const SCALE = 3;
 
 type MapCoords = {
-    image: Image<CellData[][]> | undefined;
+    images: Image<CellData[][]>[];
     preview: React.JSX.Element | undefined;
     x: number;
     y: number;
@@ -25,6 +26,8 @@ export default function Map({ navigation }: MapProps) {
     const [selectedImage, setSelectedImage] = useState<
         Image<CellData[][]> | undefined
     >();
+    const { setMessageModal } = useModals();
+    const { isUsingCanvas } = useCanvas();
 
     function createImageMap() {
         const newMap: MapCoords[][] = [];
@@ -32,7 +35,7 @@ export default function Map({ navigation }: MapProps) {
             newMap.push([]);
             for (let x = 0; x < MAP_DIMENSIONS; x++) {
                 newMap[y].push({
-                    image: undefined,
+                    images: [],
                     preview: undefined,
                     x: x * CANVAS_SIZE * SCALE,
                     y: y * CANVAS_SIZE * SCALE,
@@ -50,12 +53,20 @@ export default function Map({ navigation }: MapProps) {
     }
 
     function handlePlaceImage(x: number, y: number) {
-        console.log(x, y);
+        if (!selectedImage) {
+            setMessageModal("Select an image to place on the map");
+            return;
+        }
+        if (imageMap[y][x].images.length === 2) {
+            setMessageModal("This area already has two (2) images");
+            return;
+        }
         const _imageMap = cloneDeep(imageMap);
-        _imageMap[y][x].image = selectedImage;
+        _imageMap[y][x].images.push(selectedImage);
         setImageMap(_imageMap);
     }
 
+    if(isUsingCanvas) return null;
     return (
         <>
             <View style={styles.container}>
@@ -86,16 +97,21 @@ export default function Map({ navigation }: MapProps) {
                                                     mc.x < MAP_DIMENSIONS - 1
                                                         ? 1
                                                         : 0,
-                                                // borderBottomWidth: mc.y == (MAP_DIMENSIONS -1) ? 144 : 0,
                                             },
                                         ]}
                                     >
-                                        {mc.image?.data && (
-                                            <LayerPreview
-                                                data={mc.image.data}
-                                                cellSize={3.7}
-                                            />
-                                        )}
+                                        {mc.images &&
+                                            mc.images.map((image, i) => (
+                                                <View
+                                                    style={{ zIndex: i * 100, position: 'absolute', top: 0, left: 0}}
+                                                    key={i}
+                                                >
+                                                    <LayerPreview
+                                                        data={image.data}
+                                                        cellSize={3.7}
+                                                    />
+                                                </View>
+                                            ))}
                                     </View>
                                 </Pressable>
                             ))
@@ -128,10 +144,16 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFFFFF",
     },
     imagesContainer: {
-        height: 135,
-        width: "100%",
-        borderWidth: 1,
-        borderColor: "#000000",
+        ...theme.shadow.small,
+        height: "100%",
+        maxWidth: "80%",
+        width: 400,
+        // borderWidth: 1,
+        // borderColor: "#000000",
+        position: "absolute",
+        right: 0,
+        top: 0,
+        zIndex: 100,
     },
     mapContainer: {
         flex: 1,

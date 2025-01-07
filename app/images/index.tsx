@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     scrollview: {
         paddingTop: 10,
         paddingBottom: 10,
-        backgroundColor: "#FFFFFF",
+        backgroundColor: "#ECECEC",
     },
     contentContainer: {
         flex: 1,
