@@ -1,5 +1,5 @@
-import Create from ".";
+import { Slot } from "expo-router";
 
 export default function CreateLayout() {
-    return <Create />;
+    return <Slot />;
 }

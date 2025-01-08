@@ -5,7 +5,7 @@ import { GestureDetector, Gesture } from "react-native-gesture-handler";
 import { theme } from "@/app/_theme";
 import { Button } from "react-native-paper";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import PlainModal, { ConfirmModal, modalStyles } from "./modal";
+import PlainModal, { modalStyles } from "./modal";
 import { Input, Typography } from "@mui/joy";
 import { useModals } from "@/app/context/modalContext";
 
@@ -135,7 +135,6 @@ export const LayerPreview = ({
         <View
             style={[
                 style,
-                theme.shadow.small,
                 styles.layerContainer,
                 { width: cellSize * width, height: cellSize * height },
             ]}
@@ -236,7 +235,7 @@ export const EraserButton = () => {
                 {
                     backgroundColor:
                         currentColor === "transparent"
-                            ? "rgba(0,0,0,0.2)"
+                            ? "#00000033"
                             : "#FFFFFF",
                 },
             ]}

@@ -1,13 +1,14 @@
 import React, { useState } from "react";
-import { Modal, Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import EntypoIcons from "react-native-vector-icons/Entypo";
+import FontAwesomeIcons from "react-native-vector-icons/FontAwesome";
 import {
     CANVAS_SIZE,
     CELL_SIZE,
     CellData,
     useCanvas,
 } from "../context/canvas_context";
-import { Image } from "@/redux/models/image.model";
+import { Image, ImageType } from "@/redux/models/image.model";
 import { LayerPreview } from "@/components/canvas";
 import { cloneDeep } from "lodash";
 import { theme } from "@/app/_theme";
@@ -16,15 +17,18 @@ import { ImagesScrollView } from "./images";
 import { DrawerButton } from "@/components/draw_drawer_content";
 import { MapProps } from "../types/navigation";
 import { Button } from "react-native-paper";
-import { Typography } from "@mui/joy";
+import { Radio, Typography } from "@mui/joy";
+import { Slider } from "@react-native-assets/slider";
 import PlainModal from "@/components/modal";
+import { ScrollView } from "react-native-gesture-handler";
+import { useDevice } from "../hooks/device";
 
 const MAP_DIMENSIONS = 6;
 const SCALE = 3;
+const TILE_SIZE = 2.75;
 
 type MapCoords = {
     images: Image<CellData[][]>[];
-    preview: React.JSX.Element | undefined;
     x: number;
     y: number;
     mapX: number;
@@ -39,6 +43,12 @@ export default function Map({ navigation }: MapProps) {
     const { setMessageModal } = useModals();
     const { isUsingCanvas } = useCanvas();
     const [imagesModalVisible, setImagesModalVisible] = useState(false);
+    // indicates that pressing a tile will trigger editing of the contents
+    const [editDetailsOn, setEditDetailsOn] = useState(false);
+    const [editCoords, setEditCoords] = useState<
+        { x: number; y: number } | undefined
+    >();
+    const { isMobile, width } = useDevice();
 
     function createImageMap() {
         const newMap: MapCoords[][] = [];
@@ -47,7 +57,6 @@ export default function Map({ navigation }: MapProps) {
             for (let x = 0; x < MAP_DIMENSIONS; x++) {
                 newMap[y].push({
                     images: [],
-                    preview: undefined,
                     x: x * CANVAS_SIZE * SCALE,
                     y: y * CANVAS_SIZE * SCALE,
                     mapX: x,
@@ -60,11 +69,16 @@ export default function Map({ navigation }: MapProps) {
 
     function handleSelectImage(image: Image<CellData[][]>) {
         setImagesModalVisible(false);
-        setSelectedImage(image);
+        let _image = cloneDeep(image);
+        _image.type = "tile";
+        setSelectedImage(_image);
     }
 
     // places selected image at given coordinates on map
-    function handlePlaceImage(x: number, y: number) {
+    function handlePressTile(x: number, y: number) {
+        setEditCoords({ x, y });
+        if (editDetailsOn) return;
+        // if(editDetailsOn) return;
         // cannot place empty image
         if (!selectedImage) {
             setMessageModal("Select an image to place on the map", () =>
@@ -87,16 +101,63 @@ export default function Map({ navigation }: MapProps) {
             return;
         }
         // set image
+        const image = cloneDeep(selectedImage);
+        image.x = x * 16 * SCALE;
+        image.y = y * 16 * SCALE;
         const _imageMap = cloneDeep(imageMap);
-        _imageMap[y][x].images.push(selectedImage);
+        _imageMap[y][x].images.push(image);
+        setImageMap(_imageMap);
+    }
+
+    function handlePressEditDetailsButton() {
+        setEditDetailsOn(!editDetailsOn);
+    }
+
+    function handleTypeRadioButton(
+        x: number,
+        y: number,
+        index: number,
+        type: ImageType
+    ) {
+        const _imageMap = cloneDeep(imageMap);
+        _imageMap[y][x].images[index].type = type;
+        setImageMap(_imageMap);
+    }
+
+    function handleXSliderChange(
+        x: number,
+        y: number,
+        index: number,
+        value: number
+    ) {
+        const _imageMap = cloneDeep(imageMap);
+        console.log(value, x, y)
+        _imageMap[y][x].images[index].x = value;
+        setImageMap(_imageMap);
+    }
+
+    function handleYSliderChange(
+        x: number,
+        y: number,
+        index: number,
+        value: number
+    ) {
+        const _imageMap = cloneDeep(imageMap);
+        _imageMap[y][x].images[index].y = value;
         setImageMap(_imageMap);
     }
 
     if (isUsingCanvas) return null;
+    console.log(imageMap)
     return (
         <>
             <DrawerButton onPress={() => navigation.openDrawer()} />
-            <View style={styles.container}>
+            <View
+                style={[
+                    styles.container,
+                    { justifyContent: isMobile ? "flex-end" : "center" },
+                ]}
+            >
                 <View style={styles.mapContainer}>
                     <View
                         style={[
@@ -110,7 +171,7 @@ export default function Map({ navigation }: MapProps) {
                             row.map((mc, i) => (
                                 <Pressable
                                     onPress={() =>
-                                        handlePlaceImage(mc.mapX, mc.mapY)
+                                        handlePressTile(mc.mapX, mc.mapY)
                                     }
                                     key={i}
                                 >
@@ -129,13 +190,11 @@ export default function Map({ navigation }: MapProps) {
                                     >
                                         {mc.images &&
                                             mc.images.map((image, i) => (
-                                                // TODO: adjust coordinates relative to
-                                                // image.x,y and map placement
                                                 <View
                                                     style={{
                                                         position: "absolute",
-                                                        top: 0,
-                                                        left: 0,
+                                                        top: image.y - (mc.mapY  * 16 * TILE_SIZE),
+                                                        left: image.x - (mc.mapX * 16 *TILE_SIZE)
                                                     }}
                                                     key={i}
                                                 >
@@ -153,12 +212,17 @@ export default function Map({ navigation }: MapProps) {
                 </View>
                 {/* tool button bar */}
                 <View style={styles.toolButtonContainer}>
+                    {/* image selection button */}
                     <Pressable
                         style={[
                             styles.toolButton,
                             { backgroundColor: "#DDDDDD" },
                         ]}
-                        onPress={() => setImagesModalVisible(true)}
+                        onPress={() => {
+                            setEditDetailsOn(false);
+                            setEditCoords(undefined);
+                            setImagesModalVisible(true);
+                        }}
                     >
                         {selectedImage ? (
                             <LayerPreview
@@ -169,30 +233,43 @@ export default function Map({ navigation }: MapProps) {
                             <EntypoIcons name="images" size={30} />
                         )}
                     </Pressable>
+                    {/* Edit details button */}
+                    <Pressable
+                        style={[
+                            styles.toolButton,
+                            {
+                                backgroundColor: editDetailsOn
+                                    ? "rgba(0 0 0 / 0.3)"
+                                    : "#FFFFFF",
+                            },
+                        ]}
+                        onPress={handlePressEditDetailsButton}
+                    >
+                        <FontAwesomeIcons name="hand-pointer-o" size={30} />
+                    </Pressable>
                 </View>
+                {/* MODALS */}
                 {/* image selection modal*/}
                 <PlainModal
                     visible={imagesModalVisible}
                     setVisible={setImagesModalVisible}
-                    style={{padding: 0}}
+                    style={{ padding: 0 }}
                 >
-                    <View style={{
-                        height: 500,
-                        maxHeight: '80%',
-                        width: 600,
-                        maxWidth: '90%',
-                    }}>
+                    <View style={styles.imagesModalContent}>
                         <ImagesScrollView
                             onPress={handleSelectImage}
-                            navigateToCanvas={() => navigation.navigate("draw")}
-                        />    
+                            navigateToCanvas={() => {
+                                navigation.navigate("draw")
+                                setImagesModalVisible(false);
+                            }}
+                        />
                     </View>
                     <Button
                         mode="outlined"
                         uppercase={false}
                         style={{
                             marginTop: 10,
-                            backgroundColor: "white",
+                            backgroundColor: "#FFFFFF",
                             width: 115,
                         }}
                         onPress={() => setImagesModalVisible(false)}
@@ -200,6 +277,131 @@ export default function Map({ navigation }: MapProps) {
                         <Typography>Close</Typography>
                     </Button>
                 </PlainModal>
+                {/* editor panel*/}
+                <View
+                    style={[
+                        styles.editorPanel,
+                        width > 520 && {
+                            height: 200,
+                        },
+                        width > 1270 && {
+                            ...styles.panelRight,
+                            height: "100%",
+                        },
+                        width > 1074 && {
+                            marginRight: (width - 1074) / 8,
+                        },
+                    ]}
+                >
+                    <ScrollView
+                        contentContainerStyle={styles.editorPanelContent}
+                    >
+                        {editCoords &&
+                            imageMap[editCoords.y][editCoords.x].images.map(
+                                (image, i) => (
+                                    <View
+                                        key={i}
+                                        style={styles.editDetailsItem}
+                                    >
+                                        <View style={{...theme.shadow.small}}>
+                                            <LayerPreview
+                                                data={image.data}
+                                                cellSize={TILE_SIZE}
+                                            />
+                                        </View>
+                                        <View>
+                                            <View style={styles.rowContainer}>
+                                                <Radio
+                                                    checked={
+                                                        image.type == "tile"
+                                                    }
+                                                    onChange={() =>
+                                                        handleTypeRadioButton(
+                                                            editCoords.x,
+                                                            editCoords.y,
+                                                            i,
+                                                            "tile"
+                                                        )
+                                                    }
+                                                />
+                                                <Typography>Tile</Typography>
+                                            </View>
+                                            <View style={styles.rowContainer}>
+                                                <Radio
+                                                    checked={
+                                                        image.type == "object"
+                                                    }
+                                                    onChange={() =>
+                                                        handleTypeRadioButton(
+                                                            editCoords.x,
+                                                            editCoords.y,
+                                                            i,
+                                                            "object"
+                                                        )
+                                                    }
+                                                />
+                                                <Typography>Object</Typography>
+                                            </View>
+                                        </View>
+                                        <View>
+                                            <View style={styles.rowContainer}>
+                                                <Typography>X</Typography>
+                                                <Slider
+                                                    value={image.x}
+                                                    step={1}
+                                                    minimumValue={
+                                                        editCoords.x *
+                                                        (16 * SCALE)
+                                                    }
+                                                    maximumValue={
+                                                        editCoords.x *
+                                                            (16 * SCALE) +
+                                                        (16 * SCALE)
+                                                    }
+                                                    style={styles.slider}
+                                                    onValueChange={(value) =>
+                                                        handleXSliderChange(
+                                                            editCoords.x,
+                                                            editCoords.y,
+                                                            i,
+                                                            value
+                                                        )
+                                                    }
+                                                    thumbTintColor={"#019B0B"}
+                                                />
+                                            </View>
+                                            <View style={styles.rowContainer}>
+                                                <Typography>Y</Typography>
+                                                <Slider
+                                                    value={image.y}
+                                                    step={1}
+                                                    minimumValue={
+                                                        editCoords.y *
+                                                        (16 * SCALE)
+                                                    }
+                                                    maximumValue={
+                                                        editCoords.y *
+                                                            (16 * SCALE) +
+                                                        (16 * SCALE)
+                                                    }
+                                                    style={styles.slider}
+                                                    onValueChange={(value) =>
+                                                        handleYSliderChange(
+                                                            editCoords.x,
+                                                            editCoords.y,
+                                                            i,
+                                                            value
+                                                        )
+                                                    }
+                                                    thumbTintColor={"#019B0B"}
+                                                />
+                                            </View>
+                                        </View>
+                                    </View>
+                                )
+                            )}
+                    </ScrollView>
+                </View>
             </View>
         </>
     );
@@ -207,33 +409,33 @@ export default function Map({ navigation }: MapProps) {
 
 const styles = StyleSheet.create({
     container: {
-        justifyContent: "center",
         alignItems: "center",
         flex: 1,
         backgroundColor: "#FFFFFF",
     },
-    modalContainer: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100%",
-        padding: 20,
-        backgroundColor: "rgba(0, 0, 0, 0.6)",
+    mapContainer: {
+        backgroundColor: "red",
     },
-    modalContent: {
+    mapCellContainer: {
         ...theme.shadow.small,
-        margin: 5,
-        padding: 20,
-        maxHeight: "80%",
-        backgroundColor: "#FFFFFF",
-        borderRadius: 6,
+        flexDirection: "row",
+        flexWrap: "wrap",
+        height: CELL_SIZE * SCALE * MAP_DIMENSIONS + 1,
+        width: CELL_SIZE * SCALE * MAP_DIMENSIONS + 1,
+    },
+    mapRow: {},
+    mapCell: {
+        width: CELL_SIZE * SCALE,
+        height: CELL_SIZE * SCALE,
+        borderColor: "#000000",
     },
     toolButtonContainer: {
-        // backgroundColor: "red",
-        width: "100%",
+        flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",
-        paddingVertical: 15,
+        gap: 20,
+        width: "100%",
+        paddingTop: 10,
     },
     toolButton: {
         ...theme.shadow.small,
@@ -243,18 +445,44 @@ const styles = StyleSheet.create({
         alignItems: "center",
         borderRadius: 6,
     },
-    mapContainer: {},
-    mapCellContainer: {
-        ...theme.shadow.small,
-        flexDirection: "row",
-        flexWrap: "wrap",
-        height: CELL_SIZE * SCALE * MAP_DIMENSIONS,
-        width: CELL_SIZE * SCALE * MAP_DIMENSIONS,
+    imagesModalContent: {
+        height: 500,
+        maxHeight: "80%",
+        width: 600,
+        maxWidth: "90%",
     },
-    mapRow: {},
-    mapCell: {
-        width: CELL_SIZE * SCALE,
-        height: CELL_SIZE * SCALE,
-        borderColor: "#000000",
+    editorPanel: {
+        width: 375,
+        height: 125,
+    },
+    editorPanelContent: {
+        height: "100%",
+        justifyContent: "center",
+        paddingHorizontal: 5,
+    },
+    editDetailsItem: {
+        flexDirection: "row",
+        padding: 5,
+        gap: 10,
+    },
+    panelRight: {
+        position: "absolute",
+        justifyContent: "center",
+        top: 0,
+        right: 0,
+        width: 300,
+        paddingBottom: 50,
+    },
+    rowContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingLeft: 10,
+        gap: 5,
+    },
+    slider: {
+        marginLeft: 10,
+        paddingLeft: 10,
+        width: 100,
+        padding: 10,
     },
 });
