@@ -107,13 +107,13 @@ export function MessageModal({
 
 export const modalStyles = StyleSheet.create({
     modalContainer: {
+        ...theme.shadow.small,
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
         padding: 10,
         backgroundColor: "rgba(0, 0, 0, 0.6)",
         zIndex: 50,
-        ...theme.shadow.small,
     },
     modalContent: {
         display: "flex",

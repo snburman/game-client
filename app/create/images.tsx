@@ -18,11 +18,9 @@ export default function Images({ navigation }: ImagesProps) {
     const { setConfirmModal } = useModals();
     const { setEditImage } = useCanvas();
 
-    // TODO: Provide Edit, Delete, Cancel button options
     function handleEdit(image: Image<CellData[][]>) {
         setConfirmModal(`Edit ${image.name}?`, (confirm) => {
             if (confirm) {
-                // imageSlice.util.resetApiState();
                 setEditImage(image);
                 navigation.navigate("draw");
             }
@@ -93,8 +91,14 @@ export const ImagesScrollView = ({
                     {images.data?.map((image, index) => (
                         <Pressable key={index} onPress={() => onPress(image)}>
                             <View style={styles.previewContainer}>
-                                <LayerPreview data={image.data} cellSize={6} />
-                                <Typography fontSize={16}>{image.name}</Typography>
+                                <LayerPreview
+                                    data={image.data}
+                                    cellSize={6}
+                                    style={{ backgroundColor: "#DDDDDD" }}
+                                />
+                                <Typography fontSize={16}>
+                                    {image.name}
+                                </Typography>
                             </View>
                         </Pressable>
                     ))}
@@ -115,9 +119,9 @@ const styles = StyleSheet.create({
     header: {
         ...theme.shadow.small,
         height: 50,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: "#FFFFFF"
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#FFFFFF",
     },
     scrollview: {
         paddingTop: 10,
@@ -130,8 +134,8 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     imagesContainer: {
-        width: "90%",
         flexDirection: "row",
+        justifyContent: 'center',
         flexWrap: "wrap",
         gap: 20,
     },

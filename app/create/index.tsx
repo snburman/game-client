@@ -18,7 +18,7 @@ export default function Create({ navigation }: CreateProps) {
                 headerShown: false,
                 drawerType: isMobile? "slide" : "permanent",
                 drawerStyle: {
-                    width: 300
+                    width: 250
                 }
             }}
             drawerContent={DrawDrawerContent}

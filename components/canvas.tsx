@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { CellData, useCanvas } from "@/app/context/canvas_context";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
 import { theme } from "@/app/_theme";
 import { Button } from "react-native-paper";
@@ -68,7 +68,7 @@ export default function Canvas({
 
     return (
         <GestureDetector gesture={gesture}>
-            <View style={styles.allLayersContainer}>
+            <View style={[styles.allLayersContainer, {backgroundColor: "#DDDDDD"}]}>
                 {layers.map((_, index) => (
                     <Layer
                         key={index}
@@ -122,16 +122,19 @@ export const LayerPreview = ({
     cellSize,
     width = 16,
     height = 16,
+    style,
 }: {
     data: CellData[][];
     cellSize: number;
     width?: number;
     height?: number;
+    style?: StyleProp<ViewStyle>;
 }) => {
 
     return (
         <View
             style={[
+                style,
                 theme.shadow.small,
                 styles.layerContainer,
                 { width: cellSize * width, height: cellSize * height },
@@ -386,7 +389,6 @@ const styles = StyleSheet.create({
     layerContainer: {
         flexDirection: "row",
         flexWrap: "wrap",
-        backgroundColor: "#DDDDDD"
     },
     toolButton: {
         display: "flex",

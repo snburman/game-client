@@ -319,7 +319,6 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
             }
         }
 
-        // TODO: user can reopen and edit image, coordinates should come from existing document or 0,0
         const image: Image<string> = {
             user_id: user?._id || "",
             name: name,
