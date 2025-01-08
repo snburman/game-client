@@ -17,6 +17,7 @@ import { DrawerButton } from "@/components/draw_drawer_content";
 import { MapProps } from "../types/navigation";
 import { Button } from "react-native-paper";
 import { Typography } from "@mui/joy";
+import PlainModal from "@/components/modal";
 
 const MAP_DIMENSIONS = 6;
 const SCALE = 3;
@@ -153,7 +154,10 @@ export default function Map({ navigation }: MapProps) {
                 {/* tool button bar */}
                 <View style={styles.toolButtonContainer}>
                     <Pressable
-                        style={[styles.toolButton, { backgroundColor: "#DDDDDD" }]}
+                        style={[
+                            styles.toolButton,
+                            { backgroundColor: "#DDDDDD" },
+                        ]}
                         onPress={() => setImagesModalVisible(true)}
                     >
                         {selectedImage ? (
@@ -167,39 +171,35 @@ export default function Map({ navigation }: MapProps) {
                     </Pressable>
                 </View>
                 {/* image selection modal*/}
-                <Modal
-                    transparent
-                    animationType="fade"
+                <PlainModal
                     visible={imagesModalVisible}
+                    setVisible={setImagesModalVisible}
+                    style={{padding: 0}}
                 >
-                    <Pressable
-                        style={styles.modalContainer}
+                    <View style={{
+                        height: 500,
+                        maxHeight: '80%',
+                        width: 600,
+                        maxWidth: '90%',
+                    }}>
+                        <ImagesScrollView
+                            onPress={handleSelectImage}
+                            navigateToCanvas={() => navigation.navigate("draw")}
+                        />    
+                    </View>
+                    <Button
+                        mode="outlined"
+                        uppercase={false}
+                        style={{
+                            marginTop: 10,
+                            backgroundColor: "white",
+                            width: 115,
+                        }}
                         onPress={() => setImagesModalVisible(false)}
                     >
-                        <View style={styles.modalContent}>
-                            <ImagesScrollView
-                                onPress={handleSelectImage}
-                                navigateToCanvas={() =>
-                                    navigation.navigate("draw")
-                                }
-                            />
-                        </View>
-                        <View style={{ marginTop: 0, zIndex: 100 }}>
-                            <Button
-                                mode="outlined"
-                                uppercase={false}
-                                style={{
-                                    marginTop: 10,
-                                    backgroundColor: "white",
-                                    width: 115,
-                                }}
-                                onPress={() => setImagesModalVisible(false)}
-                            >
-                                <Typography>Close</Typography>
-                            </Button>
-                        </View>
-                    </Pressable>
-                </Modal>
+                        <Typography>Close</Typography>
+                    </Button>
+                </PlainModal>
             </View>
         </>
     );
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
         width: "100%",
         justifyContent: "center",
         alignItems: "center",
-        paddingVertical: 15
+        paddingVertical: 15,
     },
     toolButton: {
         ...theme.shadow.small,
