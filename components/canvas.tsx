@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { CellData, useCanvas } from "@/app/context/canvas_context";
 import { Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";

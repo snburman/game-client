@@ -102,8 +102,8 @@ export default function Map({ navigation }: MapProps) {
         }
         // set image
         const image = cloneDeep(selectedImage);
-        image.x = x * 16 * SCALE;
-        image.y = y * 16 * SCALE;
+        image.x = x * image.width * SCALE;
+        image.y = y * image.height * SCALE;
         const _imageMap = cloneDeep(imageMap);
         _imageMap[y][x].images.push(image);
         setImageMap(_imageMap);
@@ -131,7 +131,7 @@ export default function Map({ navigation }: MapProps) {
         value: number
     ) {
         const _imageMap = cloneDeep(imageMap);
-        console.log(value, x, y)
+        console.log(value, x, y);
         _imageMap[y][x].images[index].x = value;
         setImageMap(_imageMap);
     }
@@ -148,7 +148,7 @@ export default function Map({ navigation }: MapProps) {
     }
 
     if (isUsingCanvas) return null;
-    console.log(imageMap)
+    console.log(imageMap);
     return (
         <>
             <DrawerButton onPress={() => navigation.openDrawer()} />
@@ -159,14 +159,7 @@ export default function Map({ navigation }: MapProps) {
                 ]}
             >
                 <View style={styles.mapContainer}>
-                    <View
-                        style={[
-                            styles.mapCellContainer,
-                            {
-                                borderBottomWidth: 1,
-                            },
-                        ]}
-                    >
+                    <View style={[styles.mapCellContainer]}>
                         {imageMap?.map((row) =>
                             row.map((mc, i) => (
                                 <Pressable
@@ -179,12 +172,7 @@ export default function Map({ navigation }: MapProps) {
                                         style={[
                                             styles.mapCell,
                                             {
-                                                borderTopWidth: 1,
-                                                borderRightWidth: 1,
-                                                borderLeftWidth:
-                                                    mc.x < MAP_DIMENSIONS - 1
-                                                        ? 1
-                                                        : 0,
+                                                borderWidth: 0.5,
                                             },
                                         ]}
                                     >
@@ -193,8 +181,16 @@ export default function Map({ navigation }: MapProps) {
                                                 <View
                                                     style={{
                                                         position: "absolute",
-                                                        top: image.y - (mc.mapY  * 16 * TILE_SIZE),
-                                                        left: image.x - (mc.mapX * 16 *TILE_SIZE)
+                                                        top:
+                                                            image.y -
+                                                            mc.mapY *
+                                                                image.height *
+                                                                SCALE,
+                                                        left:
+                                                            image.x -
+                                                            mc.mapX *
+                                                                image.width *
+                                                                SCALE,
                                                     }}
                                                     key={i}
                                                 >
@@ -239,7 +235,7 @@ export default function Map({ navigation }: MapProps) {
                             styles.toolButton,
                             {
                                 backgroundColor: editDetailsOn
-                                    ? "rgba(0 0 0 / 0.3)"
+                                    ? "#0000004D"
                                     : "#FFFFFF",
                             },
                         ]}
@@ -259,7 +255,7 @@ export default function Map({ navigation }: MapProps) {
                         <ImagesScrollView
                             onPress={handleSelectImage}
                             navigateToCanvas={() => {
-                                navigation.navigate("draw")
+                                navigation.navigate("draw");
                                 setImagesModalVisible(false);
                             }}
                         />
@@ -303,7 +299,7 @@ export default function Map({ navigation }: MapProps) {
                                         key={i}
                                         style={styles.editDetailsItem}
                                     >
-                                        <View style={{...theme.shadow.small}}>
+                                        <View style={{ ...theme.shadow.small }}>
                                             <LayerPreview
                                                 data={image.data}
                                                 cellSize={TILE_SIZE}
@@ -351,12 +347,13 @@ export default function Map({ navigation }: MapProps) {
                                                     step={1}
                                                     minimumValue={
                                                         editCoords.x *
-                                                        (16 * SCALE)
+                                                        (image.width * SCALE)
                                                     }
                                                     maximumValue={
                                                         editCoords.x *
-                                                            (16 * SCALE) +
-                                                        (16 * SCALE)
+                                                            (image.width *
+                                                                SCALE) +
+                                                        image.width * SCALE
                                                     }
                                                     style={styles.slider}
                                                     onValueChange={(value) =>
@@ -377,12 +374,12 @@ export default function Map({ navigation }: MapProps) {
                                                     step={1}
                                                     minimumValue={
                                                         editCoords.y *
-                                                        (16 * SCALE)
+                                                        (image.height * SCALE)
                                                     }
                                                     maximumValue={
                                                         editCoords.y *
-                                                            (16 * SCALE) +
-                                                        (16 * SCALE)
+                                                            (image.height * SCALE) +
+                                                        image.height * SCALE
                                                     }
                                                     style={styles.slider}
                                                     onValueChange={(value) =>
@@ -414,20 +411,21 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFFFFF",
     },
     mapContainer: {
-        backgroundColor: "red",
+        // backgroundColor: "red",
     },
     mapCellContainer: {
         ...theme.shadow.small,
         flexDirection: "row",
         flexWrap: "wrap",
+        borderWidth: 0.5,
+        borderColor: "#757575",
         height: CELL_SIZE * SCALE * MAP_DIMENSIONS + 1,
         width: CELL_SIZE * SCALE * MAP_DIMENSIONS + 1,
     },
-    mapRow: {},
     mapCell: {
         width: CELL_SIZE * SCALE,
         height: CELL_SIZE * SCALE,
-        borderColor: "#000000",
+        borderColor: "#5F5F5F",
     },
     toolButtonContainer: {
         flexDirection: "row",
