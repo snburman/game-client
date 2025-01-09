@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import EntypoIcons from "react-native-vector-icons/Entypo";
 import FontAwesomeIcons from "react-native-vector-icons/FontAwesome";
 import {
-    CANVAS_SIZE,
+    DEFAULT_CANVAS_SIZE,
     CELL_SIZE,
     CellData,
     useCanvas,
@@ -57,8 +57,8 @@ export default function Map({ navigation }: MapProps) {
             for (let x = 0; x < MAP_DIMENSIONS; x++) {
                 newMap[y].push({
                     images: [],
-                    x: x * CANVAS_SIZE * SCALE,
-                    y: y * CANVAS_SIZE * SCALE,
+                    x: x * DEFAULT_CANVAS_SIZE * SCALE,
+                    y: y * DEFAULT_CANVAS_SIZE * SCALE,
                     mapX: x,
                     mapY: y,
                 });

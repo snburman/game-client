@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CANVAS_SIZE, useCanvas } from "../context/canvas_context";
+import { useCanvas } from "../context/canvas_context";
 import Canvas, { ClearButton, EraserButton, FillButton, GridButton, RedoButton, SaveButton, UndoButton,  } from "@/components/canvas";
 import ColorPicker from "@/components/color_picker";
 import { StyleSheet, View } from "react-native";
@@ -8,16 +8,19 @@ import { DrawerButton } from "@/components/draw_drawer_content";
 
 export default function Draw({ navigation }: DrawProps) {
     const [modalVisible, setModalVisible] = useState(false);
-    const { cellSize } = useCanvas();
+    const { canvasSize, setCanvasSize, cellSize } = useCanvas();
+
+    // TODO: Open dialogue box for new canvas, user can enter name, type, and dimensions of
+    // image or use provided defaults.
 
     return (
         <View style={styles.container}>
             <DrawerButton onPress={() => navigation.openDrawer()} />
-            <Canvas width={CANVAS_SIZE} height={CANVAS_SIZE} />
+            <Canvas width={canvasSize} height={canvasSize} />
             <View
                 style={[
                     styles.toolContainer,
-                    { width: cellSize * CANVAS_SIZE },
+                    // { width: cellSize * canvasSize },
                 ]}
             >
                 <View style={styles.toolButtons}>
@@ -46,24 +49,17 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        paddingTop: 40
+        paddingTop: 40,
     },
     toolContainer: {
         display: "flex",
         flexDirection: "column",
         gap: 10,
-        width: "100%",
         marginTop: 15,
     },
     toolButtons: {
-        flex: 1,
+        width: '100%',
         flexDirection: "row",
-        justifyContent: "space-evenly",
         gap: 5,
-        flexWrap: "wrap",
     },
-    navButton: {
-        width: 150,
-        backgroundColor: "#FFFFFF"
-    }
 });

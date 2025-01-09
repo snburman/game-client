@@ -5,7 +5,11 @@ import { useEffect } from "react";
 import { Image } from "@/redux/models/image.model";
 import { useModals } from "../context/modalContext";
 import { LayerPreview } from "@/components/canvas";
-import { CellData, useCanvas } from "../context/canvas_context";
+import {
+    CellData,
+    DEFAULT_CANVAS_SIZE,
+    useCanvas,
+} from "../context/canvas_context";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { ImagesProps } from "../types/navigation";
 import { LoadingSpinner } from "@/components/loading";
@@ -51,7 +55,7 @@ export const ImagesScrollView = ({
     const { token } = useAuth();
     const [getImages, images] =
         imageSlice.endpoints.getUserImages.useLazyQuery();
-    const { isUsingCanvas } = useCanvas();
+    const { isUsingCanvas, cellSize } = useCanvas();
     const { setMessageModal } = useModals();
 
     useEffect(() => {
@@ -92,10 +96,12 @@ export const ImagesScrollView = ({
                         <Pressable key={index} onPress={() => onPress(image)}>
                             <View style={styles.previewContainer}>
                                 <LayerPreview
-                                    data={image.data}
+                                    {...image}
                                     cellSize={6}
                                     style={{ backgroundColor: "#DDDDDD" }}
                                 />
+                            </View>
+                            <View style={styles.detailsContainer}>
                                 <Typography fontSize={16}>
                                     {image.name}
                                 </Typography>
@@ -135,13 +141,18 @@ const styles = StyleSheet.create({
     },
     imagesContainer: {
         flexDirection: "row",
-        justifyContent: 'center',
+        justifyContent: "center",
         flexWrap: "wrap",
         gap: 20,
     },
     previewContainer: {
         justifyContent: "center",
         alignItems: "center",
+        width: 100,
+        height: 125,
         gap: 5,
     },
+    detailsContainer: {
+        alignItems: 'center'
+    }
 });
