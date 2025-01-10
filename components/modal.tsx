@@ -1,13 +1,14 @@
 import { theme } from "@/app/_theme";
 import { Typography } from "@mui/joy";
 import { ReactNode } from "react";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
 import { Button } from "react-native-paper";
 
 interface Props {
     visible: boolean;
-    setVisible: (visible: boolean) => void;
+    setVisible?: (visible: boolean) => void;
     onClose?: () => void;
+    style?: StyleProp<ViewStyle>,
     children?: ReactNode;
 }
 
@@ -15,19 +16,20 @@ export default function PlainModal({
     visible,
     setVisible,
     onClose,
+    style,
     children,
 }: Props) {
     if (!visible) return null;
 
     function handleClose() {
-        setVisible(false);
+        setVisible && setVisible(false);
         onClose && onClose();
     }
 
     return (
         <Modal transparent animationType="fade" visible={visible}>
             <Pressable style={modalStyles.modalContainer} onPress={handleClose}>
-                <Pressable style={modalStyles.modalContent}>
+                <Pressable style={[modalStyles.modalContent, style]}>
                     {children}
                 </Pressable>
             </Pressable>
@@ -107,19 +109,21 @@ export function MessageModal({
 
 export const modalStyles = StyleSheet.create({
     modalContainer: {
+        ...theme.shadow.small,
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
         padding: 10,
         backgroundColor: "rgba(0, 0, 0, 0.6)",
         zIndex: 50,
-        ...theme.shadow.small,
     },
     modalContent: {
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
+        maxHeight: '90%',
+        maxWidth: '90%',
         padding: 30,
         borderRadius: 8,
         backgroundColor: "#FFFFFF",

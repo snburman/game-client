@@ -9,10 +9,8 @@ import { every } from "lodash";
 import React, { useCallback, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Button, TextInput } from "react-native-paper";
-import Ionicons from "react-native-vector-icons/Ionicons";
 import { useAuth } from "../context/auth_context";
-import { ActivityIndicator, MD2Colors } from "react-native-paper";
-import { useModals } from "../context/modalContext";
+import { useModals } from "../context/modal_context";
 import { LoadingSpinner } from "@/components/loading";
 
 export default function Login() {
