@@ -3,13 +3,9 @@ import { imageSlice } from "@/redux/image.slice";
 import { useAuth } from "../context/auth_context";
 import { useEffect } from "react";
 import { Image } from "@/redux/models/image.model";
-import { useModals } from "../context/modalContext";
+import { useModals } from "../context/modal_context";
 import { LayerPreview } from "@/components/canvas";
-import {
-    CellData,
-    DEFAULT_CANVAS_SIZE,
-    useCanvas,
-} from "../context/canvas_context";
+import { CellData, useCanvas } from "../context/canvas_context";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { ImagesProps } from "../types/navigation";
 import { LoadingSpinner } from "@/components/loading";
@@ -19,23 +15,72 @@ import { Typography } from "@mui/joy";
 import { theme } from "../_theme";
 
 export default function Images({ navigation }: ImagesProps) {
-    const { setConfirmModal } = useModals();
+    const { setConfirmModal, setPlainModal } = useModals();
     const { setEditImage } = useCanvas();
 
     function handleEdit(image: Image<CellData[][]>) {
-        setConfirmModal(`Edit ${image.name}?`, (confirm) => {
-            if (confirm) {
-                setEditImage(image);
-                navigation.navigate("draw");
-            }
-        });
+        const options: { label: string; fn: () => void }[] = [
+            {
+                label: "Edit",
+                fn: () => {
+                    setEditImage(image);
+                    navigation.navigate("draw");
+                },
+            },
+            {
+                label: "Delete",
+                fn: () => {
+                    setConfirmModal(`Delete ${image.name}?`, (confirm) => {
+                        //TODO: implement delete image function
+                        confirm && console.log("delete");
+                    });
+                },
+            },
+        ];
+        setPlainModal(
+            <View style={{ alignItems: "center", gap: 15 }}>
+                <Typography>{image.name}</Typography>
+                <LayerPreview
+                    {...image}
+                    cellSize={6}
+                    style={{ backgroundColor: "#DDDDDD" }}
+                />
+                <View style={{ gap: 10 }}>
+                    <View style={{ flexDirection: "row", gap: 10, width: 200 }}>
+                        {options.map((opt, i) => (
+                            <Button
+                                mode="outlined"
+                                uppercase={false}
+                                key={i}
+                                onPress={() => {
+                                    opt.fn();
+                                    setPlainModal(undefined);
+                                }}
+                                style={{ flex: 1 }}
+                            >
+                                {opt.label}
+                            </Button>
+                        ))}
+                    </View>
+                    <View>
+                        <Button
+                            mode="outlined"
+                            uppercase={false}
+                            onPress={() => setPlainModal(undefined)}
+                        >
+                            Close
+                        </Button>
+                    </View>
+                </View>
+            </View>
+        );
     }
 
     return (
         <>
             <DrawerButton onPress={() => navigation.openDrawer()} />
             <View style={styles.header}>
-                <Typography fontSize={16}>Saved Images</Typography>
+                {/* TODO: Add guide button to open modal */}
             </View>
             <ImagesScrollView
                 onPress={(image) => handleEdit(image)}
@@ -153,6 +198,6 @@ const styles = StyleSheet.create({
         gap: 5,
     },
     detailsContainer: {
-        alignItems: 'center'
-    }
+        alignItems: "center",
+    },
 });

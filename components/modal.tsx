@@ -6,7 +6,7 @@ import { Button } from "react-native-paper";
 
 interface Props {
     visible: boolean;
-    setVisible: (visible: boolean) => void;
+    setVisible?: (visible: boolean) => void;
     onClose?: () => void;
     style?: StyleProp<ViewStyle>,
     children?: ReactNode;
@@ -22,7 +22,7 @@ export default function PlainModal({
     if (!visible) return null;
 
     function handleClose() {
-        setVisible(false);
+        setVisible && setVisible(false);
         onClose && onClose();
     }
 

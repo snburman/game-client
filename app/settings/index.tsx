@@ -11,7 +11,7 @@ import {
     useDeleteUserMutation,
     useUpdateUserMutation,
 } from "@/redux/auth.slice";
-import { useModals } from "../context/modalContext";
+import { useModals } from "../context/modal_context";
 
 export default function Settings(_: SettingsProps) {
     const { user, logOut, token } = useAuth();

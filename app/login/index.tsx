@@ -10,7 +10,7 @@ import React, { useCallback, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Button, TextInput } from "react-native-paper";
 import { useAuth } from "../context/auth_context";
-import { useModals } from "../context/modalContext";
+import { useModals } from "../context/modal_context";
 import { LoadingSpinner } from "@/components/loading";
 
 export default function Login() {

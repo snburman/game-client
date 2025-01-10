@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import EntypoIcons from "react-native-vector-icons/Entypo";
 import FontAwesomeIcons from "react-native-vector-icons/FontAwesome";
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import {
     DEFAULT_CANVAS_SIZE,
     CELL_SIZE,
@@ -12,7 +13,7 @@ import { Image, ImageType } from "@/redux/models/image.model";
 import { LayerPreview } from "@/components/canvas";
 import { cloneDeep } from "lodash";
 import { theme } from "@/app/_theme";
-import { useModals } from "../context/modalContext";
+import { useModals } from "../context/modal_context";
 import { ImagesScrollView } from "./images";
 import { DrawerButton } from "@/components/draw_drawer_content";
 import { MapProps } from "../types/navigation";
@@ -40,7 +41,7 @@ export default function Map({ navigation }: MapProps) {
     const [selectedImage, setSelectedImage] = useState<
         Image<CellData[][]> | undefined
     >();
-    const { setMessageModal } = useModals();
+    const { setMessageModal, setConfirmModal } = useModals();
     const { isUsingCanvas } = useCanvas();
     const [imagesModalVisible, setImagesModalVisible] = useState(false);
     // indicates that pressing a tile will trigger editing of the contents
@@ -78,7 +79,6 @@ export default function Map({ navigation }: MapProps) {
     function handlePressTile(x: number, y: number) {
         setEditCoords({ x, y });
         if (editDetailsOn) return;
-        // if(editDetailsOn) return;
         // cannot place empty image
         if (!selectedImage) {
             setMessageModal("Select an image to place on the map", () =>
@@ -111,6 +111,12 @@ export default function Map({ navigation }: MapProps) {
 
     function handlePressEditDetailsButton() {
         setEditDetailsOn(!editDetailsOn);
+    }
+
+    function handleClearMap() {
+        setConfirmModal("Clear map?", (confirm) => {
+            confirm && setImageMap(createImageMap());
+        });
     }
 
     function handleTypeRadioButton(
@@ -147,8 +153,14 @@ export default function Map({ navigation }: MapProps) {
         setImageMap(_imageMap);
     }
 
+    function handleRemoveImage(x: number, y: number, index: number) {
+        const _imageMap = cloneDeep(imageMap);
+        const i = _imageMap[y][x].images.indexOf(_imageMap[y][x].images[index]);
+        _imageMap[y][x].images.splice(i, 1);
+        setImageMap(_imageMap);
+    }
+
     if (isUsingCanvas) return null;
-    console.log(imageMap);
     return (
         <>
             <DrawerButton onPress={() => navigation.openDrawer()} />
@@ -168,14 +180,7 @@ export default function Map({ navigation }: MapProps) {
                                     }
                                     key={i}
                                 >
-                                    <View
-                                        style={[
-                                            styles.mapCell,
-                                            {
-                                                borderWidth: 0.5,
-                                            },
-                                        ]}
-                                    >
+                                    <View style={[styles.mapCell]}>
                                         {mc.images &&
                                             mc.images.map((image, i) => (
                                                 <View
@@ -190,12 +195,12 @@ export default function Map({ navigation }: MapProps) {
                                                             image.x -
                                                             mc.mapX *
                                                                 image.width *
-                                                                SCALE,
+                                                                TILE_SIZE,
                                                     }}
                                                     key={i}
                                                 >
                                                     <LayerPreview
-                                                        data={image.data}
+                                                        {...image}
                                                         cellSize={3.68}
                                                     />
                                                 </View>
@@ -221,10 +226,7 @@ export default function Map({ navigation }: MapProps) {
                         }}
                     >
                         {selectedImage ? (
-                            <LayerPreview
-                                data={selectedImage?.data}
-                                cellSize={2.75}
-                            />
+                            <LayerPreview {...selectedImage} cellSize={2.75} />
                         ) : (
                             <EntypoIcons name="images" size={30} />
                         )}
@@ -242,6 +244,16 @@ export default function Map({ navigation }: MapProps) {
                         onPress={handlePressEditDetailsButton}
                     >
                         <FontAwesomeIcons name="hand-pointer-o" size={30} />
+                    </Pressable>
+                    <Pressable
+                        style={styles.toolButton}
+                        onPress={handleClearMap}
+                    >
+                        <MaterialCommunityIcons
+                            name="delete"
+                            size={30}
+                            style={{ color: "#D2042D" }}
+                        />
                     </Pressable>
                 </View>
                 {/* MODALS */}
@@ -280,12 +292,9 @@ export default function Map({ navigation }: MapProps) {
                         width > 520 && {
                             height: 200,
                         },
-                        width > 1270 && {
+                        width > 1350 && {
                             ...styles.panelRight,
                             height: "100%",
-                        },
-                        width > 1074 && {
-                            marginRight: (width - 1074) / 8,
                         },
                     ]}
                 >
@@ -299,9 +308,9 @@ export default function Map({ navigation }: MapProps) {
                                         key={i}
                                         style={styles.editDetailsItem}
                                     >
-                                        <View style={{ ...theme.shadow.small }}>
+                                        <View style={styles.editDetailsIcon}>
                                             <LayerPreview
-                                                data={image.data}
+                                                {...image}
                                                 cellSize={TILE_SIZE}
                                             />
                                         </View>
@@ -378,7 +387,8 @@ export default function Map({ navigation }: MapProps) {
                                                     }
                                                     maximumValue={
                                                         editCoords.y *
-                                                            (image.height * SCALE) +
+                                                            (image.height *
+                                                                SCALE) +
                                                         image.height * SCALE
                                                     }
                                                     style={styles.slider}
@@ -394,6 +404,28 @@ export default function Map({ navigation }: MapProps) {
                                                 />
                                             </View>
                                         </View>
+                                        <Pressable
+                                            style={{
+                                                justifyContent: "center",
+                                                alignItems: "center",
+                                                paddingLeft: 10,
+                                            }}
+                                            onPress={() =>
+                                                handleRemoveImage(
+                                                    editCoords.x,
+                                                    editCoords.y,
+                                                    i
+                                                )
+                                            }
+                                        >
+                                            <MaterialCommunityIcons
+                                                name="delete"
+                                                style={{
+                                                    color: "#D2042D",
+                                                    fontSize: 30,
+                                                }}
+                                            />
+                                        </Pressable>
                                     </View>
                                 )
                             )}
@@ -425,7 +457,7 @@ const styles = StyleSheet.create({
     mapCell: {
         width: CELL_SIZE * SCALE,
         height: CELL_SIZE * SCALE,
-        borderColor: "#5F5F5F",
+        borderWidth: 0.5,
     },
     toolButtonContainer: {
         flexDirection: "row",
@@ -463,12 +495,19 @@ const styles = StyleSheet.create({
         padding: 5,
         gap: 10,
     },
+    editDetailsIcon: {
+        ...theme.shadow.small,
+        justifyContent: "center",
+        alignItems: "center",
+        width: DEFAULT_CANVAS_SIZE * TILE_SIZE,
+        height: DEFAULT_CANVAS_SIZE * TILE_SIZE,
+    },
     panelRight: {
         position: "absolute",
         justifyContent: "center",
         top: 0,
         right: 0,
-        width: 300,
+        width: 365,
         paddingBottom: 50,
     },
     rowContainer: {

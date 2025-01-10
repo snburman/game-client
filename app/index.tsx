@@ -4,17 +4,18 @@ import Login from "./login";
 import Tabs from "./tabs";
 import { useAuth } from "./context/auth_context";
 import { RootStackParamList } from "./types/navigation";
-import { useModals } from "./context/modalContext";
+import { useModals } from "./context/modal_context";
 
 export default function Index() {
     const Stack = createStackNavigator<RootStackParamList>();
     const { user } = useAuth();
-    const { messageModal, confirmModal } = useModals();
+    const { messageModal, confirmModal, plainModal } = useModals();
 
     return (
         <>
             {messageModal}
             {confirmModal}
+            {plainModal}
             <Stack.Navigator
                 screenOptions={{
                     headerShown: false,

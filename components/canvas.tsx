@@ -7,7 +7,7 @@ import { Button } from "react-native-paper";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import PlainModal, { modalStyles } from "./modal";
 import { Input, Typography } from "@mui/joy";
-import { useModals } from "@/app/context/modalContext";
+import { useModals } from "@/app/context/modal_context";
 
 // Canvas component represents the drawing area containing width * height pixels
 export default function Canvas({
@@ -255,9 +255,7 @@ export const ClearButton = () => {
 
     function handlePress() {
         setConfirmModal("Erase drawing?", (confirm) => {
-            if (confirm) {
-                clearLayer(selectedLayerIndex);
-            }
+            confirm && clearLayer(selectedLayerIndex);
         });
     }
 

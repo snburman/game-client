@@ -9,7 +9,7 @@ import { Image } from "@/redux/models/image.model";
 import cloneDeep from "lodash/cloneDeep";
 import { isEqual } from "lodash";
 import { useAuth } from "./auth_context";
-import { useModals } from "./modalContext";
+import { useModals } from "./modal_context";
 
 // TODO: Update width and height, not fixed square size
 export const DEFAULT_CANVAS_SIZE = 16;
