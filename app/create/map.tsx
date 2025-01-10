@@ -135,7 +135,6 @@ export default function Map({ navigation }: MapProps) {
         value: number
     ) {
         const _imageMap = cloneDeep(imageMap);
-        console.log(value, x, y);
         _imageMap[y][x].images[index].x = value;
         setImageMap(_imageMap);
     }
@@ -158,7 +157,6 @@ export default function Map({ navigation }: MapProps) {
         setImageMap(_imageMap);
     }
 
-    console.log(imageMap);
     if (isUsingCanvas) return null;
     return (
         <>
