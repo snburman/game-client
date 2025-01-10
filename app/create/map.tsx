@@ -207,7 +207,7 @@ export default function Map({ navigation }: MapProps) {
                                         />
                                         {mc.images &&
                                             mc.images.map((image, i) => (
-                                                <>
+                                                <View key={i}>
                                                     <View
                                                         style={{
                                                             position:
@@ -216,14 +216,13 @@ export default function Map({ navigation }: MapProps) {
                                                             left:
                                                                 image.x - mc.x,
                                                         }}
-                                                        key={i}
                                                     >
                                                         <LayerPreview
                                                             {...image}
                                                             cellSize={SCALE}
                                                         />
                                                     </View>
-                                                </>
+                                                </View>
                                             ))}
                                     </View>
                                 </Pressable>
@@ -567,6 +566,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         width: DEFAULT_CANVAS_SIZE * SCALE,
         height: DEFAULT_CANVAS_SIZE * SCALE,
+        backgroundColor: "#DDDDDD",
     },
     panelRight: {
         position: "absolute",
