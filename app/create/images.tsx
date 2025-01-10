@@ -39,12 +39,12 @@ export default function Images({ navigation }: ImagesProps) {
         ];
         setPlainModal(
             <View style={{ alignItems: "center", gap: 15 }}>
-                <Typography>{image.name}</Typography>
                 <LayerPreview
                     {...image}
                     cellSize={6}
                     style={{ backgroundColor: "#DDDDDD" }}
                 />
+                <Typography>{image.name}</Typography>
                 <View style={{ gap: 10 }}>
                     <View style={{ flexDirection: "row", gap: 10, width: 200 }}>
                         {options.map((opt, i) => (
