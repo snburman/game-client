@@ -5,7 +5,6 @@ import FontAwesomeIcons from "react-native-vector-icons/FontAwesome";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import {
     DEFAULT_CANVAS_SIZE,
-    CELL_SIZE,
     CellData,
     useCanvas,
 } from "../context/canvas_context";
@@ -25,8 +24,7 @@ import { ScrollView } from "react-native-gesture-handler";
 import { useDevice } from "../hooks/device";
 
 const MAP_DIMENSIONS = 6;
-const SCALE = 3;
-const TILE_SIZE = 2.75;
+const SCALE = 3.5;
 
 type MapCoords = {
     images: Image<CellData[][]>[];
@@ -102,8 +100,8 @@ export default function Map({ navigation }: MapProps) {
         }
         // set image
         const image = cloneDeep(selectedImage);
-        image.x = x * image.width * SCALE;
-        image.y = y * image.height * SCALE;
+        image.x = x * DEFAULT_CANVAS_SIZE * SCALE;
+        image.y = y * DEFAULT_CANVAS_SIZE * SCALE;
         const _imageMap = cloneDeep(imageMap);
         _imageMap[y][x].images.push(image);
         setImageMap(_imageMap);
@@ -160,6 +158,7 @@ export default function Map({ navigation }: MapProps) {
         setImageMap(_imageMap);
     }
 
+    console.log(imageMap);
     if (isUsingCanvas) return null;
     return (
         <>
@@ -180,28 +179,33 @@ export default function Map({ navigation }: MapProps) {
                                     }
                                     key={i}
                                 >
-                                    <View style={[styles.mapCell]}>
+                                    <View
+                                        style={[
+                                            styles.mapCell,
+                                            {
+                                                backgroundColor: (
+                                                    mc.mapY % 2 == 0
+                                                        ? mc.mapX % 2 == 0
+                                                        : mc.mapX % 2 !== 0
+                                                )
+                                                    ? "#FFFFFF"
+                                                    : "#ECECEC",
+                                            },
+                                        ]}
+                                    >
                                         {mc.images &&
                                             mc.images.map((image, i) => (
                                                 <View
                                                     style={{
                                                         position: "absolute",
-                                                        top:
-                                                            image.y -
-                                                            mc.mapY *
-                                                                image.height *
-                                                                SCALE,
-                                                        left:
-                                                            image.x -
-                                                            mc.mapX *
-                                                                image.width *
-                                                                TILE_SIZE,
+                                                        top: image.y - mc.y,
+                                                        left: image.x - mc.x,
                                                     }}
                                                     key={i}
                                                 >
                                                     <LayerPreview
                                                         {...image}
-                                                        cellSize={3.68}
+                                                        cellSize={SCALE}
                                                     />
                                                 </View>
                                             ))}
@@ -311,7 +315,7 @@ export default function Map({ navigation }: MapProps) {
                                         <View style={styles.editDetailsIcon}>
                                             <LayerPreview
                                                 {...image}
-                                                cellSize={TILE_SIZE}
+                                                cellSize={SCALE}
                                             />
                                         </View>
                                         <View>
@@ -349,19 +353,32 @@ export default function Map({ navigation }: MapProps) {
                                             </View>
                                         </View>
                                         <View>
-                                            <View style={styles.rowContainer}>
-                                                <Typography>X</Typography>
+                                            <View
+                                                style={[
+                                                    styles.rowContainer,
+                                                    {
+                                                        opacity:
+                                                            image.width ==
+                                                            DEFAULT_CANVAS_SIZE
+                                                                ? 0.3
+                                                                : 1,
+                                                    },
+                                                ]}
+                                            >
                                                 <Slider
                                                     value={image.x}
                                                     step={1}
                                                     minimumValue={
                                                         editCoords.x *
-                                                        (image.width * SCALE)
+                                                        (DEFAULT_CANVAS_SIZE *
+                                                            SCALE)
                                                     }
                                                     maximumValue={
                                                         editCoords.x *
-                                                            (image.width *
+                                                            (DEFAULT_CANVAS_SIZE *
                                                                 SCALE) +
+                                                        DEFAULT_CANVAS_SIZE *
+                                                            SCALE -
                                                         image.width * SCALE
                                                     }
                                                     style={styles.slider}
@@ -375,20 +392,34 @@ export default function Map({ navigation }: MapProps) {
                                                     }
                                                     thumbTintColor={"#019B0B"}
                                                 />
+                                                <Typography>X</Typography>
                                             </View>
-                                            <View style={styles.rowContainer}>
-                                                <Typography>Y</Typography>
+                                            <View
+                                                style={[
+                                                    styles.rowContainer,
+                                                    {
+                                                        opacity:
+                                                            image.width ==
+                                                            DEFAULT_CANVAS_SIZE
+                                                                ? 0.3
+                                                                : 1,
+                                                    },
+                                                ]}
+                                            >
                                                 <Slider
                                                     value={image.y}
                                                     step={1}
                                                     minimumValue={
                                                         editCoords.y *
-                                                        (image.height * SCALE)
+                                                        (DEFAULT_CANVAS_SIZE *
+                                                            SCALE)
                                                     }
                                                     maximumValue={
                                                         editCoords.y *
-                                                            (image.height *
+                                                            (DEFAULT_CANVAS_SIZE *
                                                                 SCALE) +
+                                                        DEFAULT_CANVAS_SIZE *
+                                                            SCALE -
                                                         image.height * SCALE
                                                     }
                                                     style={styles.slider}
@@ -402,6 +433,7 @@ export default function Map({ navigation }: MapProps) {
                                                     }
                                                     thumbTintColor={"#019B0B"}
                                                 />
+                                                <Typography>Y</Typography>
                                             </View>
                                         </View>
                                         <Pressable
@@ -449,15 +481,15 @@ const styles = StyleSheet.create({
         ...theme.shadow.small,
         flexDirection: "row",
         flexWrap: "wrap",
-        borderWidth: 0.5,
+        // borderWidth: 0.5,
         borderColor: "#757575",
-        height: CELL_SIZE * SCALE * MAP_DIMENSIONS + 1,
-        width: CELL_SIZE * SCALE * MAP_DIMENSIONS + 1,
+        height: DEFAULT_CANVAS_SIZE * SCALE * MAP_DIMENSIONS,
+        width: DEFAULT_CANVAS_SIZE * SCALE * MAP_DIMENSIONS,
     },
     mapCell: {
-        width: CELL_SIZE * SCALE,
-        height: CELL_SIZE * SCALE,
-        borderWidth: 0.5,
+        width: DEFAULT_CANVAS_SIZE * SCALE,
+        height: DEFAULT_CANVAS_SIZE * SCALE,
+        // borderWidth: 0.5,
     },
     toolButtonContainer: {
         flexDirection: "row",
@@ -483,7 +515,7 @@ const styles = StyleSheet.create({
     },
     editorPanel: {
         width: 375,
-        height: 125,
+        height: 150,
     },
     editorPanelContent: {
         height: "100%",
@@ -499,8 +531,8 @@ const styles = StyleSheet.create({
         ...theme.shadow.small,
         justifyContent: "center",
         alignItems: "center",
-        width: DEFAULT_CANVAS_SIZE * TILE_SIZE,
-        height: DEFAULT_CANVAS_SIZE * TILE_SIZE,
+        width: DEFAULT_CANVAS_SIZE * SCALE,
+        height: DEFAULT_CANVAS_SIZE * SCALE,
     },
     panelRight: {
         position: "absolute",
