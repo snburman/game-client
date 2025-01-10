@@ -193,21 +193,37 @@ export default function Map({ navigation }: MapProps) {
                                             },
                                         ]}
                                     >
+                                        <View
+                                            style={[
+                                                styles.editCellHighlight,
+
+                                                !(
+                                                    editDetailsOn &&
+                                                    mc.mapX == editCoords?.x &&
+                                                    mc.mapY == editCoords.y
+                                                ) && { display: "none" },
+                                            ]}
+                                            key={i}
+                                        />
                                         {mc.images &&
                                             mc.images.map((image, i) => (
-                                                <View
-                                                    style={{
-                                                        position: "absolute",
-                                                        top: image.y - mc.y,
-                                                        left: image.x - mc.x,
-                                                    }}
-                                                    key={i}
-                                                >
-                                                    <LayerPreview
-                                                        {...image}
-                                                        cellSize={SCALE}
-                                                    />
-                                                </View>
+                                                <>
+                                                    <View
+                                                        style={{
+                                                            position:
+                                                                "absolute",
+                                                            top: image.y - mc.y,
+                                                            left:
+                                                                image.x - mc.x,
+                                                        }}
+                                                        key={i}
+                                                    >
+                                                        <LayerPreview
+                                                            {...image}
+                                                            cellSize={SCALE}
+                                                        />
+                                                    </View>
+                                                </>
                                             ))}
                                     </View>
                                 </Pressable>
@@ -306,7 +322,7 @@ export default function Map({ navigation }: MapProps) {
                         contentContainerStyle={styles.editorPanelContent}
                     >
                         {editCoords &&
-                            imageMap[editCoords.y][editCoords.x].images.map(
+                            (imageMap[editCoords.y][editCoords.x].images).map(
                                 (image, i) => (
                                     <View
                                         key={i}
@@ -318,7 +334,11 @@ export default function Map({ navigation }: MapProps) {
                                                 cellSize={SCALE}
                                             />
                                         </View>
-                                        <View>
+                                        <View
+                                            style={{
+                                                justifyContent: "center",
+                                            }}
+                                        >
                                             <View style={styles.rowContainer}>
                                                 <Radio
                                                     checked={
@@ -352,7 +372,12 @@ export default function Map({ navigation }: MapProps) {
                                                 <Typography>Object</Typography>
                                             </View>
                                         </View>
-                                        <View>
+                                        <View
+                                            style={{
+                                                justifyContent: "center",
+                                                alignItems: "center",
+                                            }}
+                                        >
                                             <View
                                                 style={[
                                                     styles.rowContainer,
@@ -485,6 +510,15 @@ const styles = StyleSheet.create({
         borderColor: "#757575",
         height: DEFAULT_CANVAS_SIZE * SCALE * MAP_DIMENSIONS,
         width: DEFAULT_CANVAS_SIZE * SCALE * MAP_DIMENSIONS,
+    },
+    editCellHighlight: {
+        zIndex: 100,
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: DEFAULT_CANVAS_SIZE * SCALE,
+        height: DEFAULT_CANVAS_SIZE * SCALE,
+        backgroundColor: "rgba(0,195,255, 0.5)",
     },
     mapCell: {
         width: DEFAULT_CANVAS_SIZE * SCALE,
