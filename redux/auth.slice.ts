@@ -24,7 +24,7 @@ type ClientDataDTO = {
     data: any;
 };
 
-function createClientDataDTO(data: any): ClientDataDTO {
+function createClientDataDTO<T>(data: T): ClientDataDTO {
     return {
         client_id: CLIENT_ID,
         client_secret: CLIENT_SECRET,

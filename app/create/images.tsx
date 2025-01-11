@@ -13,10 +13,11 @@ import { Button } from "react-native-paper";
 import { DrawerButton } from "@/components/draw_drawer_content";
 import { Typography } from "@mui/joy";
 import { theme } from "../_theme";
+import Svg, { Rect } from "react-native-svg";
 
 export default function Images({ navigation }: ImagesProps) {
     const { setConfirmModal, setPlainModal } = useModals();
-    const { setEditImage } = useCanvas();
+    const { setEditImage, isUsingCanvas } = useCanvas();
 
     function handleEdit(image: Image<CellData[][]>) {
         const options: { label: string; fn: () => void }[] = [
@@ -76,6 +77,7 @@ export default function Images({ navigation }: ImagesProps) {
         );
     }
 
+    if (isUsingCanvas) return null;
     return (
         <>
             <DrawerButton onPress={() => navigation.openDrawer()} />
@@ -100,7 +102,6 @@ export const ImagesScrollView = ({
     const { token } = useAuth();
     const [getImages, images] =
         imageSlice.endpoints.getUserImages.useLazyQuery();
-    const { isUsingCanvas, cellSize } = useCanvas();
     const { setMessageModal } = useModals();
 
     useEffect(() => {
@@ -132,7 +133,6 @@ export const ImagesScrollView = ({
         );
     }
 
-    if (isUsingCanvas) return null;
     return (
         <ScrollView style={styles.scrollview}>
             <View style={styles.contentContainer}>
@@ -158,6 +158,33 @@ export const ImagesScrollView = ({
         </ScrollView>
     );
 };
+
+export function ImageDataToSVG({ height, width, data }: Image<CellData[][]>) {
+    const SCALE = 3.5;
+    return (
+            <Svg
+                height={height * SCALE}
+                width={width * SCALE}
+                viewBox="0 0 16 16"
+                style={{backgroundColor: 'transparent'}}
+                fill={"transparent"}
+            >
+                {data.map((row) =>
+                    row.map((cell, i) => (
+                        <Rect
+                            x={cell.y}
+                            y={cell.x}
+                            width={1}
+                            height={1}
+                            fill={cell.color}
+                            key={i}
+                            // opacity={cell.color =="transparent" ? 0 : 1}
+                        />
+                    ))
+                )}
+            </Svg>
+    );
+}
 
 const styles = StyleSheet.create({
     noDataContainer: {

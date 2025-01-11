@@ -1,9 +1,16 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { CellData, useCanvas } from "@/app/context/canvas_context";
-import { Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
+import {
+    Pressable,
+    StyleProp,
+    StyleSheet,
+    Text,
+    View,
+    ViewStyle,
+} from "react-native";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
 import { theme } from "@/app/_theme";
-import { Button } from "react-native-paper";
+import { Button, TextInput } from "react-native-paper";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import PlainModal, { modalStyles } from "./modal";
 import { Input, Typography } from "@mui/joy";
@@ -68,7 +75,12 @@ export default function Canvas({
 
     return (
         <GestureDetector gesture={gesture}>
-            <View style={[styles.allLayersContainer, {backgroundColor: "#DDDDDD"}]}>
+            <View
+                style={[
+                    styles.allLayersContainer,
+                    { backgroundColor: "#DDDDDD" },
+                ]}
+            >
                 {layers.map((_, index) => (
                     <Layer
                         key={index}
@@ -130,7 +142,6 @@ export const LayerPreview = ({
     height?: number;
     style?: StyleProp<ViewStyle>;
 }) => {
-
     return (
         <View
             style={[
@@ -372,6 +383,31 @@ export const RedoButton = () => {
                     styles.toolIcon,
                     { color: "#0E4DC4", opacity: !canRedo ? 0.5 : 1 },
                 ]}
+            />
+        </Pressable>
+    );
+};
+
+export const NewCanvasButton = () => {
+    const { newCanvas } = useCanvas();
+    const { setPlainModal, setMessageModal, setConfirmModal } = useModals();
+    const [width, setWidth] = useState("16");
+    const [height, setHeight] = useState("16");
+
+    function handlePress() {
+        setPlainModal(
+            <></>
+        );
+    }
+
+    return (
+        <Pressable
+            onPress={() => handlePress()}
+            style={styles.toolButton}
+        >
+            <MaterialCommunityIcons
+                name="file-plus-outline"
+                style={styles.toolIcon}
             />
         </Pressable>
     );

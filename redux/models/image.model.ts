@@ -1,3 +1,5 @@
+import React from "react";
+
 export type ImageType = "tile" | "object"
  
 export type Image<T> = {
@@ -10,4 +12,5 @@ export type Image<T> = {
     width: number;
     height: number;
     data: T;
+    component?: React.JSX.Element;
 }

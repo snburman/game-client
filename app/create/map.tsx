@@ -66,6 +66,7 @@ export default function Map({ navigation }: MapProps) {
         return newMap;
     }
 
+    // selects image to be placed on map
     function handleSelectImage(image: Image<CellData[][]>) {
         setImagesModalVisible(false);
         let _image = cloneDeep(image);
@@ -79,7 +80,7 @@ export default function Map({ navigation }: MapProps) {
         if (editDetailsOn) return;
         // cannot place empty image
         if (!selectedImage) {
-            setMessageModal("Select an image to place on the map", () =>
+            setMessageModal("Select an image to put on the map", () =>
                 setImagesModalVisible(true)
             );
 
@@ -254,7 +255,7 @@ export default function Map({ navigation }: MapProps) {
                             styles.toolButton,
                             {
                                 backgroundColor: editDetailsOn
-                                    ? "#0000004D"
+                                    ? "rgba(0,195,255, 0.5)"
                                     : "#FFFFFF",
                             },
                         ]}
@@ -319,7 +320,7 @@ export default function Map({ navigation }: MapProps) {
                         contentContainerStyle={styles.editorPanelContent}
                     >
                         {editCoords &&
-                            (imageMap[editCoords.y][editCoords.x].images).map(
+                            imageMap[editCoords.y][editCoords.x].images.map(
                                 (image, i) => (
                                     <View
                                         key={i}

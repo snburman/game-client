@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useCanvas } from "../context/canvas_context";
-import Canvas, { ClearButton, EraserButton, FillButton, GridButton, RedoButton, SaveButton, UndoButton,  } from "@/components/canvas";
+import Canvas, { ClearButton, EraserButton, FillButton, GridButton, NewCanvasButton, RedoButton, SaveButton, UndoButton,  } from "@/components/canvas";
 import ColorPicker from "@/components/color_picker";
 import { StyleSheet, View } from "react-native";
 import { DrawProps } from "../types/navigation";
@@ -8,7 +8,7 @@ import { DrawerButton } from "@/components/draw_drawer_content";
 
 export default function Draw({ navigation }: DrawProps) {
     const [modalVisible, setModalVisible] = useState(false);
-    const { canvasSize, setCanvasSize, cellSize } = useCanvas();
+    const { canvasSize } = useCanvas();
 
     // TODO: Open dialogue box for new canvas, user can enter name, type, and dimensions of
     // image or use provided defaults.
@@ -39,6 +39,10 @@ export default function Draw({ navigation }: DrawProps) {
                     <GridButton />
                 </View>
             </View>
+            <View style={styles.newCanvasButton}>
+                <NewCanvasButton />
+            </View>
+
         </View>
     );
 }
@@ -62,4 +66,9 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         gap: 5,
     },
+    newCanvasButton: {
+        position: "absolute",
+        top: 15,
+        right: 15
+    }
 });
