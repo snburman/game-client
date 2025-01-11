@@ -113,8 +113,8 @@ export default function Map({ navigation }: MapProps) {
         setEditDetailsOn(!editDetailsOn);
     }
 
-    function handleClearMap() {
-        setConfirmModal("Clear map?", (confirm) => {
+    function handleEraseMap() {
+        setConfirmModal("Erase map?", (confirm) => {
             confirm && setImageMap(createImageMap());
         });
     }
@@ -207,6 +207,8 @@ export default function Map({ navigation }: MapProps) {
                                         />
                                         {mc.images &&
                                             mc.images.map((image, i) => (
+                                                // TODO: use refs to control content instead
+                                                // of updating array
                                                 <View key={i}>
                                                     <View
                                                         style={{
@@ -266,7 +268,7 @@ export default function Map({ navigation }: MapProps) {
                     </Pressable>
                     <Pressable
                         style={styles.toolButton}
-                        onPress={handleClearMap}
+                        onPress={handleEraseMap}
                     >
                         <MaterialCommunityIcons
                             name="delete"
