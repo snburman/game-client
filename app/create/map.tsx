@@ -49,6 +49,7 @@ export default function Map({ navigation }: MapProps) {
     >();
     const { isMobile, width } = useDevice();
 
+    // create empty image map
     function createImageMap() {
         const newMap: MapCoords[][] = [];
         for (let y = 0; y < MAP_DIMENSIONS; y++) {
@@ -66,7 +67,7 @@ export default function Map({ navigation }: MapProps) {
         return newMap;
     }
 
-    // selects image to be placed on map
+    // select image to be placed on map
     function handleSelectImage(image: Image<CellData[][]>) {
         setImagesModalVisible(false);
         let _image = cloneDeep(image);
@@ -74,7 +75,7 @@ export default function Map({ navigation }: MapProps) {
         setSelectedImage(_image);
     }
 
-    // places selected image at given coordinates on map
+    // place selected image at given coordinates on map
     function handlePressTile(x: number, y: number) {
         setEditCoords({ x, y });
         if (editDetailsOn) return;
