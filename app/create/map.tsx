@@ -37,21 +37,21 @@ type MapCoords = {
 };
 
 export default function Map({ navigation }: MapProps) {
+    const { isMobile, width } = useDevice();
     const {token} = useAuth();
+    const { isUsingCanvas } = useCanvas();
     const [imageMap, setImageMap] = useState<MapCoords[][]>(createImageMap());
     const [getImages, images] = useLazyGetUserImagesQuery();
     const [selectedImage, setSelectedImage] = useState<
         Image<CellData[][]> | undefined
     >();
     const { setMessageModal, setConfirmModal } = useModals();
-    const { isUsingCanvas } = useCanvas();
     const [imagesModalVisible, setImagesModalVisible] = useState(false);
     // indicates that pressing a tile will trigger editing of the contents
     const [editDetailsOn, setEditDetailsOn] = useState(false);
     const [editCoords, setEditCoords] = useState<
         { x: number; y: number } | undefined
     >();
-    const { isMobile, width } = useDevice();
 
     useEffect(() => {
         if (!images.data && token) {
@@ -536,7 +536,6 @@ const styles = StyleSheet.create({
     mapCell: {
         width: DEFAULT_CANVAS_SIZE * SCALE,
         height: DEFAULT_CANVAS_SIZE * SCALE,
-        // borderWidth: 0.5,
     },
     toolButtonContainer: {
         flexDirection: "row",

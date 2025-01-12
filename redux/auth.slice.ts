@@ -1,5 +1,5 @@
 import { User } from "./models/user.model";
-import { api } from "./api";
+import { api, AuthToken } from "./api";
 import { CLIENT_ID, CLIENT_SECRET } from "@/env";
 
 export enum AuthError {
@@ -53,7 +53,7 @@ export const authSlice = api.injectEndpoints({
                 url: `/user`,
                 method: "GET",
                 headers: {
-                    Authorization: `Bearer ${token}`,
+                    ...AuthToken(token)
                 },
             }),
         }),
@@ -65,7 +65,7 @@ export const authSlice = api.injectEndpoints({
                 url: "/user/update",
                 method: "PATCH",
                 headers: {
-                    Authorization: `Bearer ${arg.token}`,
+                    ...AuthToken(arg.token),
                 },
                 body: arg.user,
             }),
@@ -78,7 +78,7 @@ export const authSlice = api.injectEndpoints({
                 url: "/user/delete",
                 method: "DELETE",
                 headers: {
-                    Authorization: `Bearer ${token}`,
+                    ...AuthToken(token),
                 },
             }),
         }),
@@ -97,6 +97,7 @@ export const {
     useLoginUserMutation,
     useRegisterUserMutation,
     useGetUserQuery,
+    useLazyGetUserQuery,
     useUpdateUserMutation,
     useDeleteUserMutation,
     useRefreshTokenMutation,

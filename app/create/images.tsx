@@ -128,9 +128,6 @@ export const ImagesScrollView = ({
     onPress: (image: Image<CellData[][]>) => void;
     navigateToCanvas: () => void;
 }) => {
-    const { token } = useAuth();
-    const { setMessageModal } = useModals();
-
     if (isLoading) {
         return <LoadingSpinner />;
     }

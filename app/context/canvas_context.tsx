@@ -1,13 +1,11 @@
 import {
     ImageError,
-    imageSlice,
     usePostImageMutation,
     useUpdateImageMutation,
 } from "@/redux/image.slice";
 import {
     createContext,
     useContext,
-    useEffect,
     useMemo,
     useRef,
     useState,
@@ -17,6 +15,7 @@ import cloneDeep from "lodash/cloneDeep";
 import { isEqual } from "lodash";
 import { useAuth } from "./auth_context";
 import { useModals } from "./modal_context";
+import { useLazyGetUserQuery } from "@/redux/auth.slice";
 
 // TODO: Update width and height, not fixed square size
 export const DEFAULT_CANVAS_SIZE = 16;
@@ -167,7 +166,6 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     }
 
     function setEditImage(image: Image<CellData[][]>) {
-        // const layer: LayerMap = new Map<string, string>();
         setCanvasSize({ ...image });
         const layer: LayerMap = generateLayer({ ...image });
         for (let x = 0; x < image.width; x++) {
@@ -321,7 +319,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     //////////////////////////////////////////
     const [postImage] = usePostImageMutation();
     const [updateImage] = useUpdateImageMutation();
-    const [getUserImages] = imageSlice.endpoints.getUserImages.useLazyQuery();
+    const [getUserImages] = useLazyGetUserQuery();
 
     async function save() {
         if (!token) return;

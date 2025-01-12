@@ -1,5 +1,5 @@
 import type { Image } from "./models/image.model";
-import { api } from "./api";
+import { api, AuthToken } from "./api";
 import { CellData } from "@/app/context/canvas_context";
 
 export enum ImageError {
@@ -14,7 +14,7 @@ export const imageSlice = api.injectEndpoints({
                 url: "/assets/player",
                 method: "GET",
                 headers: {
-                    Authorization: `Bearer ${token}`,
+                    ...AuthToken(token),
                 },
             }),
         }),
@@ -26,7 +26,7 @@ export const imageSlice = api.injectEndpoints({
                 url: "/assets/player",
                 method: "POST",
                 headers: {
-                    Authorization: `Bearer ${args.token}`,
+                    ...AuthToken(args.token),
                 },
                 body: args.image,
             }),
@@ -39,7 +39,7 @@ export const imageSlice = api.injectEndpoints({
                 url: "/assets/player",
                 method: "PATCH",
                 headers: {
-                    Authorization: `Bearer ${args.token}`,
+                    ...AuthToken(args.token),
                 },
                 body: args.image,
             }),
@@ -52,7 +52,7 @@ export const imageSlice = api.injectEndpoints({
                 url: `/assets/player?id=${args.id}`,
                 method: "DELETE",
                 headers: {
-                    Authorization: `Bearer ${args.token}`,
+                    ...AuthToken(args.token),
                 },
             }),
         }),
