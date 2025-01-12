@@ -16,7 +16,7 @@ export default function Draw({ navigation }: DrawProps) {
     return (
         <View style={styles.container}>
             <DrawerButton onPress={() => navigation.openDrawer()} />
-            <Canvas width={canvasSize} height={canvasSize} />
+            <Canvas {...canvasSize} />
             <View
                 style={[
                     styles.toolContainer,

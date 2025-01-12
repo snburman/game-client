@@ -15,6 +15,7 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import PlainModal, { modalStyles } from "./modal";
 import { Input, Typography } from "@mui/joy";
 import { useModals } from "@/app/context/modal_context";
+import { Modal } from "react-native";
 
 // Canvas component represents the drawing area containing width * height pixels
 export default function Canvas({
@@ -390,26 +391,92 @@ export const RedoButton = () => {
 
 export const NewCanvasButton = () => {
     const { newCanvas } = useCanvas();
-    const { setPlainModal, setMessageModal, setConfirmModal } = useModals();
-    const [width, setWidth] = useState("16");
-    const [height, setHeight] = useState("16");
+    const { setMessageModal } = useModals();
+    const [modalVisible, setModalVisible] = useState(false);
+    const [width, setWidth] = useState(16);
+    const [height, setHeight] = useState(16);
 
-    function handlePress() {
-        setPlainModal(
-            <></>
-        );
+    function handleToggle() {
+        setModalVisible(!modalVisible);
+    }
+
+    function handleSubmit() {
+        if (width > 16 || height > 16) {
+            setMessageModal("Values must be 16 or less");
+            return;
+        }
+        if (width < 4 || height < 4) {
+            setMessageModal("Values must be 4 or greater");
+            return;
+        }
+        newCanvas(width, height);
+        setModalVisible(false);
+    }
+
+    function aToI(s: string) {
+        if(s === "") return 0;
+        s = s.replace(/[^0-9]/g, "");
+        return parseInt(s);
+    }
+
+    function ItoA(n: number) {
+        const s = n.toString()
+        if(s == "") return "0"
+        return s
     }
 
     return (
-        <Pressable
-            onPress={() => handlePress()}
-            style={styles.toolButton}
-        >
-            <MaterialCommunityIcons
-                name="file-plus-outline"
-                style={styles.toolIcon}
-            />
-        </Pressable>
+        <>
+            <Modal transparent animationType="fade" visible={modalVisible}>
+                <Pressable
+                    style={modalStyles.modalContainer}
+                    onPress={handleToggle}
+                >
+                    <Pressable style={[modalStyles.modalContent, { gap: 10 }]}>
+                        <View style={styles.row}>
+                            <TextInput
+                                label={"Width (min: 4, max: 16)"}
+                                value={ItoA(width)}
+                                mode="outlined"
+                                style={{ backgroundColor: "white" }}
+                                onChangeText={(w) => setWidth(aToI(w))}
+                            />
+                        </View>
+                        <View style={styles.row}>
+                            <TextInput
+                                label={"Height (min: 4, max: 16)"}
+                                value={ItoA(height)}
+                                mode="outlined"
+                                style={{ backgroundColor: "white" }}
+                                onChangeText={(h) => setHeight(aToI(h))}
+                            />
+                        </View>
+                        <Button
+                            mode="outlined"
+                            uppercase={false}
+                            onPress={handleSubmit}
+                            style={{ width: "100%" }}
+                        >
+                            <Text>Start Drawing</Text>
+                        </Button>
+                        <Button
+                            mode="outlined"
+                            uppercase={false}
+                            onPress={() => setModalVisible(false)}
+                            style={{ width: "100%" }}
+                        >
+                            <Text>Cancel</Text>
+                        </Button>
+                    </Pressable>
+                </Pressable>
+            </Modal>
+            <Pressable onPress={handleToggle} style={styles.toolButton}>
+                <MaterialCommunityIcons
+                    name="file-plus-outline"
+                    style={styles.toolIcon}
+                />
+            </Pressable>
+        </>
     );
 };
 
@@ -438,5 +505,8 @@ const styles = StyleSheet.create({
         fontSize: 35,
         color: "rgba(0, 0, 0, 0.7)",
         padding: 0,
+    },
+    row: {
+        flexDirection: "row",
     },
 });
