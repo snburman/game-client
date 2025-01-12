@@ -4,7 +4,14 @@ import {
     usePostImageMutation,
     useUpdateImageMutation,
 } from "@/redux/image.slice";
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
+import {
+    createContext,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import { Image } from "@/redux/models/image.model";
 import cloneDeep from "lodash/cloneDeep";
 import { isEqual } from "lodash";
@@ -31,11 +38,11 @@ export type CellData = {
 };
 
 type CanvasData = {
+    newCanvas(width: number, height: number): void;
     setEditImage(image: Image<CellData[][]>): void;
     isUsingCanvas: boolean;
     setIsUsingCanvas: (isUsing: boolean) => void;
-    canvasSize: number,
-    setCanvasSize: (size: number) => void;
+    canvasSize: { width: number; height: number };
     // Cells and layers share an array index
     // Cells are for rendering by the canvas
     cells: Array<CellData[][]>;
@@ -82,7 +89,10 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     //////////////////////////////////////////
     // Config
     //////////////////////////////////////////
-    const [canvasSize, setCanvasSize] = useState(DEFAULT_CANVAS_SIZE)
+    const [canvasSize, setCanvasSize] = useState({
+        width: DEFAULT_CANVAS_SIZE,
+        height: DEFAULT_CANVAS_SIZE,
+    });
     const [cellSize, setCellSize] = useState(CELL_SIZE);
     const [name, setName] = useState(DEFAULT_NAME);
 
@@ -90,11 +100,9 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     // Canvas State
     //////////////////////////////////////////
     // initialize with a single layer
-    const layers = useRef<LayerMap[]>([
-        generateLayer(canvasSize, canvasSize),
-    ]);
+    const layers = useRef<LayerMap[]>([generateLayer(canvasSize)]);
     const [cells, setCells] = useState<Array<CellData[][]>>([
-        generateCellsFromLayer(layers.current[0], canvasSize, canvasSize),
+        generateCellsFromLayer(layers.current[0], canvasSize),
     ]);
     const [layerHistory, setLayerHistory] = useState<LayerMap[][]>(
         cloneDeep([layers.current])
@@ -115,35 +123,17 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     //////////////////////////////////////////
     // Layer management
     //////////////////////////////////////////
-    function generateLayer(width: number, height: number): Map<string, string> {
+    function generateLayer(d: {
+        width: number;
+        height: number;
+    }): Map<string, string> {
         const layer = new Map();
-        for (let x = 0; x < width; x++) {
-            for (let y = 0; y < height; y++) {
+        for (let x = 0; x < d.width; x++) {
+            for (let y = 0; y < d.height; y++) {
                 layer.set(`${x}-${y}`, "transparent");
             }
         }
         return layer;
-    }
-
-    function setEditImage(image: Image<CellData[][]>) {
-        // const layer: LayerMap = new Map<string, string>();
-        setCanvasSize(image.width)
-        const layer: LayerMap = generateLayer(image.width, image.height);
-        for (let x = 0; x < image.width; x++) {
-            for (let y = 0; y < image.height; y++) {
-                layer.set(`${x}-${y}`, image.data[x][y].color);
-            }
-        }
-        layers.current = [layer];
-        setLayerHistory([layers.current]);
-        setHistoryIndex(0);
-        const _cells = generateCellsFromLayer(
-            layers.current[selectedLayerIndex],
-            image.width,
-            image.height,
-        )
-        setCells([_cells]);
-        setName(image.name);
     }
 
     function clearLayer(index: number) {
@@ -151,11 +141,10 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         if (!layer) {
             throw new Error(`Layer ${index} not found`);
         }
-        layers.current[index] = generateLayer(canvasSize, canvasSize);
+        layers.current[index] = generateLayer(canvasSize);
         cells[index] = generateCellsFromLayer(
             layers.current[index],
             canvasSize,
-            canvasSize
         );
         setLayerHistory(cloneDeep([layers.current]));
         setHistoryIndex(0);
@@ -164,18 +153,45 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
 
     function generateCellsFromLayer(
         layer: LayerMap,
-        width: number,
-        height: number
+        d: { width: number; height: number }
     ): CellData[][] {
         const cells: CellData[][] = [];
-        for (let x = 0; x < width; x++) {
+        for (let x = 0; x < d.height; x++) {
             cells.push([]);
-            for (let y = 0; y < height; y++) {
+            for (let y = 0; y < d.width; y++) {
                 const color = layer.get(`${x}-${y}`);
                 cells[x].push({ x, y, color: color || "transparent" });
             }
         }
         return cells;
+    }
+
+    function setEditImage(image: Image<CellData[][]>) {
+        // const layer: LayerMap = new Map<string, string>();
+        setCanvasSize({ ...image });
+        const layer: LayerMap = generateLayer({ ...image });
+        for (let x = 0; x < image.width; x++) {
+            for (let y = 0; y < image.height; y++) {
+                layer.set(`${x}-${y}`, image.data[x][y].color);
+            }
+        }
+        layers.current = [layer];
+        setLayerHistory([layers.current]);
+        setHistoryIndex(0);
+        const _cells = generateCellsFromLayer(layers.current[0], { ...image });
+        setCells([_cells]);
+        setName(image.name);
+    }
+
+    function newCanvas(width: number, height: number) {
+        setCanvasSize({width, height});
+        const layer: LayerMap = generateLayer({width, height});
+        layers.current = [layer];
+        setLayerHistory([layers.current]);
+        setHistoryIndex(0);
+        const _cells = generateCellsFromLayer(layers.current[0], {width, height});
+        setCells([_cells]);
+        setName(DEFAULT_NAME);
     }
 
     //////////////////////////////////////////
@@ -215,7 +231,6 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         const _cells = generateCellsFromLayer(
             layers.current[selectedLayerIndex],
             canvasSize,
-            canvasSize
         );
         setHistoryIndex(historyIndex - 1);
         setCells([_cells]);
@@ -227,7 +242,6 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         layers.current = layerHistory[historyIndex + 1];
         const _cells = generateCellsFromLayer(
             layers.current[selectedLayerIndex],
-            canvasSize,
             canvasSize
         );
         setCells([_cells]);
@@ -241,7 +255,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     }
 
     function update(x: number, y: number) {
-        if(!isUsingCanvas) setIsUsingCanvas(true);
+        if (!isUsingCanvas) setIsUsingCanvas(true);
         const layer = cloneDeep(layers.current[selectedLayerIndex]);
         if (!layer) {
             throw new Error(`Layer ${selectedLayerIndex} not found`);
@@ -278,8 +292,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         while (queue.length > 0) {
             let { x, y } = queue.shift()!;
             // if not inside canvas, continue
-            if (x < 0 || y < 0 || x >= canvasSize || y >= canvasSize)
-                continue;
+            if (x < 0 || y < 0 || x >= canvasSize.width || y >= canvasSize.height) continue;
             // if not target color, continue
             const cell_color = layer.get(`${x}-${y}`);
             if (cell_color !== target_color) continue;
@@ -293,9 +306,9 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
             // add adjacent cells
             // west, east, north, south
             if (x > 0) queue.push({ x: x - 1, y });
-            if (x < canvasSize - 1) queue.push({ x: x + 1, y });
+            if (x < canvasSize.width - 1) queue.push({ x: x + 1, y });
             if (y > 0) queue.push({ x, y: y - 1 });
-            if (y < canvasSize - 1) queue.push({ x, y: y + 1 });
+            if (y < canvasSize.height - 1) queue.push({ x, y: y + 1 });
         }
         if (!isPressed) addLayerHistory();
         setIsPressed(true);
@@ -313,8 +326,8 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     async function save() {
         if (!token) return;
         let _cells = getCells(selectedLayerIndex);
-        for (let x = 0; x < canvasSize; x++) {
-            for (let y = 0; y < canvasSize; y++) {
+        for (let x = 0; x < canvasSize.height; x++) {
+            for (let y = 0; y < canvasSize.width; y++) {
                 let cell = _cells[x][y];
                 const { r, g, b, a } = hexToRgba(cell.color);
                 _cells[x][y] = { ...cell, r, g, b, a };
@@ -327,8 +340,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
             type: "tile",
             x: 0,
             y: 0,
-            width: canvasSize,
-            height: canvasSize,
+            ...canvasSize,
             data: JSON.stringify(_cells),
         };
 
@@ -367,8 +379,8 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     }
 
     const initialValue: CanvasData = {
+        newCanvas,
         canvasSize,
-        setCanvasSize,
         isUsingCanvas,
         setIsUsingCanvas,
         setEditImage,

@@ -31,7 +31,10 @@ export const imageSlice = api.injectEndpoints({
                 body: args.image,
             }),
         }),
-        updateImage: builder.mutation<void, { token: string; image: Image<string> }>({
+        updateImage: builder.mutation<
+            void,
+            { token: string; image: Image<string> }
+        >({
             query: (args: { token: string; image: Image<string> }) => ({
                 url: "/assets/player",
                 method: "PATCH",
@@ -41,11 +44,25 @@ export const imageSlice = api.injectEndpoints({
                 body: args.image,
             }),
         }),
+        deleteImage: builder.mutation<
+            { error: string } | { deleted: number },
+            { token: string; id: string }
+        >({
+            query: (args: { token: string; id: string }) => ({
+                url: `/assets/player?id=${args.id}`,
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${args.token}`,
+                },
+            }),
+        }),
     }),
 });
 
 export const {
     useGetUserImagesQuery,
+    useLazyGetUserImagesQuery,
     usePostImageMutation,
     useUpdateImageMutation,
+    useDeleteImageMutation
 } = imageSlice;

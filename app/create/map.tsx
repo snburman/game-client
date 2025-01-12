@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import EntypoIcons from "react-native-vector-icons/Entypo";
 import FontAwesomeIcons from "react-native-vector-icons/FontAwesome";
@@ -22,6 +22,8 @@ import { Slider } from "@react-native-assets/slider";
 import PlainModal from "@/components/modal";
 import { ScrollView } from "react-native-gesture-handler";
 import { useDevice } from "../hooks/device";
+import { useLazyGetUserImagesQuery } from "@/redux/image.slice";
+import { useAuth } from "../context/auth_context";
 
 const MAP_DIMENSIONS = 6;
 const SCALE = 3.5;
@@ -35,7 +37,9 @@ type MapCoords = {
 };
 
 export default function Map({ navigation }: MapProps) {
+    const {token} = useAuth();
     const [imageMap, setImageMap] = useState<MapCoords[][]>(createImageMap());
+    const [getImages, images] = useLazyGetUserImagesQuery();
     const [selectedImage, setSelectedImage] = useState<
         Image<CellData[][]> | undefined
     >();
@@ -49,6 +53,13 @@ export default function Map({ navigation }: MapProps) {
     >();
     const { isMobile, width } = useDevice();
 
+    useEffect(() => {
+        if (!images.data && token) {
+            getImages(token);
+        }
+    }, [images, token]);
+
+    // create empty image map
     function createImageMap() {
         const newMap: MapCoords[][] = [];
         for (let y = 0; y < MAP_DIMENSIONS; y++) {
@@ -66,6 +77,7 @@ export default function Map({ navigation }: MapProps) {
         return newMap;
     }
 
+    // select image to be placed on map
     function handleSelectImage(image: Image<CellData[][]>) {
         setImagesModalVisible(false);
         let _image = cloneDeep(image);
@@ -73,13 +85,13 @@ export default function Map({ navigation }: MapProps) {
         setSelectedImage(_image);
     }
 
-    // places selected image at given coordinates on map
+    // place selected image at given coordinates on map
     function handlePressTile(x: number, y: number) {
         setEditCoords({ x, y });
         if (editDetailsOn) return;
         // cannot place empty image
         if (!selectedImage) {
-            setMessageModal("Select an image to place on the map", () =>
+            setMessageModal("Select an image to put on the map", () =>
                 setImagesModalVisible(true)
             );
 
@@ -111,8 +123,8 @@ export default function Map({ navigation }: MapProps) {
         setEditDetailsOn(!editDetailsOn);
     }
 
-    function handleClearMap() {
-        setConfirmModal("Clear map?", (confirm) => {
+    function handleEraseMap() {
+        setConfirmModal("Erase map?", (confirm) => {
             confirm && setImageMap(createImageMap());
         });
     }
@@ -135,7 +147,6 @@ export default function Map({ navigation }: MapProps) {
         value: number
     ) {
         const _imageMap = cloneDeep(imageMap);
-        console.log(value, x, y);
         _imageMap[y][x].images[index].x = value;
         setImageMap(_imageMap);
     }
@@ -158,7 +169,6 @@ export default function Map({ navigation }: MapProps) {
         setImageMap(_imageMap);
     }
 
-    console.log(imageMap);
     if (isUsingCanvas) return null;
     return (
         <>
@@ -207,7 +217,9 @@ export default function Map({ navigation }: MapProps) {
                                         />
                                         {mc.images &&
                                             mc.images.map((image, i) => (
-                                                <>
+                                                // TODO: use refs to control content instead
+                                                // of updating array
+                                                <View key={i}>
                                                     <View
                                                         style={{
                                                             position:
@@ -216,14 +228,13 @@ export default function Map({ navigation }: MapProps) {
                                                             left:
                                                                 image.x - mc.x,
                                                         }}
-                                                        key={i}
                                                     >
                                                         <LayerPreview
                                                             {...image}
                                                             cellSize={SCALE}
                                                         />
                                                     </View>
-                                                </>
+                                                </View>
                                             ))}
                                     </View>
                                 </Pressable>
@@ -257,7 +268,7 @@ export default function Map({ navigation }: MapProps) {
                             styles.toolButton,
                             {
                                 backgroundColor: editDetailsOn
-                                    ? "#0000004D"
+                                    ? "rgba(0,195,255, 0.5)"
                                     : "#FFFFFF",
                             },
                         ]}
@@ -267,7 +278,7 @@ export default function Map({ navigation }: MapProps) {
                     </Pressable>
                     <Pressable
                         style={styles.toolButton}
-                        onPress={handleClearMap}
+                        onPress={handleEraseMap}
                     >
                         <MaterialCommunityIcons
                             name="delete"
@@ -285,6 +296,8 @@ export default function Map({ navigation }: MapProps) {
                 >
                     <View style={styles.imagesModalContent}>
                         <ImagesScrollView
+                            isLoading={images.isLoading && images.isFetching}
+                            images={images.data}
                             onPress={handleSelectImage}
                             navigateToCanvas={() => {
                                 navigation.navigate("draw");
@@ -322,7 +335,7 @@ export default function Map({ navigation }: MapProps) {
                         contentContainerStyle={styles.editorPanelContent}
                     >
                         {editCoords &&
-                            (imageMap[editCoords.y][editCoords.x].images).map(
+                            imageMap[editCoords.y][editCoords.x].images.map(
                                 (image, i) => (
                                     <View
                                         key={i}
@@ -567,6 +580,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         width: DEFAULT_CANVAS_SIZE * SCALE,
         height: DEFAULT_CANVAS_SIZE * SCALE,
+        backgroundColor: "#DDDDDD",
     },
     panelRight: {
         position: "absolute",

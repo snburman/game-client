@@ -1,4 +1,4 @@
-export type ImageType = "tile" | "object"
+export type ImageType = "tile" | "object" | "portal"
  
 export type Image<T> = {
     _id?: string;
