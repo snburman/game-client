@@ -1,5 +1,9 @@
 import React from "react";
-import { imageSlice } from "@/redux/image.slice";
+import {
+    imageSlice,
+    useDeleteImageMutation,
+    useLazyGetUserImagesQuery,
+} from "@/redux/image.slice";
 import { useAuth } from "../context/auth_context";
 import { useEffect } from "react";
 import { Image } from "@/redux/models/image.model";
@@ -16,8 +20,17 @@ import { theme } from "../_theme";
 import Svg, { Rect } from "react-native-svg";
 
 export default function Images({ navigation }: ImagesProps) {
-    const { setConfirmModal, setPlainModal } = useModals();
+    const { setMessageModal, setConfirmModal, setPlainModal } = useModals();
     const { setEditImage, isUsingCanvas } = useCanvas();
+    const [deleteImage] = useDeleteImageMutation();
+    const [getImages, images] = useLazyGetUserImagesQuery();
+    const { token } = useAuth();
+
+    useEffect(() => {
+        if (!images.data && token) {
+            getImages(token);
+        }
+    }, [images, token]);
 
     function handleEdit(image: Image<CellData[][]>) {
         const options: { label: string; fn: () => void }[] = [
@@ -32,8 +45,18 @@ export default function Images({ navigation }: ImagesProps) {
                 label: "Delete",
                 fn: () => {
                     setConfirmModal(`Delete ${image.name}?`, (confirm) => {
-                        //TODO: implement delete image function
-                        confirm && console.log("delete");
+                        if (confirm && image._id && token) {
+                            deleteImage({ token, id: image._id }).then(
+                                (res) => {
+                                    if (!res.error) {
+                                        setMessageModal(
+                                            "Image deleted successfully"
+                                        );
+                                        getImages(token);
+                                    }
+                                }
+                            );
+                        }
                     });
                 },
             },
@@ -85,6 +108,8 @@ export default function Images({ navigation }: ImagesProps) {
                 {/* TODO: Add guide button to open modal */}
             </View>
             <ImagesScrollView
+                images={images.data}
+                isLoading={images.isLoading && images.isFetching}
                 onPress={(image) => handleEdit(image)}
                 navigateToCanvas={() => navigation.navigate("draw")}
             />
@@ -93,32 +118,24 @@ export default function Images({ navigation }: ImagesProps) {
 }
 
 export const ImagesScrollView = ({
+    images,
+    isLoading,
     onPress,
     navigateToCanvas,
 }: {
+    images: Image<CellData[][]>[] | undefined;
+    isLoading: boolean;
     onPress: (image: Image<CellData[][]>) => void;
     navigateToCanvas: () => void;
 }) => {
     const { token } = useAuth();
-    const [getImages, images] =
-        imageSlice.endpoints.getUserImages.useLazyQuery();
     const { setMessageModal } = useModals();
 
-    useEffect(() => {
-        if (token && !images.data) {
-            getImages(token).then((res) => {
-                if (res.error) {
-                    setMessageModal("Error getting images");
-                }
-            });
-        }
-    }, [token]);
-
-    if (images.isLoading || images.isFetching) {
+    if (isLoading) {
         return <LoadingSpinner />;
     }
 
-    if (!images.data || (images.data && images.data.length === 0)) {
+    if ((!images && !isLoading) || (images && images.length === 0)) {
         return (
             <View style={styles.noDataContainer}>
                 <Text>No saved images</Text>
@@ -137,7 +154,7 @@ export const ImagesScrollView = ({
         <ScrollView style={styles.scrollview}>
             <View style={styles.contentContainer}>
                 <View style={styles.imagesContainer}>
-                    {images.data?.map((image, index) => (
+                    {images?.map((image, index) => (
                         <Pressable key={index} onPress={() => onPress(image)}>
                             <View style={styles.previewContainer}>
                                 <LayerPreview
@@ -162,27 +179,26 @@ export const ImagesScrollView = ({
 export function ImageDataToSVG({ height, width, data }: Image<CellData[][]>) {
     const SCALE = 3.5;
     return (
-            <Svg
-                height={height * SCALE}
-                width={width * SCALE}
-                viewBox="0 0 16 16"
-                style={{backgroundColor: 'transparent'}}
-                fill={"transparent"}
-            >
-                {data.map((row) =>
-                    row.map((cell, i) => (
-                        <Rect
-                            x={cell.y}
-                            y={cell.x}
-                            width={1}
-                            height={1}
-                            fill={cell.color}
-                            key={i}
-                            // opacity={cell.color =="transparent" ? 0 : 1}
-                        />
-                    ))
-                )}
-            </Svg>
+        <Svg
+            height={height * SCALE}
+            width={width * SCALE}
+            viewBox="0 0 16 16"
+            style={{ backgroundColor: "transparent" }}
+            fill={"transparent"}
+        >
+            {data.map((row) =>
+                row.map((cell, i) => (
+                    <Rect
+                        x={cell.y}
+                        y={cell.x}
+                        width={1}
+                        height={1}
+                        fill={cell.color}
+                        key={i}
+                    />
+                ))
+            )}
+        </Svg>
     );
 }
 

@@ -5,13 +5,11 @@ import ColorPicker from "@/components/color_picker";
 import { StyleSheet, View } from "react-native";
 import { DrawProps } from "../types/navigation";
 import { DrawerButton } from "@/components/draw_drawer_content";
+import { useLazyGetUserImagesQuery } from "@/redux/image.slice";
 
 export default function Draw({ navigation }: DrawProps) {
     const [modalVisible, setModalVisible] = useState(false);
     const { canvasSize } = useCanvas();
-
-    // TODO: Open dialogue box for new canvas, user can enter name, type, and dimensions of
-    // image or use provided defaults.
 
     return (
         <View style={styles.container}>

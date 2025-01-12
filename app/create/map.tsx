@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import EntypoIcons from "react-native-vector-icons/Entypo";
 import FontAwesomeIcons from "react-native-vector-icons/FontAwesome";
@@ -22,6 +22,8 @@ import { Slider } from "@react-native-assets/slider";
 import PlainModal from "@/components/modal";
 import { ScrollView } from "react-native-gesture-handler";
 import { useDevice } from "../hooks/device";
+import { useLazyGetUserImagesQuery } from "@/redux/image.slice";
+import { useAuth } from "../context/auth_context";
 
 const MAP_DIMENSIONS = 6;
 const SCALE = 3.5;
@@ -35,7 +37,9 @@ type MapCoords = {
 };
 
 export default function Map({ navigation }: MapProps) {
+    const {token} = useAuth();
     const [imageMap, setImageMap] = useState<MapCoords[][]>(createImageMap());
+    const [getImages, images] = useLazyGetUserImagesQuery();
     const [selectedImage, setSelectedImage] = useState<
         Image<CellData[][]> | undefined
     >();
@@ -48,6 +52,12 @@ export default function Map({ navigation }: MapProps) {
         { x: number; y: number } | undefined
     >();
     const { isMobile, width } = useDevice();
+
+    useEffect(() => {
+        if (!images.data && token) {
+            getImages(token);
+        }
+    }, [images, token]);
 
     // create empty image map
     function createImageMap() {
@@ -286,6 +296,8 @@ export default function Map({ navigation }: MapProps) {
                 >
                     <View style={styles.imagesModalContent}>
                         <ImagesScrollView
+                            isLoading={images.isLoading && images.isFetching}
+                            images={images.data}
                             onPress={handleSelectImage}
                             navigateToCanvas={() => {
                                 navigation.navigate("draw");
