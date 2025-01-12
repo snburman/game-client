@@ -3,14 +3,8 @@ import {
     usePostImageMutation,
     useUpdateImageMutation,
 } from "@/redux/image.slice";
-import {
-    createContext,
-    useContext,
-    useMemo,
-    useRef,
-    useState,
-} from "react";
-import { Image } from "@/redux/models/image.model";
+import { createContext, useContext, useMemo, useRef, useState } from "react";
+import { CellData, Image, ImageType } from "@/redux/models/image.model";
 import cloneDeep from "lodash/cloneDeep";
 import { isEqual } from "lodash";
 import { useAuth } from "./auth_context";
@@ -26,18 +20,13 @@ const HISTORY_LIMIT = 20;
 
 export type LayerMap = Map<string, string>;
 
-export type CellData = {
-    x: number;
-    y: number;
-    color: string;
-    r?: number;
-    g?: number;
-    b?: number;
-    a?: number;
-};
-
 type CanvasData = {
     newCanvas(width: number, height: number): void;
+    // Name of the image
+    name: string;
+    setName: (name: string) => void;
+    type: ImageType;
+    setType: (t: ImageType) => void;
     setEditImage(image: Image<CellData[][]>): void;
     isUsingCanvas: boolean;
     setIsUsingCanvas: (isUsing: boolean) => void;
@@ -60,10 +49,7 @@ type CanvasData = {
     previousColor: string;
     setPreviousColor: (color: string) => void;
     update: (x: number, y: number) => void;
-    // Name of the image
-    name: string;
-    setName: (name: string) => void;
-    save: () => void;
+    save: (type: ImageType) => void;
     fill: boolean;
     setFill: (fill: boolean) => void;
     fillColor: (x: number, y: number) => void;
@@ -83,7 +69,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
 
     // used to communicate with other components if user is using canvas
     // used to remove excess state to free memory before using canvas
-    const [isUsingCanvas, setIsUsingCanvas] = useState(false);
+    const [isUsingCanvas, setIsUsingCanvas] = useState(true);
 
     //////////////////////////////////////////
     // Config
@@ -94,6 +80,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     });
     const [cellSize, setCellSize] = useState(CELL_SIZE);
     const [name, setName] = useState(DEFAULT_NAME);
+    const [type, setType] = useState<ImageType>("tile");
 
     //////////////////////////////////////////
     // Canvas State
@@ -143,7 +130,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         layers.current[index] = generateLayer(canvasSize);
         cells[index] = generateCellsFromLayer(
             layers.current[index],
-            canvasSize,
+            canvasSize
         );
         setLayerHistory(cloneDeep([layers.current]));
         setHistoryIndex(0);
@@ -182,12 +169,15 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     }
 
     function newCanvas(width: number, height: number) {
-        setCanvasSize({width, height});
-        const layer: LayerMap = generateLayer({width, height});
+        setCanvasSize({ width, height });
+        const layer: LayerMap = generateLayer({ width, height });
         layers.current = [layer];
         setLayerHistory([layers.current]);
         setHistoryIndex(0);
-        const _cells = generateCellsFromLayer(layers.current[0], {width, height});
+        const _cells = generateCellsFromLayer(layers.current[0], {
+            width,
+            height,
+        });
         setCells([_cells]);
         setName(DEFAULT_NAME);
     }
@@ -228,7 +218,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         layers.current = layerHistory[historyIndex - 1];
         const _cells = generateCellsFromLayer(
             layers.current[selectedLayerIndex],
-            canvasSize,
+            canvasSize
         );
         setHistoryIndex(historyIndex - 1);
         setCells([_cells]);
@@ -290,7 +280,13 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         while (queue.length > 0) {
             let { x, y } = queue.shift()!;
             // if not inside canvas, continue
-            if (x < 0 || y < 0 || x >= canvasSize.width || y >= canvasSize.height) continue;
+            if (
+                x < 0 ||
+                y < 0 ||
+                x >= canvasSize.width ||
+                y >= canvasSize.height
+            )
+                continue;
             // if not target color, continue
             const cell_color = layer.get(`${x}-${y}`);
             if (cell_color !== target_color) continue;
@@ -321,7 +317,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     const [updateImage] = useUpdateImageMutation();
     const [getUserImages] = useLazyGetUserQuery();
 
-    async function save() {
+    async function save(type: ImageType) {
         if (!token) return;
         let _cells = getCells(selectedLayerIndex);
         for (let x = 0; x < canvasSize.height; x++) {
@@ -331,11 +327,14 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
                 _cells[x][y] = { ...cell, r, g, b, a };
             }
         }
+        if (!user?._id) {
+            throw new Error("Missing user id");
+        }
 
         const image: Image<string> = {
-            user_id: user?._id || "",
+            user_id: user._id,
             name: name,
-            type: "tile",
+            type: type,
             x: 0,
             y: 0,
             ...canvasSize,
@@ -378,6 +377,10 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
 
     const initialValue: CanvasData = {
         newCanvas,
+        name,
+        setName,
+        type,
+        setType,
         canvasSize,
         isUsingCanvas,
         setIsUsingCanvas,
@@ -397,8 +400,6 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         previousColor,
         setPreviousColor,
         update,
-        name,
-        setName,
         save,
         fill,
         setFill,

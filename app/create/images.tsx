@@ -1,15 +1,14 @@
 import React from "react";
 import {
-    imageSlice,
     useDeleteImageMutation,
     useLazyGetUserImagesQuery,
 } from "@/redux/image.slice";
 import { useAuth } from "../context/auth_context";
 import { useEffect } from "react";
-import { Image } from "@/redux/models/image.model";
+import { Image, CellData } from "@/redux/models/image.model";
 import { useModals } from "../context/modal_context";
 import { LayerPreview } from "@/components/canvas";
-import { CellData, useCanvas } from "../context/canvas_context";
+import { useCanvas } from "../context/canvas_context";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { ImagesProps } from "../types/navigation";
 import { LoadingSpinner } from "@/components/loading";
@@ -27,10 +26,10 @@ export default function Images({ navigation }: ImagesProps) {
     const { token } = useAuth();
 
     useEffect(() => {
-        if (!images.data && token) {
+        if (token && !isUsingCanvas) {
             getImages(token);
         }
-    }, [images, token]);
+    }, [token, isUsingCanvas]);
 
     function handleEdit(image: Image<CellData[][]>) {
         const options: { label: string; fn: () => void }[] = [
@@ -212,6 +211,7 @@ const styles = StyleSheet.create({
         height: 50,
         alignItems: "center",
         justifyContent: "center",
+        backgroundColor: "#FFFFFF"
     },
     scrollview: {
         paddingTop: 10,

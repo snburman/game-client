@@ -5,10 +5,9 @@ import FontAwesomeIcons from "react-native-vector-icons/FontAwesome";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import {
     DEFAULT_CANVAS_SIZE,
-    CellData,
     useCanvas,
 } from "../context/canvas_context";
-import { Image, ImageType } from "@/redux/models/image.model";
+import { Image, ImageType, CellData, ImageMap } from "@/redux/models/image.model";
 import { LayerPreview } from "@/components/canvas";
 import { cloneDeep } from "lodash";
 import { theme } from "@/app/_theme";
@@ -28,19 +27,11 @@ import { useAuth } from "../context/auth_context";
 const MAP_DIMENSIONS = 6;
 const SCALE = 3.5;
 
-type MapCoords = {
-    images: Image<CellData[][]>[];
-    x: number;
-    y: number;
-    mapX: number;
-    mapY: number;
-};
-
 export default function Map({ navigation }: MapProps) {
     const { isMobile, width } = useDevice();
     const {token} = useAuth();
     const { isUsingCanvas } = useCanvas();
-    const [imageMap, setImageMap] = useState<MapCoords[][]>(createImageMap());
+    const [imageMap, setImageMap] = useState<ImageMap[][]>(createImageMap());
     const [getImages, images] = useLazyGetUserImagesQuery();
     const [selectedImage, setSelectedImage] = useState<
         Image<CellData[][]> | undefined
@@ -61,7 +52,7 @@ export default function Map({ navigation }: MapProps) {
 
     // create empty image map
     function createImageMap() {
-        const newMap: MapCoords[][] = [];
+        const newMap: ImageMap[][] = [];
         for (let y = 0; y < MAP_DIMENSIONS; y++) {
             newMap.push([]);
             for (let x = 0; x < MAP_DIMENSIONS; x++) {
