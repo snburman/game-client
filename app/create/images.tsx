@@ -105,11 +105,11 @@ export default function Images({ navigation }: ImagesProps) {
         <>
             <DrawerButton onPress={() => navigation.openDrawer()} />
             <View style={styles.header}>
-                {/* TODO: Add guide button to open modal */}
+                {/* TODO: Add guide button to open modal with usage instructions*/}
             </View>
             <ImagesScrollView
                 images={images.data}
-                isLoading={images.isLoading && images.isFetching}
+                isLoading={images.isLoading || images.isFetching}
                 onPress={(image) => handleEdit(image)}
                 navigateToCanvas={() => navigation.navigate("draw")}
             />
@@ -212,7 +212,6 @@ const styles = StyleSheet.create({
         height: 50,
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#FFFFFF",
     },
     scrollview: {
         paddingTop: 10,

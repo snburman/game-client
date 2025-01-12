@@ -296,7 +296,7 @@ export default function Map({ navigation }: MapProps) {
                 >
                     <View style={styles.imagesModalContent}>
                         <ImagesScrollView
-                            isLoading={images.isLoading && images.isFetching}
+                            isLoading={images.isLoading || images.isFetching}
                             images={images.data}
                             onPress={handleSelectImage}
                             navigateToCanvas={() => {
