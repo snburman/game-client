@@ -290,11 +290,10 @@ export const SaveButton = () => {
         save,
         name,
         setName,
-        type: imageType,
-        setType: setImageType,
+        assetType,
+        setAssetType,
     } = useCanvas();
     const [modalVisible, setModalVisible] = useState(false);
-    const [type, setType] = useState(imageType);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [options, setOptions] = useState<
         { label: string; value: ImageType }[]
@@ -308,8 +307,7 @@ export const SaveButton = () => {
     ]);
 
     function handleSave() {
-        const _type = type ? type : "tile";
-        save(_type);
+        save();
         setModalVisible(false);
     }
 
@@ -321,15 +319,15 @@ export const SaveButton = () => {
                         variant="outlined"
                         onChange={(e) => setName(e.target.value)}
                         value={name === "untitled" ? "" : name}
-                        placeholder={"Title"}
+                        placeholder={"Untitled"}
                         size="lg"
                     />
                     <DropDownPicker
                         placeholder="Select a type"
                         open={dropdownOpen}
                         setOpen={setDropdownOpen}
-                        value={type}
-                        setValue={setType}
+                        value={assetType}
+                        setValue={(v) => setAssetType(v as unknown as ImageType)}
                         items={options}
                         setItems={setOptions}
                         style={{

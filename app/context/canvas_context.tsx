@@ -25,8 +25,8 @@ type CanvasData = {
     // Name of the image
     name: string;
     setName: (name: string) => void;
-    type: ImageType;
-    setType: (t: ImageType) => void;
+    assetType: ImageType;
+    setAssetType: (t: ImageType) => void;
     setEditImage(image: Image<CellData[][]>): void;
     isUsingCanvas: boolean;
     setIsUsingCanvas: (isUsing: boolean) => void;
@@ -49,7 +49,7 @@ type CanvasData = {
     previousColor: string;
     setPreviousColor: (color: string) => void;
     update: (x: number, y: number) => void;
-    save: (type: ImageType) => void;
+    save: () => void;
     fill: boolean;
     setFill: (fill: boolean) => void;
     fillColor: (x: number, y: number) => void;
@@ -80,7 +80,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     });
     const [cellSize, setCellSize] = useState(CELL_SIZE);
     const [name, setName] = useState(DEFAULT_NAME);
-    const [type, setType] = useState<ImageType>("tile");
+    const [assetType, setAssetType] = useState<ImageType>("tile");
 
     //////////////////////////////////////////
     // Canvas State
@@ -152,6 +152,23 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         return cells;
     }
 
+    // sets canvas of provided dimensions with blank cells
+    function newCanvas(width: number, height: number) {
+        setCanvasSize({ width, height });
+        const layer: LayerMap = generateLayer({ width, height });
+        layers.current = [layer];
+        setLayerHistory([layers.current]);
+        setHistoryIndex(0);
+        const _cells = generateCellsFromLayer(layers.current[0], {
+            width,
+            height,
+        });
+        setCells([_cells]);
+        setName(DEFAULT_NAME);
+        setAssetType("tile");
+    }
+
+    // replaces canvas with data from image
     function setEditImage(image: Image<CellData[][]>) {
         setCanvasSize({ ...image });
         const layer: LayerMap = generateLayer({ ...image });
@@ -166,20 +183,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         const _cells = generateCellsFromLayer(layers.current[0], { ...image });
         setCells([_cells]);
         setName(image.name);
-    }
-
-    function newCanvas(width: number, height: number) {
-        setCanvasSize({ width, height });
-        const layer: LayerMap = generateLayer({ width, height });
-        layers.current = [layer];
-        setLayerHistory([layers.current]);
-        setHistoryIndex(0);
-        const _cells = generateCellsFromLayer(layers.current[0], {
-            width,
-            height,
-        });
-        setCells([_cells]);
-        setName(DEFAULT_NAME);
+        setAssetType((image.asset_type as string) == "" ? "tile" : image.asset_type);
     }
 
     //////////////////////////////////////////
@@ -317,7 +321,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     const [updateImage] = useUpdateImageMutation();
     const [getUserImages] = useLazyGetUserQuery();
 
-    async function save(type: ImageType) {
+    async function save() {
         if (!token) return;
         let _cells = getCells(selectedLayerIndex);
         for (let x = 0; x < canvasSize.height; x++) {
@@ -331,10 +335,10 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
             throw new Error("Missing user id");
         }
 
-        const image: Image<string> = {
+        let image: Image<string> = {
             user_id: user._id,
             name: name,
-            type: type,
+            asset_type: assetType,
             x: 0,
             y: 0,
             ...canvasSize,
@@ -379,8 +383,8 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         newCanvas,
         name,
         setName,
-        type,
-        setType,
+        assetType,
+        setAssetType,
         canvasSize,
         isUsingCanvas,
         setIsUsingCanvas,

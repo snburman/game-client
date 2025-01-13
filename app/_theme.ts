@@ -3,7 +3,8 @@ import { MD2LightTheme as DefaultTheme } from "react-native-paper";
 export const theme = {
     ...DefaultTheme,
     colors: {
-        primary: "#000000"
+        primary: "#000000",
+        secondary: "#00000036"
     },
     typography: {
         button: {

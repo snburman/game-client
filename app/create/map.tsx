@@ -45,10 +45,10 @@ export default function Map({ navigation }: MapProps) {
     >();
 
     useEffect(() => {
-        if (!images.data && token) {
+        if (token && !isUsingCanvas) {
             getImages(token);
         }
-    }, [images, token]);
+    }, [token, isUsingCanvas]);
 
     // create empty image map
     function createImageMap() {
@@ -72,7 +72,7 @@ export default function Map({ navigation }: MapProps) {
     function handleSelectImage(image: Image<CellData[][]>) {
         setImagesModalVisible(false);
         let _image = cloneDeep(image);
-        _image.type = "tile";
+        _image.asset_type = "tile";
         setSelectedImage(_image);
     }
 
@@ -124,10 +124,10 @@ export default function Map({ navigation }: MapProps) {
         x: number,
         y: number,
         index: number,
-        type: ImageType
+        assetType: ImageType
     ) {
         const _imageMap = cloneDeep(imageMap);
-        _imageMap[y][x].images[index].type = type;
+        _imageMap[y][x].images[index].asset_type = assetType;
         setImageMap(_imageMap);
     }
 
@@ -346,7 +346,7 @@ export default function Map({ navigation }: MapProps) {
                                             <View style={styles.rowContainer}>
                                                 <Radio
                                                     checked={
-                                                        image.type == "tile"
+                                                        image.asset_type == "tile"
                                                     }
                                                     onChange={() =>
                                                         handleTypeRadioButton(
@@ -362,7 +362,7 @@ export default function Map({ navigation }: MapProps) {
                                             <View style={styles.rowContainer}>
                                                 <Radio
                                                     checked={
-                                                        image.type == "object"
+                                                        image.asset_type == "object"
                                                     }
                                                     onChange={() =>
                                                         handleTypeRadioButton(

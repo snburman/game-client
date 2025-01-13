@@ -14,7 +14,7 @@ import {
 import IonIcons from "react-native-vector-icons/Ionicons";
 
 export default function DrawDrawerContent({
-    navigation
+    navigation,
 }: DrawerContentComponentProps) {
     const { setIsUsingCanvas } = useCanvas();
 
@@ -25,12 +25,12 @@ export default function DrawDrawerContent({
     ];
 
     function handlePress(path: "draw" | "images" | "map") {
-        switch(path) {
-            case "draw":
-                setIsUsingCanvas(true);
-                break;
-            default:
-                setIsUsingCanvas(false);
+        if (path == "draw") {
+            setIsUsingCanvas(true);
+            console.log("setting true")
+        } else {
+            console.log("setting false")
+            setIsUsingCanvas(false);
         }
         navigation.closeDrawer();
         navigation.navigate(path);
