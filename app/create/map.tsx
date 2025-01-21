@@ -57,6 +57,7 @@ export default function Map({ navigation }: MapProps) {
             newMap.push([]);
             for (let x = 0; x < MAP_DIMENSIONS; x++) {
                 newMap[y].push({
+                    name: "untitled",
                     images: [],
                     x: x * DEFAULT_CANVAS_SIZE * SCALE,
                     y: y * DEFAULT_CANVAS_SIZE * SCALE,
