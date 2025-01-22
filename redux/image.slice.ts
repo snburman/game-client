@@ -1,6 +1,5 @@
-import type { Image } from "./models/image.model";
+import type { CellData, Image } from "./models/image.model";
 import { api, AuthToken } from "./api";
-import { CellData } from "@/app/context/canvas_context";
 
 export enum ImageError {
     ImageExists = "image_exists",

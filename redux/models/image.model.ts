@@ -4,7 +4,7 @@ export type Image<T> = {
     _id?: string;
     user_id: string;
     name: string;
-    asset_type: ImageType;
+    asset_type?: string;
     x: number;
     y: number;
     width: number;

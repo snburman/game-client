@@ -25,8 +25,8 @@ type CanvasData = {
     // Name of the image
     name: string;
     setName: (name: string) => void;
-    assetType: ImageType;
-    setAssetType: (t: ImageType) => void;
+    assetType: string;
+    setAssetType: (t: string) => void;
     setEditImage(image: Image<CellData[][]>): void;
     isUsingCanvas: boolean;
     setIsUsingCanvas: (isUsing: boolean) => void;
@@ -80,7 +80,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     });
     const [cellSize, setCellSize] = useState(CELL_SIZE);
     const [name, setName] = useState(DEFAULT_NAME);
-    const [assetType, setAssetType] = useState<ImageType>("tile");
+    const [assetType, setAssetType] = useState("tile");
 
     //////////////////////////////////////////
     // Canvas State
@@ -183,7 +183,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         const _cells = generateCellsFromLayer(layers.current[0], { ...image });
         setCells([_cells]);
         setName(image.name);
-        setAssetType((image.asset_type as string) == "" ? "tile" : image.asset_type);
+        setAssetType(image.asset_type || "tile");
     }
 
     //////////////////////////////////////////
@@ -335,15 +335,15 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
             throw new Error("Missing user id");
         }
 
-        let image: Image<string> = {
+        const image: Image<string> = {
             user_id: user._id,
             name: name,
-            asset_type: assetType,
-            x: 0,
+            x: 0, 
             y: 0,
             ...canvasSize,
             data: JSON.stringify(_cells),
         };
+        image.asset_type = assetType;
 
         await postImage({ token, image }).then((res) => {
             if (res.error) {

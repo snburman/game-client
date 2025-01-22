@@ -27,9 +27,7 @@ export default function DrawDrawerContent({
     function handlePress(path: "draw" | "images" | "map") {
         if (path == "draw") {
             setIsUsingCanvas(true);
-            console.log("setting true")
         } else {
-            console.log("setting false")
             setIsUsingCanvas(false);
         }
         navigation.closeDrawer();

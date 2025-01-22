@@ -327,7 +327,7 @@ export const SaveButton = () => {
                         open={dropdownOpen}
                         setOpen={setDropdownOpen}
                         value={assetType}
-                        setValue={(v) => setAssetType(v as unknown as ImageType)}
+                        setValue={t => setAssetType(t as unknown as string)}
                         items={options}
                         setItems={setOptions}
                         style={{
