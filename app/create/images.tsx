@@ -1,10 +1,4 @@
 import React from "react";
-import {
-    useDeleteImageMutation,
-    useLazyGetUserImagesQuery,
-} from "@/redux/image.slice";
-import { useAuth } from "../context/auth_context";
-import { useEffect } from "react";
 import { Image, CellData } from "@/redux/models/image.model";
 import { useModals } from "../context/modal_context";
 import { LayerPreview } from "@/components/canvas";
@@ -17,19 +11,12 @@ import { DrawerButton } from "@/components/draw_drawer_content";
 import { Typography } from "@mui/joy";
 import { theme } from "../_theme";
 import Svg, { Rect } from "react-native-svg";
+import { useImages } from "../context/images_context";
 
 export default function Images({ navigation }: ImagesProps) {
-    const { setMessageModal, setConfirmModal, setPlainModal } = useModals();
+    const { setConfirmModal, setPlainModal } = useModals();
     const { setEditImage, isUsingCanvas } = useCanvas();
-    const [deleteImage] = useDeleteImageMutation();
-    const [getImages, images] = useLazyGetUserImagesQuery();
-    const { token } = useAuth();
-
-    useEffect(() => {
-        if (token && !isUsingCanvas) {
-            getImages(token);
-        }
-    }, [token, isUsingCanvas]);
+    const { deleteImage } = useImages();
 
     function handleEdit(image: Image<CellData[][]>) {
         const options: { label: string; fn: () => void }[] = [
@@ -44,17 +31,8 @@ export default function Images({ navigation }: ImagesProps) {
                 label: "Delete",
                 fn: () => {
                     setConfirmModal(`Delete ${image.name}?`, (confirm) => {
-                        if (confirm && image._id && token) {
-                            deleteImage({ token, id: image._id }).then(
-                                (res) => {
-                                    if (!res.error) {
-                                        setMessageModal(
-                                            "Image deleted successfully"
-                                        );
-                                        getImages(token);
-                                    }
-                                }
-                            );
+                        if (confirm && image._id) {
+                            deleteImage(image._id)
                         }
                     });
                 },
@@ -107,8 +85,6 @@ export default function Images({ navigation }: ImagesProps) {
                 {/* TODO: Add guide button to open modal with usage instructions*/}
             </View>
             <ImagesScrollView
-                images={images.data}
-                isLoading={images.isLoading || images.isFetching}
                 onPress={(image) => handleEdit(image)}
                 navigateToCanvas={() => navigation.navigate("draw")}
             />
@@ -117,21 +93,19 @@ export default function Images({ navigation }: ImagesProps) {
 }
 
 export const ImagesScrollView = ({
-    images,
-    isLoading,
     onPress,
     navigateToCanvas,
 }: {
-    images: Image<CellData[][]>[] | undefined;
-    isLoading: boolean;
     onPress: (image: Image<CellData[][]>) => void;
     navigateToCanvas: () => void;
 }) => {
-    if (isLoading) {
+
+    const {images, imagesLoading} = useImages();
+    if (imagesLoading) {
         return <LoadingSpinner />;
     }
 
-    if ((!images && !isLoading) || (images && images.length === 0)) {
+    if ((images.length === 0)) {
         return (
             <View style={styles.noDataContainer}>
                 <Text>No saved images</Text>

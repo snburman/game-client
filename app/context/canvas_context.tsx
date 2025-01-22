@@ -25,8 +25,8 @@ type CanvasData = {
     // Name of the image
     name: string;
     setName: (name: string) => void;
-    assetType: string;
-    setAssetType: (t: string) => void;
+    imageType: ImageType;
+    setImageType: (t: ImageType) => void;
     setEditImage(image: Image<CellData[][]>): void;
     isUsingCanvas: boolean;
     setIsUsingCanvas: (isUsing: boolean) => void;
@@ -49,7 +49,6 @@ type CanvasData = {
     previousColor: string;
     setPreviousColor: (color: string) => void;
     update: (x: number, y: number) => void;
-    save: () => void;
     fill: boolean;
     setFill: (fill: boolean) => void;
     fillColor: (x: number, y: number) => void;
@@ -64,8 +63,6 @@ type CanvasData = {
 const CanvasContext = createContext<CanvasData | undefined>(undefined);
 
 export default function CanvasProvider({ children }: React.PropsWithChildren) {
-    const { user, token } = useAuth();
-    const { setMessageModal, setConfirmModal } = useModals();
 
     // used to communicate with other components if user is using canvas
     // used to remove excess state to free memory before using canvas
@@ -80,7 +77,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     });
     const [cellSize, setCellSize] = useState(CELL_SIZE);
     const [name, setName] = useState(DEFAULT_NAME);
-    const [assetType, setAssetType] = useState("tile");
+    const [imageType, setImageType] = useState<ImageType>("tile");
 
     //////////////////////////////////////////
     // Canvas State
@@ -165,7 +162,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         });
         setCells([_cells]);
         setName(DEFAULT_NAME);
-        setAssetType("tile");
+        setImageType("tile");
     }
 
     // replaces canvas with data from image
@@ -183,7 +180,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         const _cells = generateCellsFromLayer(layers.current[0], { ...image });
         setCells([_cells]);
         setName(image.name);
-        setAssetType(image.asset_type || "tile");
+        setImageType(image.asset_type || "tile");
     }
 
     //////////////////////////////////////////
@@ -313,78 +310,14 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         layers.current[selectedLayerIndex] = layer;
         setCells([...cells]);
     }
-
-    //////////////////////////////////////////
-    // API calls
-    //////////////////////////////////////////
-    const [postImage] = usePostImageMutation();
-    const [updateImage] = useUpdateImageMutation();
-    const [getUserImages] = useLazyGetUserQuery();
-
-    async function save() {
-        if (!token) return;
-        let _cells = getCells(selectedLayerIndex);
-        for (let x = 0; x < canvasSize.height; x++) {
-            for (let y = 0; y < canvasSize.width; y++) {
-                let cell = _cells[x][y];
-                const { r, g, b, a } = hexToRgba(cell.color);
-                _cells[x][y] = { ...cell, r, g, b, a };
-            }
-        }
-        if (!user?._id) {
-            throw new Error("Missing user id");
-        }
-
-        const image: Image<string> = {
-            user_id: user._id,
-            name: name,
-            x: 0, 
-            y: 0,
-            ...canvasSize,
-            data: JSON.stringify(_cells),
-        };
-        image.asset_type = assetType;
-
-        await postImage({ token, image }).then((res) => {
-            if (res.error) {
-                const { data } = res.error as { data: { error: string } };
-                if (data && data.error == ImageError.ImageExists) {
-                    setConfirmModal(
-                        `Overwrite existing image: ${name}?`,
-                        (confirm) => {
-                            if (confirm) {
-                                // update image
-                                updateImage({ token, image }).then((res) => {
-                                    if (res.error) {
-                                        setMessageModal(
-                                            "Failed to update image"
-                                        );
-                                    } else {
-                                        getUserImages(token);
-                                        setMessageModal(
-                                            "Image saved successfully"
-                                        );
-                                    }
-                                });
-                            }
-                        }
-                    );
-                } else {
-                    setMessageModal("Failed to save image");
-                }
-            } else {
-                getUserImages(token);
-                setMessageModal("Image saved successfully");
-            }
-        });
-    }
+    
 
     const initialValue: CanvasData = {
         newCanvas,
         name,
         setName,
-        assetType,
-        setAssetType,
+        imageType,
+        setImageType,
         canvasSize,
         isUsingCanvas,
         setIsUsingCanvas,
@@ -404,7 +337,6 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         previousColor,
         setPreviousColor,
         update,
-        save,
         fill,
         setFill,
         fillColor,
@@ -429,17 +361,4 @@ export function useCanvas() {
         throw new Error("useCanvas must be used within a CanvasProvider");
     }
     return context;
-}
-
-function hexToRgba(hex: string) {
-    const bigint = parseInt(hex.slice(1), 16);
-    if (hex === "transparent") {
-        return { r: 0, g: 0, b: 0, a: 0 };
-    }
-    return {
-        r: (bigint >> 16) & 255,
-        g: (bigint >> 8) & 255,
-        b: bigint & 255,
-        a: 255,
-    };
 }

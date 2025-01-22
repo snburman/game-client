@@ -13,11 +13,12 @@ import { theme } from "@/app/_theme";
 import { Button, TextInput } from "react-native-paper";
 import DropDownPicker from "react-native-dropdown-picker";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import PlainModal,{ modalStyles } from "./modal";
+import PlainModal, { modalStyles } from "./modal";
 import { Input } from "@mui/joy";
 import { useModals } from "@/app/context/modal_context";
 import { Modal } from "react-native";
 import { ImageType, CellData } from "@/redux/models/image.model";
+import { useImages } from "@/app/context/images_context";
 
 // Canvas component represents the drawing area containing width * height pixels
 export default function Canvas({
@@ -286,13 +287,8 @@ export const ClearButton = () => {
 };
 
 export const SaveButton = () => {
-    const {
-        save,
-        name,
-        setName,
-        assetType,
-        setAssetType,
-    } = useCanvas();
+    const { name, setName, imageType, setImageType } = useCanvas();
+    const { saveImage } = useImages();
     const [modalVisible, setModalVisible] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [options, setOptions] = useState<
@@ -307,7 +303,7 @@ export const SaveButton = () => {
     ]);
 
     function handleSave() {
-        save();
+        saveImage(name, imageType);
         setModalVisible(false);
     }
 
@@ -326,8 +322,10 @@ export const SaveButton = () => {
                         placeholder="Select a type"
                         open={dropdownOpen}
                         setOpen={setDropdownOpen}
-                        value={assetType}
-                        setValue={t => setAssetType(t as unknown as string)}
+                        value={imageType}
+                        setValue={(t) =>
+                            setImageType(t as unknown as ImageType)
+                        }
                         items={options}
                         setItems={setOptions}
                         style={{

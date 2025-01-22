@@ -3,11 +3,13 @@ import { Pressable, StyleSheet, View } from "react-native";
 import EntypoIcons from "react-native-vector-icons/Entypo";
 import FontAwesomeIcons from "react-native-vector-icons/FontAwesome";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { DEFAULT_CANVAS_SIZE, useCanvas } from "../context/canvas_context";
 import {
-    DEFAULT_CANVAS_SIZE,
-    useCanvas,
-} from "../context/canvas_context";
-import { Image, ImageType, CellData, ImageMap } from "@/redux/models/image.model";
+    Image,
+    ImageType,
+    CellData,
+    ImageMap,
+} from "@/redux/models/image.model";
 import { LayerPreview } from "@/components/canvas";
 import { cloneDeep } from "lodash";
 import { theme } from "@/app/_theme";
@@ -29,10 +31,8 @@ const SCALE = 3.5;
 
 export default function Map({ navigation }: MapProps) {
     const { isMobile, width } = useDevice();
-    const {token} = useAuth();
     const { isUsingCanvas } = useCanvas();
     const [imageMap, setImageMap] = useState<ImageMap[][]>(createImageMap());
-    const [getImages, images] = useLazyGetUserImagesQuery();
     const [selectedImage, setSelectedImage] = useState<
         Image<CellData[][]> | undefined
     >();
@@ -43,12 +43,6 @@ export default function Map({ navigation }: MapProps) {
     const [editCoords, setEditCoords] = useState<
         { x: number; y: number } | undefined
     >();
-
-    useEffect(() => {
-        if (token && !isUsingCanvas) {
-            getImages(token);
-        }
-    }, [token, isUsingCanvas]);
 
     // create empty image map
     function createImageMap() {
@@ -73,7 +67,7 @@ export default function Map({ navigation }: MapProps) {
     function handleSelectImage(image: Image<CellData[][]>) {
         setImagesModalVisible(false);
         let _image = cloneDeep(image);
-        _image.asset_type = "tile";
+        _image.asset_type = image.asset_type;
         setSelectedImage(_image);
     }
 
@@ -160,6 +154,8 @@ export default function Map({ navigation }: MapProps) {
         _imageMap[y][x].images.splice(i, 1);
         setImageMap(_imageMap);
     }
+
+    console.log(imageMap);
 
     if (isUsingCanvas) return null;
     return (
@@ -288,8 +284,6 @@ export default function Map({ navigation }: MapProps) {
                 >
                     <View style={styles.imagesModalContent}>
                         <ImagesScrollView
-                            isLoading={images.isLoading || images.isFetching}
-                            images={images.data}
                             onPress={handleSelectImage}
                             navigateToCanvas={() => {
                                 navigation.navigate("draw");
@@ -347,7 +341,8 @@ export default function Map({ navigation }: MapProps) {
                                             <View style={styles.rowContainer}>
                                                 <Radio
                                                     checked={
-                                                        image.asset_type == "tile"
+                                                        image.asset_type ==
+                                                        "tile"
                                                     }
                                                     onChange={() =>
                                                         handleTypeRadioButton(
@@ -363,7 +358,8 @@ export default function Map({ navigation }: MapProps) {
                                             <View style={styles.rowContainer}>
                                                 <Radio
                                                     checked={
-                                                        image.asset_type == "object"
+                                                        image.asset_type ==
+                                                        "object"
                                                     }
                                                     onChange={() =>
                                                         handleTypeRadioButton(
