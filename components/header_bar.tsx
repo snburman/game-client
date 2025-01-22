@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { type BottomTabHeaderProps } from "@react-navigation/bottom-tabs";
 import { useAuth } from "@/app/context/auth_context";
 import FeatherIcons from "react-native-vector-icons/Feather";
