@@ -1,5 +1,5 @@
-import React, { useCallback, useRef, useState } from "react";
-import { CellData, useCanvas } from "@/app/context/canvas_context";
+import React, { useCallback, useState } from "react";
+import { useCanvas } from "@/app/context/canvas_context";
 import {
     Pressable,
     StyleProp,
@@ -11,11 +11,14 @@ import {
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
 import { theme } from "@/app/_theme";
 import { Button, TextInput } from "react-native-paper";
+import DropDownPicker from "react-native-dropdown-picker";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import PlainModal, { modalStyles } from "./modal";
-import { Input, Typography } from "@mui/joy";
+import { Input } from "@mui/joy";
 import { useModals } from "@/app/context/modal_context";
 import { Modal } from "react-native";
+import { ImageType, CellData } from "@/redux/models/image.model";
+import { useImages } from "@/app/context/images_context";
 
 // Canvas component represents the drawing area containing width * height pixels
 export default function Canvas({
@@ -284,29 +287,65 @@ export const ClearButton = () => {
 };
 
 export const SaveButton = () => {
-    const { save, name, setName } = useCanvas();
+    const { name, setName, imageType, setImageType } = useCanvas();
+    const { saveImage } = useImages();
     const [modalVisible, setModalVisible] = useState(false);
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [options, setOptions] = useState<
+        { label: string; value: ImageType }[]
+    >([
+        { label: "Tile", value: "tile" },
+        { label: "Object", value: "object" },
+        { label: "Player Up", value: "player_up" },
+        { label: "Player Down", value: "player_down" },
+        { label: "Player Left", value: "player_left" },
+        { label: "Player Right", value: "player_right" },
+    ]);
 
     function handleSave() {
-        save();
+        saveImage(name, imageType);
         setModalVisible(false);
     }
 
     return (
         <>
             <PlainModal visible={modalVisible} setVisible={setModalVisible}>
-                <Typography
-                    style={{ alignSelf: "flex-start", paddingBottom: 5 }}
-                >
-                    Title
-                </Typography>
-                <Input
-                    variant="outlined"
-                    onChange={(e) => setName(e.target.value)}
-                    value={name === "untitled" ? "" : name}
-                    placeholder={name}
-                    size="lg"
-                />
+                <View style={{ gap: 10, zIndex: 200 }}>
+                    <Input
+                        variant="outlined"
+                        onChange={(e) => setName(e.target.value)}
+                        value={name === "untitled" ? "" : name}
+                        placeholder={"Untitled"}
+                        size="lg"
+                    />
+                    <DropDownPicker
+                        placeholder="Select a type"
+                        open={dropdownOpen}
+                        setOpen={setDropdownOpen}
+                        value={imageType}
+                        setValue={(t) =>
+                            setImageType(t as unknown as ImageType)
+                        }
+                        items={options}
+                        setItems={setOptions}
+                        style={{
+                            borderColor: "#D4D5D6",
+                            backgroundColor: "#FBFCFE",
+                            ...theme.shadow.input,
+                        }}
+                        labelStyle={{
+                            borderColor: "FFF",
+                            marginLeft: 8,
+                        }}
+                        textStyle={{
+                            fontWeight: "400",
+                            fontSize: 18,
+                            color: "#6D6E6F",
+                        }}
+                        zIndex={1000}
+                        zIndexInverse={1000}
+                    />
+                </View>
                 <View style={modalStyles.modalButtonContainer}>
                     <Button
                         onPress={handleSave}
@@ -414,15 +453,15 @@ export const NewCanvasButton = () => {
     }
 
     function aToI(s: string) {
-        if(s === "") return 0;
+        if (s === "") return 0;
         s = s.replace(/[^0-9]/g, "");
         return parseInt(s);
     }
 
     function ItoA(n: number) {
-        const s = n.toString()
-        if(s == "") return "0"
-        return s
+        const s = n.toString();
+        if (s == "") return "0";
+        return s;
     }
 
     return (

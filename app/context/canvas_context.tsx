@@ -1,22 +1,15 @@
 import {
     ImageError,
-    imageSlice,
     usePostImageMutation,
     useUpdateImageMutation,
 } from "@/redux/image.slice";
-import {
-    createContext,
-    useContext,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-} from "react";
-import { Image } from "@/redux/models/image.model";
+import { createContext, useContext, useMemo, useRef, useState } from "react";
+import { CellData, Image, ImageType } from "@/redux/models/image.model";
 import cloneDeep from "lodash/cloneDeep";
 import { isEqual } from "lodash";
 import { useAuth } from "./auth_context";
 import { useModals } from "./modal_context";
+import { useLazyGetUserQuery } from "@/redux/auth.slice";
 
 // TODO: Update width and height, not fixed square size
 export const DEFAULT_CANVAS_SIZE = 16;
@@ -27,18 +20,13 @@ const HISTORY_LIMIT = 20;
 
 export type LayerMap = Map<string, string>;
 
-export type CellData = {
-    x: number;
-    y: number;
-    color: string;
-    r?: number;
-    g?: number;
-    b?: number;
-    a?: number;
-};
-
 type CanvasData = {
     newCanvas(width: number, height: number): void;
+    // Name of the image
+    name: string;
+    setName: (name: string) => void;
+    imageType: ImageType;
+    setImageType: (t: ImageType) => void;
     setEditImage(image: Image<CellData[][]>): void;
     isUsingCanvas: boolean;
     setIsUsingCanvas: (isUsing: boolean) => void;
@@ -61,10 +49,6 @@ type CanvasData = {
     previousColor: string;
     setPreviousColor: (color: string) => void;
     update: (x: number, y: number) => void;
-    // Name of the image
-    name: string;
-    setName: (name: string) => void;
-    save: () => void;
     fill: boolean;
     setFill: (fill: boolean) => void;
     fillColor: (x: number, y: number) => void;
@@ -79,12 +63,10 @@ type CanvasData = {
 const CanvasContext = createContext<CanvasData | undefined>(undefined);
 
 export default function CanvasProvider({ children }: React.PropsWithChildren) {
-    const { user, token } = useAuth();
-    const { setMessageModal, setConfirmModal } = useModals();
 
     // used to communicate with other components if user is using canvas
     // used to remove excess state to free memory before using canvas
-    const [isUsingCanvas, setIsUsingCanvas] = useState(false);
+    const [isUsingCanvas, setIsUsingCanvas] = useState(true);
 
     //////////////////////////////////////////
     // Config
@@ -95,6 +77,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     });
     const [cellSize, setCellSize] = useState(CELL_SIZE);
     const [name, setName] = useState(DEFAULT_NAME);
+    const [imageType, setImageType] = useState<ImageType>("tile");
 
     //////////////////////////////////////////
     // Canvas State
@@ -144,7 +127,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         layers.current[index] = generateLayer(canvasSize);
         cells[index] = generateCellsFromLayer(
             layers.current[index],
-            canvasSize,
+            canvasSize
         );
         setLayerHistory(cloneDeep([layers.current]));
         setHistoryIndex(0);
@@ -166,8 +149,24 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         return cells;
     }
 
+    // sets canvas of provided dimensions with blank cells
+    function newCanvas(width: number, height: number) {
+        setCanvasSize({ width, height });
+        const layer: LayerMap = generateLayer({ width, height });
+        layers.current = [layer];
+        setLayerHistory([layers.current]);
+        setHistoryIndex(0);
+        const _cells = generateCellsFromLayer(layers.current[0], {
+            width,
+            height,
+        });
+        setCells([_cells]);
+        setName(DEFAULT_NAME);
+        setImageType("tile");
+    }
+
+    // replaces canvas with data from image
     function setEditImage(image: Image<CellData[][]>) {
-        // const layer: LayerMap = new Map<string, string>();
         setCanvasSize({ ...image });
         const layer: LayerMap = generateLayer({ ...image });
         for (let x = 0; x < image.width; x++) {
@@ -181,17 +180,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         const _cells = generateCellsFromLayer(layers.current[0], { ...image });
         setCells([_cells]);
         setName(image.name);
-    }
-
-    function newCanvas(width: number, height: number) {
-        setCanvasSize({width, height});
-        const layer: LayerMap = generateLayer({width, height});
-        layers.current = [layer];
-        setLayerHistory([layers.current]);
-        setHistoryIndex(0);
-        const _cells = generateCellsFromLayer(layers.current[0], {width, height});
-        setCells([_cells]);
-        setName(DEFAULT_NAME);
+        setImageType(image.asset_type || "tile");
     }
 
     //////////////////////////////////////////
@@ -230,7 +219,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         layers.current = layerHistory[historyIndex - 1];
         const _cells = generateCellsFromLayer(
             layers.current[selectedLayerIndex],
-            canvasSize,
+            canvasSize
         );
         setHistoryIndex(historyIndex - 1);
         setCells([_cells]);
@@ -292,7 +281,13 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         while (queue.length > 0) {
             let { x, y } = queue.shift()!;
             // if not inside canvas, continue
-            if (x < 0 || y < 0 || x >= canvasSize.width || y >= canvasSize.height) continue;
+            if (
+                x < 0 ||
+                y < 0 ||
+                x >= canvasSize.width ||
+                y >= canvasSize.height
+            )
+                continue;
             // if not target color, continue
             const cell_color = layer.get(`${x}-${y}`);
             if (cell_color !== target_color) continue;
@@ -315,71 +310,14 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         layers.current[selectedLayerIndex] = layer;
         setCells([...cells]);
     }
-
-    //////////////////////////////////////////
-    // API calls
-    //////////////////////////////////////////
-    const [postImage] = usePostImageMutation();
-    const [updateImage] = useUpdateImageMutation();
-    const [getUserImages] = imageSlice.endpoints.getUserImages.useLazyQuery();
-
-    async function save() {
-        if (!token) return;
-        let _cells = getCells(selectedLayerIndex);
-        for (let x = 0; x < canvasSize.height; x++) {
-            for (let y = 0; y < canvasSize.width; y++) {
-                let cell = _cells[x][y];
-                const { r, g, b, a } = hexToRgba(cell.color);
-                _cells[x][y] = { ...cell, r, g, b, a };
-            }
-        }
-
-        const image: Image<string> = {
-            user_id: user?._id || "",
-            name: name,
-            type: "tile",
-            x: 0,
-            y: 0,
-            ...canvasSize,
-            data: JSON.stringify(_cells),
-        };
-
-        await postImage({ token, image }).then((res) => {
-            if (res.error) {
-                const { data } = res.error as { data: { error: string } };
-                if (data && data.error == ImageError.ImageExists) {
-                    setConfirmModal(
-                        `Overwrite existing image: ${name}?`,
-                        (confirm) => {
-                            if (confirm) {
-                                // update image
-                                updateImage({ token, image }).then((res) => {
-                                    if (res.error) {
-                                        setMessageModal(
-                                            "Failed to update image"
-                                        );
-                                    } else {
-                                        getUserImages(token);
-                                        setMessageModal(
-                                            "Image saved successfully"
-                                        );
-                                    }
-                                });
-                            }
-                        }
-                    );
-                } else {
-                    setMessageModal("Failed to save image");
-                }
-            } else {
-                getUserImages(token);
-                setMessageModal("Image saved successfully");
-            }
-        });
-    }
+    
 
     const initialValue: CanvasData = {
         newCanvas,
+        name,
+        setName,
+        imageType,
+        setImageType,
         canvasSize,
         isUsingCanvas,
         setIsUsingCanvas,
@@ -399,9 +337,6 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         previousColor,
         setPreviousColor,
         update,
-        name,
-        setName,
-        save,
         fill,
         setFill,
         fillColor,
@@ -426,17 +361,4 @@ export function useCanvas() {
         throw new Error("useCanvas must be used within a CanvasProvider");
     }
     return context;
-}
-
-function hexToRgba(hex: string) {
-    const bigint = parseInt(hex.slice(1), 16);
-    if (hex === "transparent") {
-        return { r: 0, g: 0, b: 0, a: 0 };
-    }
-    return {
-        r: (bigint >> 16) & 255,
-        g: (bigint >> 8) & 255,
-        b: bigint & 255,
-        a: 255,
-    };
 }

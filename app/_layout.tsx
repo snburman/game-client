@@ -6,6 +6,7 @@ import { theme } from "./_theme";
 import AuthProvider from "./context/auth_context";
 import Index from "./index";
 import ModalProvider from "./context/modal_context";
+import ImagesProvider from "./context/images_context";
 
 export default function RootLayout() {
     return (
@@ -17,10 +18,13 @@ export default function RootLayout() {
                 <AuthProvider>
                     {/* drawing canvas data */}
                     <CanvasProvider>
-                        {/* component theme */}
-                        <PaperProvider theme={theme}>
-                            <Index />
-                        </PaperProvider>
+                        {/* image data */}
+                        <ImagesProvider>
+                            {/* component theme */}
+                            <PaperProvider theme={theme}>
+                                <Index />
+                            </PaperProvider>
+                        </ImagesProvider>
                     </CanvasProvider>
                 </AuthProvider>
             </ModalProvider>

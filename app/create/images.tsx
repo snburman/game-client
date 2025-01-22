@@ -1,15 +1,8 @@
 import React from "react";
-import {
-    imageSlice,
-    useDeleteImageMutation,
-    useLazyGetUserImagesQuery,
-} from "@/redux/image.slice";
-import { useAuth } from "../context/auth_context";
-import { useEffect } from "react";
-import { Image } from "@/redux/models/image.model";
+import { Image, CellData } from "@/redux/models/image.model";
 import { useModals } from "../context/modal_context";
 import { LayerPreview } from "@/components/canvas";
-import { CellData, useCanvas } from "../context/canvas_context";
+import { useCanvas } from "../context/canvas_context";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { ImagesProps } from "../types/navigation";
 import { LoadingSpinner } from "@/components/loading";
@@ -18,19 +11,12 @@ import { DrawerButton } from "@/components/draw_drawer_content";
 import { Typography } from "@mui/joy";
 import { theme } from "../_theme";
 import Svg, { Rect } from "react-native-svg";
+import { useImages } from "../context/images_context";
 
 export default function Images({ navigation }: ImagesProps) {
-    const { setMessageModal, setConfirmModal, setPlainModal } = useModals();
+    const { setConfirmModal, setPlainModal } = useModals();
     const { setEditImage, isUsingCanvas } = useCanvas();
-    const [deleteImage] = useDeleteImageMutation();
-    const [getImages, images] = useLazyGetUserImagesQuery();
-    const { token } = useAuth();
-
-    useEffect(() => {
-        if (!images.data && token) {
-            getImages(token);
-        }
-    }, [images, token]);
+    const { deleteImage } = useImages();
 
     function handleEdit(image: Image<CellData[][]>) {
         const options: { label: string; fn: () => void }[] = [
@@ -45,17 +31,8 @@ export default function Images({ navigation }: ImagesProps) {
                 label: "Delete",
                 fn: () => {
                     setConfirmModal(`Delete ${image.name}?`, (confirm) => {
-                        if (confirm && image._id && token) {
-                            deleteImage({ token, id: image._id }).then(
-                                (res) => {
-                                    if (!res.error) {
-                                        setMessageModal(
-                                            "Image deleted successfully"
-                                        );
-                                        getImages(token);
-                                    }
-                                }
-                            );
+                        if (confirm && image._id) {
+                            deleteImage(image._id)
                         }
                     });
                 },
@@ -105,11 +82,9 @@ export default function Images({ navigation }: ImagesProps) {
         <>
             <DrawerButton onPress={() => navigation.openDrawer()} />
             <View style={styles.header}>
-                {/* TODO: Add guide button to open modal */}
+                {/* TODO: Add guide button to open modal with usage instructions*/}
             </View>
             <ImagesScrollView
-                images={images.data}
-                isLoading={images.isLoading && images.isFetching}
                 onPress={(image) => handleEdit(image)}
                 navigateToCanvas={() => navigation.navigate("draw")}
             />
@@ -118,24 +93,19 @@ export default function Images({ navigation }: ImagesProps) {
 }
 
 export const ImagesScrollView = ({
-    images,
-    isLoading,
     onPress,
     navigateToCanvas,
 }: {
-    images: Image<CellData[][]>[] | undefined;
-    isLoading: boolean;
     onPress: (image: Image<CellData[][]>) => void;
     navigateToCanvas: () => void;
 }) => {
-    const { token } = useAuth();
-    const { setMessageModal } = useModals();
 
-    if (isLoading) {
+    const {images, imagesLoading} = useImages();
+    if (imagesLoading) {
         return <LoadingSpinner />;
     }
 
-    if ((!images && !isLoading) || (images && images.length === 0)) {
+    if ((images.length === 0)) {
         return (
             <View style={styles.noDataContainer}>
                 <Text>No saved images</Text>
@@ -215,7 +185,7 @@ const styles = StyleSheet.create({
         height: 50,
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#FFFFFF",
+        backgroundColor: "#FFFFFF"
     },
     scrollview: {
         paddingTop: 10,

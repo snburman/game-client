@@ -128,7 +128,7 @@ export const modalStyles = StyleSheet.create({
         borderRadius: 8,
         backgroundColor: "#FFFFFF",
         cursor: "auto",
-        zIndex: 100,
+        zIndex: 1,
     },
     modalButtonContainer: {
         display: "flex",

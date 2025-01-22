@@ -5,7 +5,7 @@ import Create from "../create";
 import Game from "../game";
 import Settings from "../settings";
 
-export default function Tabs(props: HomeStackProps) {
+export default function Tabs() {
     const Tabs = createBottomTabNavigator<HomeTabsParamList>();
     return (
         <Tabs.Navigator

@@ -1,9 +1,7 @@
 import PlainModal, { MessageModal, ConfirmModal } from "@/components/modal";
 import React, {
     ReactNode,
-    useCallback,
     useContext,
-    useRef,
     useState,
 } from "react";
 import { createContext } from "react";

@@ -3,12 +3,13 @@ import { Pressable, StyleSheet, View } from "react-native";
 import EntypoIcons from "react-native-vector-icons/Entypo";
 import FontAwesomeIcons from "react-native-vector-icons/FontAwesome";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { DEFAULT_CANVAS_SIZE, useCanvas } from "../context/canvas_context";
 import {
-    DEFAULT_CANVAS_SIZE,
+    Image,
+    ImageType,
     CellData,
-    useCanvas,
-} from "../context/canvas_context";
-import { Image, ImageType } from "@/redux/models/image.model";
+    ImageMap,
+} from "@/redux/models/image.model";
 import { LayerPreview } from "@/components/canvas";
 import { cloneDeep } from "lodash";
 import { theme } from "@/app/_theme";
@@ -28,44 +29,29 @@ import { useAuth } from "../context/auth_context";
 const MAP_DIMENSIONS = 6;
 const SCALE = 3.5;
 
-type MapCoords = {
-    images: Image<CellData[][]>[];
-    x: number;
-    y: number;
-    mapX: number;
-    mapY: number;
-};
-
 export default function Map({ navigation }: MapProps) {
-    const {token} = useAuth();
-    const [imageMap, setImageMap] = useState<MapCoords[][]>(createImageMap());
-    const [getImages, images] = useLazyGetUserImagesQuery();
+    const { isMobile, width } = useDevice();
+    const { isUsingCanvas } = useCanvas();
+    const [imageMap, setImageMap] = useState<ImageMap[][]>(createImageMap());
     const [selectedImage, setSelectedImage] = useState<
         Image<CellData[][]> | undefined
     >();
     const { setMessageModal, setConfirmModal } = useModals();
-    const { isUsingCanvas } = useCanvas();
     const [imagesModalVisible, setImagesModalVisible] = useState(false);
     // indicates that pressing a tile will trigger editing of the contents
     const [editDetailsOn, setEditDetailsOn] = useState(false);
     const [editCoords, setEditCoords] = useState<
         { x: number; y: number } | undefined
     >();
-    const { isMobile, width } = useDevice();
-
-    useEffect(() => {
-        if (!images.data && token) {
-            getImages(token);
-        }
-    }, [images, token]);
 
     // create empty image map
     function createImageMap() {
-        const newMap: MapCoords[][] = [];
+        const newMap: ImageMap[][] = [];
         for (let y = 0; y < MAP_DIMENSIONS; y++) {
             newMap.push([]);
             for (let x = 0; x < MAP_DIMENSIONS; x++) {
                 newMap[y].push({
+                    name: "untitled",
                     images: [],
                     x: x * DEFAULT_CANVAS_SIZE * SCALE,
                     y: y * DEFAULT_CANVAS_SIZE * SCALE,
@@ -81,7 +67,7 @@ export default function Map({ navigation }: MapProps) {
     function handleSelectImage(image: Image<CellData[][]>) {
         setImagesModalVisible(false);
         let _image = cloneDeep(image);
-        _image.type = "tile";
+        _image.asset_type = image.asset_type;
         setSelectedImage(_image);
     }
 
@@ -133,10 +119,10 @@ export default function Map({ navigation }: MapProps) {
         x: number,
         y: number,
         index: number,
-        type: ImageType
+        assetType: ImageType
     ) {
         const _imageMap = cloneDeep(imageMap);
-        _imageMap[y][x].images[index].type = type;
+        _imageMap[y][x].images[index].asset_type = assetType;
         setImageMap(_imageMap);
     }
 
@@ -168,6 +154,8 @@ export default function Map({ navigation }: MapProps) {
         _imageMap[y][x].images.splice(i, 1);
         setImageMap(_imageMap);
     }
+
+    console.log(imageMap);
 
     if (isUsingCanvas) return null;
     return (
@@ -296,8 +284,6 @@ export default function Map({ navigation }: MapProps) {
                 >
                     <View style={styles.imagesModalContent}>
                         <ImagesScrollView
-                            isLoading={images.isLoading && images.isFetching}
-                            images={images.data}
                             onPress={handleSelectImage}
                             navigateToCanvas={() => {
                                 navigation.navigate("draw");
@@ -355,7 +341,8 @@ export default function Map({ navigation }: MapProps) {
                                             <View style={styles.rowContainer}>
                                                 <Radio
                                                     checked={
-                                                        image.type == "tile"
+                                                        image.asset_type ==
+                                                        "tile"
                                                     }
                                                     onChange={() =>
                                                         handleTypeRadioButton(
@@ -371,7 +358,8 @@ export default function Map({ navigation }: MapProps) {
                                             <View style={styles.rowContainer}>
                                                 <Radio
                                                     checked={
-                                                        image.type == "object"
+                                                        image.asset_type ==
+                                                        "object"
                                                     }
                                                     onChange={() =>
                                                         handleTypeRadioButton(
@@ -536,7 +524,6 @@ const styles = StyleSheet.create({
     mapCell: {
         width: DEFAULT_CANVAS_SIZE * SCALE,
         height: DEFAULT_CANVAS_SIZE * SCALE,
-        // borderWidth: 0.5,
     },
     toolButtonContainer: {
         flexDirection: "row",

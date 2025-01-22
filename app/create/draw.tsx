@@ -5,7 +5,6 @@ import ColorPicker from "@/components/color_picker";
 import { StyleSheet, View } from "react-native";
 import { DrawProps } from "../types/navigation";
 import { DrawerButton } from "@/components/draw_drawer_content";
-import { useLazyGetUserImagesQuery } from "@/redux/image.slice";
 
 export default function Draw({ navigation }: DrawProps) {
     const [modalVisible, setModalVisible] = useState(false);
@@ -16,10 +15,7 @@ export default function Draw({ navigation }: DrawProps) {
             <DrawerButton onPress={() => navigation.openDrawer()} />
             <Canvas {...canvasSize} />
             <View
-                style={[
-                    styles.toolContainer,
-                    // { width: cellSize * canvasSize },
-                ]}
+                style={styles.toolContainer}
             >
                 <View style={styles.toolButtons}>
                     <SaveButton />
