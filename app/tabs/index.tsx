@@ -1,6 +1,6 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import HeaderBar from "@/components/header_bar";
-import { HomeStackProps, HomeTabsParamList } from "../types/navigation";
+import { HomeTabsParamList } from "../types/navigation";
 import Create from "../create";
 import Game from "../game";
 import Settings from "../settings";

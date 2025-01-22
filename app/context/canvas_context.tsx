@@ -1,15 +1,8 @@
-import {
-    ImageError,
-    usePostImageMutation,
-    useUpdateImageMutation,
-} from "@/redux/image.slice";
+
 import { createContext, useContext, useMemo, useRef, useState } from "react";
 import { CellData, Image, ImageType } from "@/redux/models/image.model";
 import cloneDeep from "lodash/cloneDeep";
 import { isEqual } from "lodash";
-import { useAuth } from "./auth_context";
-import { useModals } from "./modal_context";
-import { useLazyGetUserQuery } from "@/redux/auth.slice";
 
 // TODO: Update width and height, not fixed square size
 export const DEFAULT_CANVAS_SIZE = 16;

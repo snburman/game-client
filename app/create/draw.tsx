@@ -1,6 +1,15 @@
 import { useState } from "react";
 import { useCanvas } from "../context/canvas_context";
-import Canvas, { ClearButton, EraserButton, FillButton, GridButton, NewCanvasButton, RedoButton, SaveButton, UndoButton,  } from "@/components/canvas";
+import Canvas, {
+    ClearButton,
+    EraserButton,
+    FillButton,
+    GridButton,
+    NewCanvasButton,
+    RedoButton,
+    SaveButton,
+    UndoButton,
+} from "@/components/canvas";
 import ColorPicker from "@/components/color_picker";
 import { StyleSheet, View } from "react-native";
 import { DrawProps } from "../types/navigation";
@@ -14,9 +23,7 @@ export default function Draw({ navigation }: DrawProps) {
         <View style={styles.container}>
             <DrawerButton onPress={() => navigation.openDrawer()} />
             <Canvas {...canvasSize} />
-            <View
-                style={styles.toolContainer}
-            >
+            <View style={styles.toolContainer}>
                 <View style={styles.toolButtons}>
                     <SaveButton />
                     <ClearButton />
@@ -36,7 +43,6 @@ export default function Draw({ navigation }: DrawProps) {
             <View style={styles.newCanvasButton}>
                 <NewCanvasButton />
             </View>
-
         </View>
     );
 }
@@ -56,13 +62,13 @@ const styles = StyleSheet.create({
         marginTop: 15,
     },
     toolButtons: {
-        width: '100%',
+        width: "100%",
         flexDirection: "row",
         gap: 5,
     },
     newCanvasButton: {
         position: "absolute",
         top: 15,
-        right: 15
-    }
+        right: 15,
+    },
 });
