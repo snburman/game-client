@@ -7,6 +7,7 @@ import AuthProvider from "./context/auth_context";
 import Index from "./index";
 import ModalProvider from "./context/modal_context";
 import ImagesProvider from "./context/images_context";
+import MapsProvider from "./context/map_context";
 
 export default function RootLayout() {
     return (
@@ -20,10 +21,13 @@ export default function RootLayout() {
                     <CanvasProvider>
                         {/* image data */}
                         <ImagesProvider>
-                            {/* component theme */}
-                            <PaperProvider theme={theme}>
-                                <Index />
-                            </PaperProvider>
+                            {/* maps data */}
+                            <MapsProvider>
+                                {/* component theme */}
+                                <PaperProvider theme={theme}>
+                                    <Index />
+                                </PaperProvider>
+                            </MapsProvider>
                         </ImagesProvider>
                     </CanvasProvider>
                 </AuthProvider>

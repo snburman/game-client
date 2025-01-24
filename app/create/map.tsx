@@ -25,6 +25,7 @@ import { ScrollView } from "react-native-gesture-handler";
 import { useDevice } from "../hooks/device";
 import { useLazyGetUserImagesQuery } from "@/redux/image.slice";
 import { useAuth } from "../context/auth_context";
+import { useMaps } from "../context/map_context";
 
 const MAP_DIMENSIONS = 6;
 const SCALE = 3.5;
@@ -32,36 +33,19 @@ const SCALE = 3.5;
 export default function Map({ navigation }: MapProps) {
     const { isMobile, width } = useDevice();
     const { isUsingCanvas } = useCanvas();
-    const [imageMap, setImageMap] = useState<ImageMap[][]>(createImageMap());
-    const [selectedImage, setSelectedImage] = useState<
-        Image<CellData[][]> | undefined
-    >();
+    const {
+        imageMap,
+        setImageMap,
+        selectedImage,
+        setSelectedImage,
+        editCoords,
+        setEditCoords,
+        eraseMap
+    } = useMaps();
     const { setMessageModal, setConfirmModal } = useModals();
     const [imagesModalVisible, setImagesModalVisible] = useState(false);
     // indicates that pressing a tile will trigger editing of the contents
     const [editDetailsOn, setEditDetailsOn] = useState(false);
-    const [editCoords, setEditCoords] = useState<
-        { x: number; y: number } | undefined
-    >();
-
-    // create empty image map
-    function createImageMap() {
-        const newMap: ImageMap[][] = [];
-        for (let y = 0; y < MAP_DIMENSIONS; y++) {
-            newMap.push([]);
-            for (let x = 0; x < MAP_DIMENSIONS; x++) {
-                newMap[y].push({
-                    name: "untitled",
-                    images: [],
-                    x: x * DEFAULT_CANVAS_SIZE * SCALE,
-                    y: y * DEFAULT_CANVAS_SIZE * SCALE,
-                    mapX: x,
-                    mapY: y,
-                });
-            }
-        }
-        return newMap;
-    }
 
     // select image to be placed on map
     function handleSelectImage(image: Image<CellData[][]>) {
@@ -111,7 +95,7 @@ export default function Map({ navigation }: MapProps) {
 
     function handleEraseMap() {
         setConfirmModal("Erase map?", (confirm) => {
-            confirm && setImageMap(createImageMap());
+            confirm && eraseMap();
         });
     }
 
@@ -155,8 +139,6 @@ export default function Map({ navigation }: MapProps) {
         setImageMap(_imageMap);
     }
 
-    console.log(imageMap);
-
     if (isUsingCanvas) return null;
     return (
         <>
@@ -167,7 +149,7 @@ export default function Map({ navigation }: MapProps) {
                     { justifyContent: isMobile ? "flex-end" : "center" },
                 ]}
             >
-                <View style={styles.mapContainer}>
+                <View>
                     <View style={[styles.mapCellContainer]}>
                         {imageMap?.map((row) =>
                             row.map((mc, i) => (
@@ -494,14 +476,29 @@ export default function Map({ navigation }: MapProps) {
     );
 }
 
+const SaveMapButton = () => {
+    const [modalVisible, setModalVisible] = useState(false);
+    return (
+        <>
+            <PlainModal visible={modalVisible}></PlainModal>
+            <Pressable
+                onPress={() => setModalVisible(true)}
+                style={styles.toolButton}
+            >
+                <MaterialCommunityIcons
+                    name="content-save"
+                    style={[styles.toolButton, { color: "#138007" }]}
+                />
+            </Pressable>
+        </>
+    );
+};
+
 const styles = StyleSheet.create({
     container: {
         alignItems: "center",
         flex: 1,
         backgroundColor: "#FFFFFF",
-    },
-    mapContainer: {
-        // backgroundColor: "red",
     },
     mapCellContainer: {
         ...theme.shadow.small,
