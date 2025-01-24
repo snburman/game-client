@@ -4,10 +4,7 @@ import EntypoIcons from "react-native-vector-icons/Entypo";
 import FontAwesomeIcons from "react-native-vector-icons/FontAwesome";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { DEFAULT_CANVAS_SIZE, useCanvas } from "../context/canvas_context";
-import {
-    Image,
-    CellData,
-} from "@/redux/models/image.model";
+import { Image, CellData } from "@/redux/models/image.model";
 import { LayerPreview } from "@/components/canvas";
 import { cloneDeep } from "lodash";
 import { theme } from "@/app/_theme";
@@ -200,6 +197,7 @@ export default function Map({ navigation }: MapProps) {
                             style={{ color: "#D2042D" }}
                         />
                     </Pressable>
+                    <SaveMapButton />
                 </View>
                 {/* MODALS */}
                 {/* image selection modal*/}
@@ -422,16 +420,28 @@ export default function Map({ navigation }: MapProps) {
 
 const SaveMapButton = () => {
     const [modalVisible, setModalVisible] = useState(false);
+    const { saveMap } = useMaps();
+
+    function handleSave() {
+        saveMap("test")
+        setModalVisible(false);
+    }
+
     return (
         <>
-            <PlainModal visible={modalVisible}></PlainModal>
+            <PlainModal visible={modalVisible} setVisible={setModalVisible}>
+                <Button mode="outlined" uppercase={false} onPress={handleSave}>
+                    <Typography>Save</Typography>
+                </Button>
+            </PlainModal>
             <Pressable
                 onPress={() => setModalVisible(true)}
                 style={styles.toolButton}
             >
                 <MaterialCommunityIcons
                     name="content-save"
-                    style={[styles.toolButton, { color: "#138007" }]}
+                    size={30}
+                    style={[{ color: "#138007" }]}
                 />
             </Pressable>
         </>

@@ -3,7 +3,7 @@ import { CreateDrawerParamList, CreateProps } from "../types/navigation";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import Draw from "./draw";
 import Images from "./images";
-import Map from "./map";
+import Map from "./maps";
 import DrawDrawerContent from "@/components/draw_drawer_content";
 import { useDevice } from "../hooks/device";
 

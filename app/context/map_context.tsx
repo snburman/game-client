@@ -7,6 +7,14 @@ import {
 import { createContext, useContext, useState } from "react";
 import { DEFAULT_CANVAS_SIZE } from "./canvas_context";
 import { cloneDeep } from "lodash";
+import { useAuth } from "./auth_context";
+import {
+    MapError,
+    useLazyGetUserMapsQuery,
+    usePostMapMutation,
+} from "@/redux/map.slice";
+import { MapDTO } from "@/redux/models/map.model";
+import { useModals } from "./modal_context";
 
 const MAP_DIMENSIONS = 6;
 const SCALE = 3.5;
@@ -34,11 +42,16 @@ type MapData = {
         index: number,
         assetType: ImageType
     ): void;
+    saveMap(name: string): Promise<void>;
 };
 
 const MapContext = createContext<MapData | undefined>(undefined);
 
 export default function MapsProvider({ children }: React.PropsWithChildren) {
+    const { token, user } = useAuth();
+    const { setConfirmModal, setMessageModal } = useModals();
+    const [postMap] = usePostMapMutation();
+    const [getUserMaps, userMapsData] = useLazyGetUserMapsQuery();
     const [imageMap, setImageMap] = useState<ImageMap[][]>(createImageMap());
     const [selectedImage, setSelectedImage] = useState<
         Image<CellData[][]> | undefined
@@ -46,6 +59,11 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
     const [editCoords, setEditCoords] = useState<
         { x: number; y: number } | undefined
     >();
+
+    async function getMaps() {
+        if(!token) return;
+        getUserMaps(token);
+    }
 
     // create empty image map
     function createImageMap() {
@@ -134,6 +152,46 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
         setImageMap(_imageMap);
     }
 
+    async function saveMap(name: string) {
+        if (!user?._id || !token) return;
+
+        // copy images in order from all arrays
+        let images: Image<CellData[][]>[] = [];
+        imageMap.forEach((arr) => {
+            arr.forEach((im) => {
+                images = [...images, ...im.images];
+            });
+        });
+
+        const mapDTO: MapDTO<string> = {
+            user_id: user._id,
+            //TODO: user must select entry point
+            name: name,
+            entrance: {
+                x: 0,
+                y: 0,
+            },
+            //TODO: user can select portals to other maps
+            // of their own or other players
+            portals: [],
+            data: JSON.stringify(images),
+        };
+
+        await postMap({ token, map: mapDTO }).then((res) => {
+            if (res.error) {
+                const { data } = res.error as { data: { error: string } };
+                if (data && data.error == MapError.MapExists) {
+                    setConfirmModal(`Overwrite existing map: ${name}?`, (confirm) => {
+                        // TODO: implement update map
+                    })
+                }
+            } else {
+                getMaps();
+                setMessageModal("Map saved successfully")
+            }
+        });
+    }
+
     const initialValue: MapData = {
         imageMap,
         setImageMap,
@@ -146,7 +204,8 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
         removeImage,
         changeXPosition,
         changeYPosition,
-        changeImageType
+        changeImageType,
+        saveMap,
     };
 
     return (
