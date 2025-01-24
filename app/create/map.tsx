@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import EntypoIcons from "react-native-vector-icons/Entypo";
 import FontAwesomeIcons from "react-native-vector-icons/FontAwesome";
@@ -6,9 +6,7 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import { DEFAULT_CANVAS_SIZE, useCanvas } from "../context/canvas_context";
 import {
     Image,
-    ImageType,
     CellData,
-    ImageMap,
 } from "@/redux/models/image.model";
 import { LayerPreview } from "@/components/canvas";
 import { cloneDeep } from "lodash";
@@ -23,8 +21,6 @@ import { Slider } from "@react-native-assets/slider";
 import PlainModal from "@/components/modal";
 import { ScrollView } from "react-native-gesture-handler";
 import { useDevice } from "../hooks/device";
-import { useLazyGetUserImagesQuery } from "@/redux/image.slice";
-import { useAuth } from "../context/auth_context";
 import { useMaps } from "../context/map_context";
 
 const MAP_DIMENSIONS = 6;
@@ -35,12 +31,16 @@ export default function Map({ navigation }: MapProps) {
     const { isUsingCanvas } = useCanvas();
     const {
         imageMap,
-        setImageMap,
         selectedImage,
         setSelectedImage,
         editCoords,
         setEditCoords,
-        eraseMap
+        eraseMap,
+        placeSelectedImage,
+        removeImage,
+        changeXPosition,
+        changeYPosition,
+        changeImageType,
     } = useMaps();
     const { setMessageModal, setConfirmModal } = useModals();
     const [imagesModalVisible, setImagesModalVisible] = useState(false);
@@ -64,7 +64,6 @@ export default function Map({ navigation }: MapProps) {
             setMessageModal("Select an image to put on the map", () =>
                 setImagesModalVisible(true)
             );
-
             return;
         }
         // maximum two images per cell
@@ -73,20 +72,7 @@ export default function Map({ navigation }: MapProps) {
             setMessageModal("This area already has two (2) images");
             return;
         }
-        // disregard duplicate images
-        if (
-            coords.images[coords.images.length - 1] &&
-            coords.images[coords.images.length - 1].name === selectedImage.name
-        ) {
-            return;
-        }
-        // set image
-        const image = cloneDeep(selectedImage);
-        image.x = x * DEFAULT_CANVAS_SIZE * SCALE;
-        image.y = y * DEFAULT_CANVAS_SIZE * SCALE;
-        const _imageMap = cloneDeep(imageMap);
-        _imageMap[y][x].images.push(image);
-        setImageMap(_imageMap);
+        placeSelectedImage(x, y);
     }
 
     function handlePressEditDetailsButton() {
@@ -97,46 +83,6 @@ export default function Map({ navigation }: MapProps) {
         setConfirmModal("Erase map?", (confirm) => {
             confirm && eraseMap();
         });
-    }
-
-    function handleTypeRadioButton(
-        x: number,
-        y: number,
-        index: number,
-        assetType: ImageType
-    ) {
-        const _imageMap = cloneDeep(imageMap);
-        _imageMap[y][x].images[index].asset_type = assetType;
-        setImageMap(_imageMap);
-    }
-
-    function handleXSliderChange(
-        x: number,
-        y: number,
-        index: number,
-        value: number
-    ) {
-        const _imageMap = cloneDeep(imageMap);
-        _imageMap[y][x].images[index].x = value;
-        setImageMap(_imageMap);
-    }
-
-    function handleYSliderChange(
-        x: number,
-        y: number,
-        index: number,
-        value: number
-    ) {
-        const _imageMap = cloneDeep(imageMap);
-        _imageMap[y][x].images[index].y = value;
-        setImageMap(_imageMap);
-    }
-
-    function handleRemoveImage(x: number, y: number, index: number) {
-        const _imageMap = cloneDeep(imageMap);
-        const i = _imageMap[y][x].images.indexOf(_imageMap[y][x].images[index]);
-        _imageMap[y][x].images.splice(i, 1);
-        setImageMap(_imageMap);
     }
 
     if (isUsingCanvas) return null;
@@ -187,8 +133,6 @@ export default function Map({ navigation }: MapProps) {
                                         />
                                         {mc.images &&
                                             mc.images.map((image, i) => (
-                                                // TODO: use refs to control content instead
-                                                // of updating array
                                                 <View key={i}>
                                                     <View
                                                         style={{
@@ -327,7 +271,7 @@ export default function Map({ navigation }: MapProps) {
                                                         "tile"
                                                     }
                                                     onChange={() =>
-                                                        handleTypeRadioButton(
+                                                        changeImageType(
                                                             editCoords.x,
                                                             editCoords.y,
                                                             i,
@@ -344,7 +288,7 @@ export default function Map({ navigation }: MapProps) {
                                                         "object"
                                                     }
                                                     onChange={() =>
-                                                        handleTypeRadioButton(
+                                                        changeImageType(
                                                             editCoords.x,
                                                             editCoords.y,
                                                             i,
@@ -391,7 +335,7 @@ export default function Map({ navigation }: MapProps) {
                                                     }
                                                     style={styles.slider}
                                                     onValueChange={(value) =>
-                                                        handleXSliderChange(
+                                                        changeXPosition(
                                                             editCoords.x,
                                                             editCoords.y,
                                                             i,
@@ -432,7 +376,7 @@ export default function Map({ navigation }: MapProps) {
                                                     }
                                                     style={styles.slider}
                                                     onValueChange={(value) =>
-                                                        handleYSliderChange(
+                                                        changeYPosition(
                                                             editCoords.x,
                                                             editCoords.y,
                                                             i,
@@ -451,7 +395,7 @@ export default function Map({ navigation }: MapProps) {
                                                 paddingLeft: 10,
                                             }}
                                             onPress={() =>
-                                                handleRemoveImage(
+                                                removeImage(
                                                     editCoords.x,
                                                     editCoords.y,
                                                     i
@@ -504,7 +448,6 @@ const styles = StyleSheet.create({
         ...theme.shadow.small,
         flexDirection: "row",
         flexWrap: "wrap",
-        // borderWidth: 0.5,
         borderColor: "#757575",
         height: DEFAULT_CANVAS_SIZE * SCALE * MAP_DIMENSIONS,
         width: DEFAULT_CANVAS_SIZE * SCALE * MAP_DIMENSIONS,
