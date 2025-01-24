@@ -1,15 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import EntypoIcons from "react-native-vector-icons/Entypo";
 import FontAwesomeIcons from "react-native-vector-icons/FontAwesome";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { DEFAULT_CANVAS_SIZE, useCanvas } from "../context/canvas_context";
-import {
-    Image,
-    ImageType,
-    CellData,
-    ImageMap,
-} from "@/redux/models/image.model";
+import { Image, CellData } from "@/redux/models/image.model";
 import { LayerPreview } from "@/components/canvas";
 import { cloneDeep } from "lodash";
 import { theme } from "@/app/_theme";
@@ -23,8 +18,7 @@ import { Slider } from "@react-native-assets/slider";
 import PlainModal from "@/components/modal";
 import { ScrollView } from "react-native-gesture-handler";
 import { useDevice } from "../hooks/device";
-import { useLazyGetUserImagesQuery } from "@/redux/image.slice";
-import { useAuth } from "../context/auth_context";
+import { useMaps } from "../context/map_context";
 
 const MAP_DIMENSIONS = 6;
 const SCALE = 3.5;
@@ -32,36 +26,23 @@ const SCALE = 3.5;
 export default function Map({ navigation }: MapProps) {
     const { isMobile, width } = useDevice();
     const { isUsingCanvas } = useCanvas();
-    const [imageMap, setImageMap] = useState<ImageMap[][]>(createImageMap());
-    const [selectedImage, setSelectedImage] = useState<
-        Image<CellData[][]> | undefined
-    >();
+    const {
+        imageMap,
+        selectedImage,
+        setSelectedImage,
+        editCoords,
+        setEditCoords,
+        eraseMap,
+        placeSelectedImage,
+        removeImage,
+        changeXPosition,
+        changeYPosition,
+        changeImageType,
+    } = useMaps();
     const { setMessageModal, setConfirmModal } = useModals();
     const [imagesModalVisible, setImagesModalVisible] = useState(false);
     // indicates that pressing a tile will trigger editing of the contents
     const [editDetailsOn, setEditDetailsOn] = useState(false);
-    const [editCoords, setEditCoords] = useState<
-        { x: number; y: number } | undefined
-    >();
-
-    // create empty image map
-    function createImageMap() {
-        const newMap: ImageMap[][] = [];
-        for (let y = 0; y < MAP_DIMENSIONS; y++) {
-            newMap.push([]);
-            for (let x = 0; x < MAP_DIMENSIONS; x++) {
-                newMap[y].push({
-                    name: "untitled",
-                    images: [],
-                    x: x * DEFAULT_CANVAS_SIZE * SCALE,
-                    y: y * DEFAULT_CANVAS_SIZE * SCALE,
-                    mapX: x,
-                    mapY: y,
-                });
-            }
-        }
-        return newMap;
-    }
 
     // select image to be placed on map
     function handleSelectImage(image: Image<CellData[][]>) {
@@ -80,7 +61,6 @@ export default function Map({ navigation }: MapProps) {
             setMessageModal("Select an image to put on the map", () =>
                 setImagesModalVisible(true)
             );
-
             return;
         }
         // maximum two images per cell
@@ -89,20 +69,7 @@ export default function Map({ navigation }: MapProps) {
             setMessageModal("This area already has two (2) images");
             return;
         }
-        // disregard duplicate images
-        if (
-            coords.images[coords.images.length - 1] &&
-            coords.images[coords.images.length - 1].name === selectedImage.name
-        ) {
-            return;
-        }
-        // set image
-        const image = cloneDeep(selectedImage);
-        image.x = x * DEFAULT_CANVAS_SIZE * SCALE;
-        image.y = y * DEFAULT_CANVAS_SIZE * SCALE;
-        const _imageMap = cloneDeep(imageMap);
-        _imageMap[y][x].images.push(image);
-        setImageMap(_imageMap);
+        placeSelectedImage(x, y);
     }
 
     function handlePressEditDetailsButton() {
@@ -111,51 +78,9 @@ export default function Map({ navigation }: MapProps) {
 
     function handleEraseMap() {
         setConfirmModal("Erase map?", (confirm) => {
-            confirm && setImageMap(createImageMap());
+            confirm && eraseMap();
         });
     }
-
-    function handleTypeRadioButton(
-        x: number,
-        y: number,
-        index: number,
-        assetType: ImageType
-    ) {
-        const _imageMap = cloneDeep(imageMap);
-        _imageMap[y][x].images[index].asset_type = assetType;
-        setImageMap(_imageMap);
-    }
-
-    function handleXSliderChange(
-        x: number,
-        y: number,
-        index: number,
-        value: number
-    ) {
-        const _imageMap = cloneDeep(imageMap);
-        _imageMap[y][x].images[index].x = value;
-        setImageMap(_imageMap);
-    }
-
-    function handleYSliderChange(
-        x: number,
-        y: number,
-        index: number,
-        value: number
-    ) {
-        const _imageMap = cloneDeep(imageMap);
-        _imageMap[y][x].images[index].y = value;
-        setImageMap(_imageMap);
-    }
-
-    function handleRemoveImage(x: number, y: number, index: number) {
-        const _imageMap = cloneDeep(imageMap);
-        const i = _imageMap[y][x].images.indexOf(_imageMap[y][x].images[index]);
-        _imageMap[y][x].images.splice(i, 1);
-        setImageMap(_imageMap);
-    }
-
-    console.log(imageMap);
 
     if (isUsingCanvas) return null;
     return (
@@ -167,7 +92,7 @@ export default function Map({ navigation }: MapProps) {
                     { justifyContent: isMobile ? "flex-end" : "center" },
                 ]}
             >
-                <View style={styles.mapContainer}>
+                <View>
                     <View style={[styles.mapCellContainer]}>
                         {imageMap?.map((row) =>
                             row.map((mc, i) => (
@@ -205,8 +130,6 @@ export default function Map({ navigation }: MapProps) {
                                         />
                                         {mc.images &&
                                             mc.images.map((image, i) => (
-                                                // TODO: use refs to control content instead
-                                                // of updating array
                                                 <View key={i}>
                                                     <View
                                                         style={{
@@ -274,6 +197,7 @@ export default function Map({ navigation }: MapProps) {
                             style={{ color: "#D2042D" }}
                         />
                     </Pressable>
+                    <SaveMapButton />
                 </View>
                 {/* MODALS */}
                 {/* image selection modal*/}
@@ -345,7 +269,7 @@ export default function Map({ navigation }: MapProps) {
                                                         "tile"
                                                     }
                                                     onChange={() =>
-                                                        handleTypeRadioButton(
+                                                        changeImageType(
                                                             editCoords.x,
                                                             editCoords.y,
                                                             i,
@@ -362,7 +286,7 @@ export default function Map({ navigation }: MapProps) {
                                                         "object"
                                                     }
                                                     onChange={() =>
-                                                        handleTypeRadioButton(
+                                                        changeImageType(
                                                             editCoords.x,
                                                             editCoords.y,
                                                             i,
@@ -409,7 +333,7 @@ export default function Map({ navigation }: MapProps) {
                                                     }
                                                     style={styles.slider}
                                                     onValueChange={(value) =>
-                                                        handleXSliderChange(
+                                                        changeXPosition(
                                                             editCoords.x,
                                                             editCoords.y,
                                                             i,
@@ -450,7 +374,7 @@ export default function Map({ navigation }: MapProps) {
                                                     }
                                                     style={styles.slider}
                                                     onValueChange={(value) =>
-                                                        handleYSliderChange(
+                                                        changeYPosition(
                                                             editCoords.x,
                                                             editCoords.y,
                                                             i,
@@ -469,7 +393,7 @@ export default function Map({ navigation }: MapProps) {
                                                 paddingLeft: 10,
                                             }}
                                             onPress={() =>
-                                                handleRemoveImage(
+                                                removeImage(
                                                     editCoords.x,
                                                     editCoords.y,
                                                     i
@@ -494,20 +418,46 @@ export default function Map({ navigation }: MapProps) {
     );
 }
 
+const SaveMapButton = () => {
+    const [modalVisible, setModalVisible] = useState(false);
+    const { saveMap } = useMaps();
+
+    function handleSave() {
+        saveMap("test")
+        setModalVisible(false);
+    }
+
+    return (
+        <>
+            <PlainModal visible={modalVisible} setVisible={setModalVisible}>
+                <Button mode="outlined" uppercase={false} onPress={handleSave}>
+                    <Typography>Save</Typography>
+                </Button>
+            </PlainModal>
+            <Pressable
+                onPress={() => setModalVisible(true)}
+                style={styles.toolButton}
+            >
+                <MaterialCommunityIcons
+                    name="content-save"
+                    size={30}
+                    style={[{ color: "#138007" }]}
+                />
+            </Pressable>
+        </>
+    );
+};
+
 const styles = StyleSheet.create({
     container: {
         alignItems: "center",
         flex: 1,
         backgroundColor: "#FFFFFF",
     },
-    mapContainer: {
-        // backgroundColor: "red",
-    },
     mapCellContainer: {
         ...theme.shadow.small,
         flexDirection: "row",
         flexWrap: "wrap",
-        // borderWidth: 0.5,
         borderColor: "#757575",
         height: DEFAULT_CANVAS_SIZE * SCALE * MAP_DIMENSIONS,
         width: DEFAULT_CANVAS_SIZE * SCALE * MAP_DIMENSIONS,

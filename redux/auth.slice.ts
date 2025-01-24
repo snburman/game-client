@@ -35,25 +35,25 @@ function createClientDataDTO<T>(data: T): ClientDataDTO {
 export const authSlice = api.injectEndpoints({
     endpoints: (build) => ({
         loginUser: build.mutation<AuthResponse, User>({
-            query: (user: User) => ({
+            query: (user) => ({
                 url: "/user/login",
                 method: "POST",
                 body: createClientDataDTO(user),
             }),
         }),
         registerUser: build.mutation<AuthResponse, User>({
-            query: (user: User) => ({
+            query: (user) => ({
                 url: "/user/create",
                 method: "POST",
                 body: createClientDataDTO(user),
             }),
         }),
         getUser: build.query<User, string>({
-            query: (token: string) => ({
+            query: (token) => ({
                 url: `/user`,
                 method: "GET",
                 headers: {
-                    ...AuthToken(token)
+                    ...AuthToken(token),
                 },
             }),
         }),
@@ -61,20 +61,20 @@ export const authSlice = api.injectEndpoints({
             { error: string } | void,
             { user: User; token: string }
         >({
-            query: (arg) => ({
+            query: (args) => ({
                 url: "/user/update",
                 method: "PATCH",
                 headers: {
-                    ...AuthToken(arg.token),
+                    ...AuthToken(args.token),
                 },
-                body: arg.user,
+                body: args.user,
             }),
         }),
         deleteUser: build.mutation<
             { error: string } | { deleted: number },
             string
         >({
-            query: (token: string) => ({
+            query: (token) => ({
                 url: "/user/delete",
                 method: "DELETE",
                 headers: {
@@ -83,7 +83,7 @@ export const authSlice = api.injectEndpoints({
             }),
         }),
         refreshToken: build.mutation<AuthResponse, string>({
-            query: (refreshToken: string) => ({
+            query: (refreshToken) => ({
                 url: "/token/refresh",
                 method: "POST",
                 body: createClientDataDTO(refreshToken),

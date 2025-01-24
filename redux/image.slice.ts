@@ -9,7 +9,7 @@ export enum ImageError {
 export const imageSlice = api.injectEndpoints({
     endpoints: (builder) => ({
         getUserImages: builder.query<Image<CellData[][]>[], string>({
-            query: (token: string) => ({
+            query: (token) => ({
                 url: "/assets/player",
                 method: "GET",
                 headers: {
@@ -21,7 +21,7 @@ export const imageSlice = api.injectEndpoints({
             { inserted_id: string },
             { token: string; image: Image<string> }
         >({
-            query: (args: { token: string; image: Image<string> }) => ({
+            query: (args) => ({
                 url: "/assets/player",
                 method: "POST",
                 headers: {
@@ -34,7 +34,7 @@ export const imageSlice = api.injectEndpoints({
             void,
             { token: string; image: Image<string> }
         >({
-            query: (args: { token: string; image: Image<string> }) => ({
+            query: (args) => ({
                 url: "/assets/player",
                 method: "PATCH",
                 headers: {
@@ -47,7 +47,7 @@ export const imageSlice = api.injectEndpoints({
             { error: string } | { deleted: number },
             { token: string; id: string }
         >({
-            query: (args: { token: string; id: string }) => ({
+            query: (args) => ({
                 url: `/assets/player?id=${args.id}`,
                 method: "DELETE",
                 headers: {
@@ -63,5 +63,5 @@ export const {
     useLazyGetUserImagesQuery,
     usePostImageMutation,
     useUpdateImageMutation,
-    useDeleteImageMutation
+    useDeleteImageMutation,
 } = imageSlice;
