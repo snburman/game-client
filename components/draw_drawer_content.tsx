@@ -21,7 +21,7 @@ export default function DrawDrawerContent({
     const routes: { path: "draw" | "images" | "map"; label: string }[] = [
         { path: "draw", label: "Draw" },
         { path: "images", label: "Images" },
-        { path: "map", label: "Map" },
+        { path: "map", label: "Maps" },
     ];
 
     function handlePress(path: "draw" | "images" | "map") {
