@@ -61,7 +61,7 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
     >();
 
     async function getMaps() {
-        if(!token) return;
+        if (!token) return;
         getUserMaps(token);
     }
 
@@ -181,13 +181,16 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
             if (res.error) {
                 const { data } = res.error as { data: { error: string } };
                 if (data && data.error == MapError.MapExists) {
-                    setConfirmModal(`Overwrite existing map: ${name}?`, (confirm) => {
-                        // TODO: implement update map
-                    })
+                    setConfirmModal(
+                        `Overwrite existing map: ${name}?`,
+                        (confirm) => {
+                            // TODO: implement update map
+                        }
+                    );
                 }
             } else {
                 getMaps();
-                setMessageModal("Map saved successfully")
+                setMessageModal("Map saved successfully");
             }
         });
     }
