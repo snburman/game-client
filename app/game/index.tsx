@@ -12,7 +12,7 @@ export default function Game() {
     const { setMessageModal } = useModals();
 
     const map_id = "6794a98e48815ec0dd9c19d0"
-    const uri = `${API_ENDPOINT}/game/client/${map_id}?token=${token}`;
+    const uri = `${API_ENDPOINT}/game/client/map/${map_id}?token=${token}`;
     return (
         <View style={styles.wrapper}>
             {Platform.OS === "web" ? (
