@@ -75,4 +75,6 @@ export const {
     usePostMapMutation,
     useLazyGetMapByIDQuery,
     useLazyGetUserMapsQuery,
+    useUpdateMapMutation,
+    useDeleteMapMutation,
 } = mapSlice;

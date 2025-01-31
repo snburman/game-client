@@ -16,14 +16,14 @@ export default function Game() {
     return (
         <View style={styles.wrapper}>
             {Platform.OS === "web" ? (
-                <iframe src={uri} style={styles.frame} />
+                <iframe src={uri} style={styles.frame}/>
             ) : (
                 <WebView
                     containerStyle={styles.frame}
                     source={{
                         uri,
                     }}
-                    style={{ flex: 1 }}
+                    style={styles.frame}
                 />
             )}
         </View>
@@ -40,5 +40,6 @@ const styles = StyleSheet.create({
         flex: 1,
         width: '100%',
         borderWidth: 0,
+        overflow: 'hidden',
     }
 });
