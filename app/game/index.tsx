@@ -1,45 +1,64 @@
-import { StyleSheet, View, Platform } from "react-native";
+import { StyleSheet, View, Platform, ScrollView } from "react-native";
 import { WebView } from "react-native-webview";
 import { useAuth } from "../context/auth_context";
-import { useState } from "react";
-import { useModals } from "../context/modal_context";
+import { useEffect, useState } from "react";
 import { API_ENDPOINT } from "@/env";
+import { useLazyGetMessagesQuery } from "@/redux/game.slice";
+import { LoadingSpinner } from "@/components/loading";
+import { useModals } from "../context/modal_context";
 
 export default function Game() {
     const { token } = useAuth();
-    const [connectionID, setConnectionID] = useState<string | undefined>();
-    const [html, setHtml] = useState<string | undefined>();
     const { setMessageModal } = useModals();
+    const [getMessages, messages] = useLazyGetMessagesQuery();
+    const [authenticated, setAuthenticated] = useState(false);
+    const uri = `${API_ENDPOINT}/game/client?token=${token}`;
 
-    const map_id = "6794a98e48815ec0dd9c19d0"
-    const uri = `${API_ENDPOINT}/game/client/map/${map_id}?token=${token}`;
-    return (
-        <View style={styles.wrapper}>
-            {Platform.OS === "web" ? (
-                <iframe src={uri} style={styles.frame}/>
-            ) : (
-                <WebView
-                    containerStyle={styles.frame}
-                    source={{
-                        uri,
-                    }}
-                    style={styles.frame}
-                />
-            )}
-        </View>
-    );
+    useEffect(() => {
+        if (token) {
+            getMessages(token).then((res) => {
+                if (res.error) {
+                    setMessageModal("Error connecting to server");
+                    return;
+                }
+                setAuthenticated(true);
+            });
+        } else {
+            throw new Error("No token found");
+        }
+    }, []);
+
+    if (!authenticated) {
+        return <LoadingSpinner />;
+    }
+
+    if (authenticated)
+        return (
+            <ScrollView contentContainerStyle={styles.wrapper} bounces={false} showsVerticalScrollIndicator={false}>
+                {Platform.OS === "web" ? (
+                    <iframe src={uri} style={styles.frame} scrolling="no"/>
+                ) : (
+                    <WebView
+                        containerStyle={styles.frame}
+                        source={{ uri }}
+                    />
+                )}
+            </ScrollView>
+        );
 }
 
 const styles = StyleSheet.create({
     wrapper: {
-        flex: 1,
+        width: '100%',
+        height: '100%',
         justifyContent: "center",
         alignItems: "center",
+        overflow: "hidden",
     },
     frame: {
-        flex: 1,
-        width: '100%',
+        width: "95%",
+        height: "95%",
         borderWidth: 0,
-        overflow: 'hidden',
-    }
+        overflow: "hidden",
+    },
 });
