@@ -24,7 +24,6 @@ export type CellData = {
 
 
 export type ImageMap = {
-    name: string;
     images: Image<CellData[][]>[];
     x: number;
     y: number;

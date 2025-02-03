@@ -6,19 +6,21 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import { DEFAULT_CANVAS_SIZE, useCanvas } from "../context/canvas_context";
 import { Image, CellData } from "@/redux/models/image.model";
 import { LayerPreview } from "@/components/canvas";
-import { cloneDeep } from "lodash";
+import { cloneDeep, set } from "lodash";
 import { theme } from "@/app/_theme";
 import { useModals } from "../context/modal_context";
 import { ImagesScrollView } from "./images";
 import { DrawerButton } from "@/components/draw_drawer_content";
 import { MapProps } from "../types/navigation";
-import { Button } from "react-native-paper";
+import { Button, RadioButton, TextInput } from "react-native-paper";
 import { Radio, Typography } from "@mui/joy";
 import { Slider } from "@react-native-assets/slider";
 import PlainModal from "@/components/modal";
 import { ScrollView } from "react-native-gesture-handler";
 import { useDevice } from "../hooks/device";
 import { useMaps } from "../context/map_context";
+import { useDeleteMapMutation } from "@/redux/map.slice";
+import { useAuth } from "../context/auth_context";
 
 const MAP_DIMENSIONS = 6;
 const SCALE = 3.5;
@@ -414,25 +416,68 @@ export default function Map({ navigation }: MapProps) {
                     </ScrollView>
                 </View>
             </View>
+            <View style={styles.topToolBar}>
+                <NewMapButton />
+                <LoadMapButton />
+            </View>
         </>
     );
 }
 
 const SaveMapButton = () => {
     const [modalVisible, setModalVisible] = useState(false);
-    const { saveMap } = useMaps();
+    const { saveMap, name, setName, primary, setPrimary } = useMaps();
 
     function handleSave() {
-        saveMap("test")
+        saveMap();
         setModalVisible(false);
     }
 
     return (
         <>
-            <PlainModal visible={modalVisible} setVisible={setModalVisible}>
-                <Button mode="outlined" uppercase={false} onPress={handleSave}>
-                    <Typography>Save</Typography>
-                </Button>
+            <PlainModal
+                visible={modalVisible}
+                setVisible={setModalVisible}
+                style={{ gap: 10 }}
+            >
+                <TextInput
+                    mode="outlined"
+                    label="Map name"
+                    onChangeText={setName}
+                    value={name}
+                    placeholder="Untitled"
+                    style={{ backgroundColor: "white" }}
+                />
+                <Pressable
+                    onPress={() => setPrimary(!primary)}
+                    style={{
+                        flexDirection: "row",
+                        gap: 10,
+                        width: "100%",
+                        justifyContent: "center",
+                    }}
+                >
+                    <Typography>Home map</Typography>
+                    <Radio checked={primary} />
+                </Pressable>
+                <View style={{ flexDirection: "row", gap: 10, marginTop: 10 }}>
+                    <Button
+                        mode="outlined"
+                        uppercase={false}
+                        onPress={handleSave}
+                        style={{ width: 95 }}
+                    >
+                        <Typography>Save</Typography>
+                    </Button>
+                    <Button
+                        mode="outlined"
+                        uppercase={false}
+                        onPress={() => setModalVisible(false)}
+                        style={{ width: 95 }}
+                    >
+                        <Typography>Cancel</Typography>
+                    </Button>
+                </View>
             </PlainModal>
             <Pressable
                 onPress={() => setModalVisible(true)}
@@ -445,6 +490,142 @@ const SaveMapButton = () => {
                 />
             </Pressable>
         </>
+    );
+};
+
+const NewMapButton = () => {
+    const { eraseMap, setName, setPrimary } = useMaps();
+    const { setConfirmModal } = useModals();
+
+    function handlePress() {
+        setConfirmModal("Create new map?", (confirm) => {
+            if (confirm) {
+                eraseMap();
+                setName("");
+                setPrimary(false);
+            }
+        });
+    }
+
+    return (
+        <Pressable onPress={handlePress} style={styles.toolButton}>
+            <MaterialCommunityIcons
+                name="file-plus-outline"
+                size={30}
+                style={{ color: "rgba(0, 0, 0, 0.7)" }}
+            />
+        </Pressable>
+    );
+};
+
+const LoadMapButton = () => {
+    const { token } = useAuth();
+    const { getMaps, loadMap, allMaps, name, setName, eraseMap, setPrimary } =
+        useMaps();
+    const { setPlainModal, setMessageModal, setConfirmModal } = useModals();
+    const [deleteMap] = useDeleteMapMutation();
+
+    function handleDeleteMap(id: string) {
+        if (!token) return;
+        setConfirmModal("Delete map?", (confirm) => {
+            if (confirm) {
+                deleteMap({ token, id }).then((res) => {
+                    if (res.error) {
+                        setMessageModal("Error deleting map");
+                    } else {
+                        setMessageModal("Map deleted successfully", () => {
+                            const deletedMap = allMaps?.find(
+                                (map) => map._id === id
+                            );
+                            if (deletedMap?.name === name) {
+                                eraseMap();
+                                setName("");
+                                setPrimary(false);
+                            }
+                            getMaps();
+                        });
+                    }
+                });
+            }
+            setPlainModal(undefined);
+        });
+    }
+
+    function handlePress() {
+        if (!allMaps) {
+            setMessageModal("No saved maps");
+            return;
+        }
+        setPlainModal(
+            <>
+                <ScrollView style={{ width: 250, maxHeight: 300 }}>
+                    {allMaps?.map((map, i) => (
+                        <View
+                            key={i}
+                            style={{
+                                alignItems: "center",
+                                flexDirection: "row",
+                                paddingRight: 5,
+                                marginBottom: 15,
+                            }}
+                        >
+                            <Typography style={{ flex: 1 }}>
+                                {map.name}
+                            </Typography>
+                            <Pressable
+                                onPress={() => {
+                                    if (!map._id) return;
+                                    loadMap(map._id);
+                                    setName(map.name);
+                                    setPlainModal(undefined);
+                                }}
+                                style={styles.savedEditButton}
+                            >
+                                <MaterialCommunityIcons
+                                    name="folder-open-outline"
+                                    size={20}
+                                    style={{ color: "rgba(0, 0, 0, 0.7)" }}
+                                />
+                            </Pressable>
+                            <Pressable
+                                onPress={() => {
+                                    if (!map._id) return;
+                                    handleDeleteMap(map._id);
+                                }}
+                                style={[
+                                    styles.savedEditButton,
+                                    { marginLeft: 10 },
+                                ]}
+                            >
+                                <MaterialCommunityIcons
+                                    name="delete"
+                                    size={20}
+                                    style={{ color: "#D2042D" }}
+                                />
+                            </Pressable>
+                        </View>
+                    ))}
+                </ScrollView>
+                <Button
+                    mode="outlined"
+                    uppercase={false}
+                    onPress={() => setPlainModal(undefined)}
+                    style={{ marginTop: 10 }}
+                >
+                    <Typography>Close</Typography>
+                </Button>
+            </>
+        );
+    }
+
+    return (
+        <Pressable onPress={handlePress} style={styles.toolButton}>
+            <MaterialCommunityIcons
+                name="folder-open-outline"
+                size={30}
+                style={{ color: "rgba(0, 0, 0, 0.7)" }}
+            />
+        </Pressable>
     );
 };
 
@@ -499,12 +680,13 @@ const styles = StyleSheet.create({
     },
     editorPanel: {
         width: 375,
-        height: 150,
+        height: 140,
     },
     editorPanelContent: {
         height: "100%",
         justifyContent: "center",
-        paddingHorizontal: 5,
+        paddingTop: 2,
+        paddingBottom: 2,
     },
     editDetailsItem: {
         flexDirection: "row",
@@ -538,5 +720,16 @@ const styles = StyleSheet.create({
         paddingLeft: 10,
         width: 100,
         padding: 10,
+    },
+    topToolBar: {
+        position: "absolute",
+        top: 5,
+        right: 5,
+        flexDirection: "row",
+        gap: 10,
+    },
+    savedEditButton: {
+        ...theme.shadow.small,
+        padding: 5,
     },
 });
