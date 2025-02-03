@@ -7,6 +7,8 @@ export enum MapError {
     MapExists = "map_exists",
     MapNotFound = "map_not_found",
     ErrorCreatingMap = "error_creating_map",
+    ErrorUpdatingMap = "error_updating_map",
+    ErrorPrimaryMapExists = "primary_map_exists",
 }
 
 export const mapSlice = api.injectEndpoints({
