@@ -723,8 +723,8 @@ const styles = StyleSheet.create({
     },
     topToolBar: {
         position: "absolute",
-        top: 5,
-        right: 5,
+        top: 7,
+        right: 7,
         flexDirection: "row",
         gap: 10,
     },

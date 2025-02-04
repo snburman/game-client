@@ -187,8 +187,8 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
             // either 0, 56, 112, 168, 224, 280
             const x = image.x / (DEFAULT_CANVAS_SIZE * SCALE);
             const y = image.y / (DEFAULT_CANVAS_SIZE * SCALE);
-            const mapX = x % MAP_DIMENSIONS;
-            const mapY = y % MAP_DIMENSIONS;
+            const mapX = Math.floor(x % MAP_DIMENSIONS);
+            const mapY = Math.floor(y % MAP_DIMENSIONS);
             _imageMap[mapY][mapX].images.push(image);
         });
         setImageMap(_imageMap);
