@@ -86,7 +86,6 @@ export default function ImagesProvider({ children }: React.PropsWithChildren) {
                         `Overwrite existing image: ${name}?`,
                         (confirm) => {
                             if (confirm) {
-                                // update image
                                 updateImage({ token, image }).then((res) => {
                                     if (res.error) {
                                         setMessageModal(

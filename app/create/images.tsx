@@ -124,7 +124,7 @@ export const ImagesScrollView = ({
         <ScrollView style={styles.scrollview}>
             <View style={styles.contentContainer}>
                 <View style={styles.imagesContainer}>
-                    {images?.map((image, index) => (
+                    {images?.map((image: Image<CellData[][]>, index) => (
                         <Pressable key={index} onPress={() => onPress(image)}>
                             <View style={styles.previewContainer}>
                                 <LayerPreview
@@ -146,6 +146,7 @@ export const ImagesScrollView = ({
     );
 };
 
+// TODO: Will be used for saving images as SVG
 export function ImageDataToSVG({ height, width, data }: Image<CellData[][]>) {
     const SCALE = 3.5;
     return (

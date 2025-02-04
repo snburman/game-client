@@ -162,8 +162,8 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     function setEditImage(image: Image<CellData[][]>) {
         setCanvasSize({ ...image });
         const layer: LayerMap = generateLayer({ ...image });
-        for (let x = 0; x < image.width; x++) {
-            for (let y = 0; y < image.height; y++) {
+        for (let y = 0; y < image.width; y++) {
+            for (let x = 0; x < image.height; x++) {
                 layer.set(`${x}-${y}`, image.data[x][y].color);
             }
         }
@@ -277,8 +277,8 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
             if (
                 x < 0 ||
                 y < 0 ||
-                x >= canvasSize.width ||
-                y >= canvasSize.height
+                x >= canvasSize.height ||
+                y >= canvasSize.width
             )
                 continue;
             // if not target color, continue
@@ -289,14 +289,19 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
 
             // update cell
             layer.set(`${x}-${y}`, currentColor);
+            const _cell = cells[selectedLayerIndex][x][y]
+            if(!_cell) {
+                console.log(cells)
+                throw new Error(`Cell ${x}-${y} not found`);
+            }
             cells[selectedLayerIndex][x][y].color = currentColor;
 
             // add adjacent cells
             // west, east, north, south
             if (x > 0) queue.push({ x: x - 1, y });
-            if (x < canvasSize.width - 1) queue.push({ x: x + 1, y });
+            if (x < canvasSize.height - 1) queue.push({ x: x + 1, y });
             if (y > 0) queue.push({ x, y: y - 1 });
-            if (y < canvasSize.height - 1) queue.push({ x, y: y + 1 });
+            if (y < canvasSize.width - 1) queue.push({ x, y: y + 1 });
         }
         if (!isPressed) addLayerHistory();
         setIsPressed(true);

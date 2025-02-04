@@ -8,6 +8,7 @@ import Index from "./index";
 import ModalProvider from "./context/modal_context";
 import ImagesProvider from "./context/images_context";
 import MapsProvider from "./context/map_context";
+import GameProvider from "./context/game_context";
 
 export default function RootLayout() {
     return (
@@ -23,10 +24,13 @@ export default function RootLayout() {
                         <ImagesProvider>
                             {/* maps data */}
                             <MapsProvider>
-                                {/* component theme */}
-                                <PaperProvider theme={theme}>
-                                    <Index />
-                                </PaperProvider>
+                                {/* game data */}
+                                <GameProvider>
+                                    {/* component theme */}
+                                    <PaperProvider theme={theme}>
+                                        <Index />
+                                    </PaperProvider>
+                                </GameProvider>
                             </MapsProvider>
                         </ImagesProvider>
                     </CanvasProvider>
