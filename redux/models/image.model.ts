@@ -1,13 +1,5 @@
-// export type ImageType =
-//     | "tile"
-//     | "object"
-//     | "portal"
-//     | "player_up"
-//     | "player_down"
-//     | "player_left"
-//     | "player_right";
-
 export enum ImageType {
+    Entrance = "entrance",
     Tile = "tile",
     Object = "object",
     Portal = "portal",

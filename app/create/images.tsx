@@ -134,8 +134,11 @@ export const ImagesScrollView = ({
                                 />
                             </View>
                             <View style={styles.detailsContainer}>
-                                <Typography fontSize={16}>
+                                <Typography fontSize={16} fontWeight={500}>
                                     {image.name}
+                                </Typography>
+                                <Typography fontSize={14} fontStyle={"italic"}>
+                                    ({image.asset_type})
                                 </Typography>
                             </View>
                         </Pressable>

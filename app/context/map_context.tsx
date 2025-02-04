@@ -125,6 +125,7 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
     // erases all images from map
     function eraseMap() {
         setImageMap(createImageMap());
+        setEntrance({ x: 0, y: 0 });
     }
 
     // place selected image at given coordinates on map
@@ -190,7 +191,6 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
         _imageMap[y][x].images[index].asset_type = assetType;
         setImageMap(_imageMap);
     }
-
     // load map from cache by ID
     async function loadMap(id: string) {
         const _map = allMaps?.find((m) => m._id === id);
@@ -209,6 +209,9 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
         setImageMap(_imageMap);
         setName(_map.name);
         setPrimary(_map.primary);
+        const entranceX = Math.floor(_map.entrance.x / (DEFAULT_CANVAS_SIZE * SCALE));
+        const entranceY = Math.floor(_map.entrance.y / (DEFAULT_CANVAS_SIZE * SCALE));
+        setEntrance({ x: entranceX, y: entranceY });
     }
 
     // API calls
@@ -224,15 +227,17 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
         });
 
         const _name = name === "" ? DEFAULT_NAME : name;
+        // convert entrance to expected format for wasm
+        const _entrance = {
+            x: entrance.x * DEFAULT_CANVAS_SIZE * SCALE,
+            y: entrance.y * DEFAULT_CANVAS_SIZE * SCALE,
+        }
         const mapDTO: MapDTO<string> = {
             user_id: user._id,
             //TODO: user must select entry point
             name: _name,
             primary: primary,
-            entrance: {
-                x: 0,
-                y: 0,
-            },
+            entrance: _entrance,
             //TODO: user can select portals to other maps
             // of their own or other players
             portals: [],
