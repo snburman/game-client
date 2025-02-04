@@ -1,5 +1,12 @@
-export type ImageType = "tile" | "object" | "portal" | "player_up" | "player_down" | "player_left" | "player_right"
- 
+export type ImageType =
+    | "tile"
+    | "object"
+    | "portal"
+    | "player_up"
+    | "player_down"
+    | "player_left"
+    | "player_right";
+
 export type Image<T> = {
     _id?: string;
     user_id: string;
@@ -10,7 +17,7 @@ export type Image<T> = {
     width: number;
     height: number;
     data: T;
-}
+};
 
 export type CellData = {
     x: number;
@@ -21,7 +28,6 @@ export type CellData = {
     b?: number;
     a?: number;
 };
-
 
 export type ImageMap = {
     images: Image<CellData[][]>[];

@@ -5,7 +5,7 @@ import {
     ImageType,
 } from "@/redux/models/image.model";
 import { createContext, useContext, useEffect, useState } from "react";
-import { DEFAULT_CANVAS_SIZE } from "./canvas_context";
+import { DEFAULT_CANVAS_SIZE, DEFAULT_NAME } from "./canvas_context";
 import { cloneDeep } from "lodash";
 import { useAuth } from "./auth_context";
 import {
@@ -58,22 +58,31 @@ const MapContext = createContext<MapData | undefined>(undefined);
 export default function MapsProvider({ children }: React.PropsWithChildren) {
     const { token, user } = useAuth();
     const { setConfirmModal, setMessageModal } = useModals();
+
+    // API
     const [postMap] = usePostMapMutation();
     const [updateMap] = useUpdateMapMutation();
     const [getUserMaps] = useLazyGetUserMapsQuery();
     const [imageMap, setImageMap] = useState<ImageMap[][]>(createImageMap());
     const [allMaps, setAllMaps] = useState<MapDTO<Image<CellData[][]>[]>[]>();
+
+    // current map values
     const [name, setName] = useState<string>("");
     const [primary, setPrimary] = useState<boolean>(false);
+    //TODO: user must select entrance
+    const [entrance, setEntrace] = useState<{ x: number; y: number }>({
+        x: 0,
+        y: 0,
+    });
 
+    // selected image to place on map
     const [selectedImage, setSelectedImage] = useState<
         Image<CellData[][]> | undefined
     >();
+    // coordinates of current cell being edited
     const [editCoords, setEditCoords] = useState<
         { x: number; y: number } | undefined
     >();
-
-    console.log(allMaps);
 
     useEffect(() => {
         getMaps();
@@ -108,6 +117,7 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
         return newMap;
     }
 
+    // erases all images from map
     function eraseMap() {
         setImageMap(createImageMap());
     }
@@ -208,7 +218,7 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
             });
         });
 
-        const _name = name === "" ? "Untitled" : name;
+        const _name = name === "" ? DEFAULT_NAME : name;
         const mapDTO: MapDTO<string> = {
             user_id: user._id,
             //TODO: user must select entry point
