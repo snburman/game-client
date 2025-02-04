@@ -1,11 +1,21 @@
-export type ImageType =
-    | "tile"
-    | "object"
-    | "portal"
-    | "player_up"
-    | "player_down"
-    | "player_left"
-    | "player_right";
+// export type ImageType =
+//     | "tile"
+//     | "object"
+//     | "portal"
+//     | "player_up"
+//     | "player_down"
+//     | "player_left"
+//     | "player_right";
+
+export enum ImageType {
+    Tile = "tile",
+    Object = "object",
+    Portal = "portal",
+    PlayerUp = "player_up",
+    PlayerDown = "player_down",
+    PlayerLeft = "player_left",
+    PlayerRight = "player_right",
+}
 
 export type Image<T> = {
     _id?: string;

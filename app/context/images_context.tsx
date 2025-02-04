@@ -67,16 +67,16 @@ export default function ImagesProvider({ children }: React.PropsWithChildren) {
             throw new Error("Missing user id");
         }
 
-        let image = {
+        let _image: Partial<Image<string>> = {
             user_id: user._id,
-            name: name,
-            asset_type: iType,
             x: 0,
             y: 0,
             ...canvasSize,
             data: JSON.stringify(_cells),
         };
-        image.asset_type = iType;
+        _image.asset_type = iType;
+        _image.name = name;
+        const image = _image as Image<string>;
 
         await postImage({ token, image }).then((res) => {
             if (res.error) {

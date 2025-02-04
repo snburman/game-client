@@ -4,7 +4,7 @@ import EntypoIcons from "react-native-vector-icons/Entypo";
 import FontAwesomeIcons from "react-native-vector-icons/FontAwesome";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { DEFAULT_CANVAS_SIZE, useCanvas } from "../context/canvas_context";
-import { Image, CellData } from "@/redux/models/image.model";
+import { Image, CellData, ImageType } from "@/redux/models/image.model";
 import { LayerPreview } from "@/components/canvas";
 import { cloneDeep, set } from "lodash";
 import { theme } from "@/app/_theme";
@@ -67,9 +67,30 @@ export default function Map({ navigation }: MapProps) {
         }
         // maximum two images per cell
         const coords = imageMap[y][x];
-        if (coords.images.length === 2) {
+        if (
+            coords.images.length === 2 &&
+            selectedImage.asset_type != ImageType.Portal
+        ) {
             setMessageModal("This area already has two (2) images");
             return;
+        }
+        if (selectedImage.asset_type == ImageType.Portal) {
+            // only one portal per map
+            const portal = coords.images.find(
+                (i) => i.asset_type == ImageType.Portal
+            );
+            if (portal) {
+                setMessageModal("This area already has a portal");
+                return;
+            }
+            // portal cannot share space with an object
+            const object = coords.images.find(
+                (i) => i.asset_type == ImageType.Object
+            );
+            if (object) {
+                setMessageModal("Portals cannot share space with objects");
+                return;
+            }
         }
         placeSelectedImage(x, y);
     }
@@ -268,14 +289,14 @@ export default function Map({ navigation }: MapProps) {
                                                 <Radio
                                                     checked={
                                                         image.asset_type ==
-                                                        "tile"
+                                                        ImageType.Tile
                                                     }
                                                     onChange={() =>
                                                         changeImageType(
                                                             editCoords.x,
                                                             editCoords.y,
                                                             i,
-                                                            "tile"
+                                                            ImageType.Tile
                                                         )
                                                     }
                                                 />
@@ -285,14 +306,14 @@ export default function Map({ navigation }: MapProps) {
                                                 <Radio
                                                     checked={
                                                         image.asset_type ==
-                                                        "object"
+                                                        ImageType.Object
                                                     }
                                                     onChange={() =>
                                                         changeImageType(
                                                             editCoords.x,
                                                             editCoords.y,
                                                             i,
-                                                            "object"
+                                                            ImageType.Object
                                                         )
                                                     }
                                                 />
@@ -445,7 +466,7 @@ const SaveMapButton = () => {
                     label="Map name"
                     onChangeText={setName}
                     value={name}
-                    placeholder="Untitled"
+                    placeholder="untitled"
                     style={{ backgroundColor: "white" }}
                 />
                 <Pressable
