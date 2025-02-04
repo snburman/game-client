@@ -4,7 +4,6 @@ import { CellData, Image, ImageType } from "@/redux/models/image.model";
 import cloneDeep from "lodash/cloneDeep";
 import { isEqual } from "lodash";
 
-// TODO: Update width and height, not fixed square size
 export const DEFAULT_CANVAS_SIZE = 16;
 export const CELL_SIZE = 20;
 export const DEFAULT_COLOR = "#000000";
@@ -70,7 +69,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     });
     const [cellSize, setCellSize] = useState(CELL_SIZE);
     const [name, setName] = useState(DEFAULT_NAME);
-    const [imageType, setImageType] = useState<ImageType>("tile");
+    const [imageType, setImageType] = useState<ImageType>(ImageType.Tile);
 
     //////////////////////////////////////////
     // Canvas State
@@ -155,7 +154,7 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         });
         setCells([_cells]);
         setName(DEFAULT_NAME);
-        setImageType("tile");
+        setImageType(ImageType.Tile);
     }
 
     // replaces canvas with data from image

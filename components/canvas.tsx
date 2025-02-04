@@ -294,18 +294,18 @@ export const SaveButton = () => {
     const [options, setOptions] = useState<
         { label: string; value: ImageType }[]
     >([
-        { label: "Tile", value: "tile" },
-        { label: "Object", value: "object" },
-        { label: "Player Up", value: "player_up" },
-        { label: "Player Down", value: "player_down" },
-        { label: "Player Left", value: "player_left" },
-        { label: "Player Right", value: "player_right" },
+        { label: "Tile", value: ImageType.Tile },
+        { label: "Object", value: ImageType.Object },
+        { label: "Player Up", value: ImageType.PlayerUp },
+        { label: "Player Down", value: ImageType.PlayerDown },
+        { label: "Player Left", value: ImageType.PlayerLeft },
+        { label: "Player Right", value: ImageType.PlayerRight },
     ]);
 
-    function handleSave() {
+    const handleSave = useCallback(() => {
         saveImage(name, imageType);
         setModalVisible(false);
-    }
+    }, [name, imageType]);
 
     return (
         <>

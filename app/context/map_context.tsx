@@ -29,6 +29,11 @@ type MapData = {
     setName: (n: string) => void;
     primary: boolean;
     setPrimary: (p: boolean) => void;
+    entrance: {
+        x: number;
+        y: number;
+    };
+    setEntrance: (e: { x: number; y: number }) => void;
     imageMap: ImageMap[][];
     setImageMap: (i: ImageMap[][]) => void;
     selectedImage: Image<CellData[][]> | undefined;
@@ -70,7 +75,7 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
     const [name, setName] = useState<string>("");
     const [primary, setPrimary] = useState<boolean>(false);
     //TODO: user must select entrance
-    const [entrance, setEntrace] = useState<{ x: number; y: number }>({
+    const [entrance, setEntrance] = useState<{ x: number; y: number }>({
         x: 0,
         y: 0,
     });
@@ -281,6 +286,8 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
         setName,
         primary,
         setPrimary,
+        entrance,
+        setEntrance,
         imageMap,
         setImageMap,
         selectedImage,
