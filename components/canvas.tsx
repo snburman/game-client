@@ -377,7 +377,6 @@ export const SaveButton = () => {
 // Fill button toggles the bucket fill tool
 export const FillButton = () => {
     const { fill, setFill } = useCanvas();
-
     return (
         <Pressable
             onPress={() => setFill(!fill)}

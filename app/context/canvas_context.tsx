@@ -111,21 +111,6 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
         return layer;
     }
 
-    function clearLayer(index: number) {
-        const layer = layers.current[index];
-        if (!layer) {
-            throw new Error(`Layer ${index} not found`);
-        }
-        layers.current[index] = generateLayer(canvasSize);
-        cells[index] = generateCellsFromLayer(
-            layers.current[index],
-            canvasSize
-        );
-        setLayerHistory(cloneDeep([layers.current]));
-        setHistoryIndex(0);
-        setCells([...cells]);
-    }
-
     function generateCellsFromLayer(
         layer: LayerMap,
         d: { width: number; height: number }
@@ -139,6 +124,21 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
             }
         }
         return cells;
+    }
+
+    function clearLayer(index: number) {
+        const layer = layers.current[index];
+        if (!layer) {
+            throw new Error(`Layer ${index} not found`);
+        }
+        layers.current[index] = generateLayer(canvasSize);
+        cells[index] = generateCellsFromLayer(
+            layers.current[index],
+            canvasSize
+        );
+        setLayerHistory(cloneDeep([layers.current]));
+        setHistoryIndex(0);
+        setCells([...cells]);
     }
 
     // sets canvas of provided dimensions with blank cells
@@ -289,10 +289,6 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
             // update cell
             layer.set(`${x}-${y}`, currentColor);
             const _cell = cells[selectedLayerIndex][x][y]
-            if(!_cell) {
-                console.log(cells)
-                throw new Error(`Cell ${x}-${y} not found`);
-            }
             cells[selectedLayerIndex][x][y].color = currentColor;
 
             // add adjacent cells
