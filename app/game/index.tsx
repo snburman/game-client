@@ -1,4 +1,4 @@
-import { StyleSheet, View, Platform, ScrollView } from "react-native";
+import { StyleSheet, Platform, ScrollView } from "react-native";
 import { WebView } from "react-native-webview";
 import { useAuth } from "../context/auth_context";
 import { useEffect, useState } from "react";
@@ -6,9 +6,11 @@ import { API_ENDPOINT } from "@/env";
 import { useLazyGetMessagesQuery } from "@/redux/game.slice";
 import { LoadingSpinner } from "@/components/loading";
 import { useModals } from "../context/modal_context";
+import { useGame } from "../context/game_context";
 
 export default function Game() {
     const { token } = useAuth();
+    const { isPlaying } = useGame();
     const { setMessageModal } = useModals();
     const [getMessages, messages] = useLazyGetMessagesQuery();
     const [authenticated, setAuthenticated] = useState(false);
@@ -27,6 +29,10 @@ export default function Game() {
             throw new Error("No token found");
         }
     }, []);
+
+    if (!isPlaying) {
+        return null;
+    }
 
     if (!authenticated) {
         return <LoadingSpinner />;
