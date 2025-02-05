@@ -1,17 +1,23 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext, useState } from "react";
 
 type GameData = {
-
+    // isPlaying triggers reloading of the game iframe
+    isPlaying: boolean;
+    setIsPlaying: (isPlaying: boolean) => void;
 }
 
 const GameContext = createContext<GameData | undefined>(undefined);
 
 export default function GameProvider({ children }: React.PropsWithChildren) {
-
+    const [isPlaying, setIsPlaying] = useState(false);
     
+    const initialValue = {
+        isPlaying,
+        setIsPlaying
+    };
 
     return (
-        <GameContext.Provider value={undefined}>
+        <GameContext.Provider value={initialValue}>
             {children}
         </GameContext.Provider>
     );
