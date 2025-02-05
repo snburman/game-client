@@ -54,10 +54,11 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         overflow: "hidden",
+        backgroundColor: "#FFF"
     },
     frame: {
-        width: "95%",
-        height: "95%",
+        width: "100%",
+        height: "100%",
         borderWidth: 0,
         overflow: "hidden",
     },
