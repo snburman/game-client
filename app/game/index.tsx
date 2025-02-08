@@ -40,7 +40,7 @@ export default function Game() {
 
     if (authenticated)
         return (
-            <>
+            <View style={{flexDirection: "column", height: "100%"}}>
                 <ScrollView
                     contentContainerStyle={styles.wrapper}
                     bounces={false}
@@ -57,7 +57,7 @@ export default function Game() {
                 </ScrollView>
                 {/* TODO: chat / command toolbar */}
                 <View style={styles.toolPanel}></View>
-            </>
+            </View>
         );
 }
 
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     },
     frame: {
         width: "100%",
-        height: "100%",
+        height: 525,
         borderWidth: 0,
         overflow: "hidden",
     },
@@ -79,7 +79,6 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         width: "100%",
-        height: 77,
-     
+        flex: 1
     },
 });
