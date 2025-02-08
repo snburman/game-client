@@ -40,9 +40,9 @@ export default function Game() {
 
     if (authenticated)
         return (
-            <View style={{flexDirection: "column", height: "100%"}}>
+            <View style={styles.container}>
                 <ScrollView
-                    contentContainerStyle={styles.wrapper}
+                    contentContainerStyle={styles.scrollView}
                     bounces={false}
                     showsVerticalScrollIndicator={false}
                 >
@@ -62,16 +62,23 @@ export default function Game() {
 }
 
 const styles = StyleSheet.create({
-    wrapper: {
-        width: "100%",
+    container: {
+        flexDirection: "column",
         height: "100%",
-        alignItems: "center",
+        justifyContent: "flex-start",
+    },
+    scrollView: {
+        width: "100%",
+        // height: "100%",
+        alignItems: "flex-start",
+        justifyContent: "flex-start",
         overflow: "hidden",
         // backgroundColor: "rgb(175 175 178)",
     },
     frame: {
+        alignSelf: "flex-start",
         width: "100%",
-        height: 575,
+        height: 530,
         borderWidth: 0,
         overflow: "hidden",
     },
@@ -79,6 +86,6 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         width: "100%",
-        flex: 1
+        flex: 1,
     },
 });
