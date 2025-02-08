@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     },
     frame: {
         width: "100%",
-        height: 525,
+        height: 550,
         borderWidth: 0,
         overflow: "hidden",
     },
