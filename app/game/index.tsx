@@ -1,7 +1,7 @@
-import { StyleSheet, Platform, ScrollView } from "react-native";
+import React, { useEffect, useState } from "react";
+import { StyleSheet, Platform, ScrollView, View } from "react-native";
 import { WebView } from "react-native-webview";
 import { useAuth } from "../context/auth_context";
-import { useEffect, useState } from "react";
 import { API_ENDPOINT } from "@/env";
 import { useLazyGetMessagesQuery } from "@/redux/game.slice";
 import { LoadingSpinner } from "@/components/loading";
@@ -40,32 +40,46 @@ export default function Game() {
 
     if (authenticated)
         return (
-            <ScrollView contentContainerStyle={styles.wrapper} bounces={false} showsVerticalScrollIndicator={false}>
-                {Platform.OS === "web" ? (
-                    <iframe src={uri} style={styles.frame} scrolling="no"/>
-                ) : (
-                    <WebView
-                        containerStyle={styles.frame}
-                        source={{ uri }}
-                    />
-                )}
-            </ScrollView>
+            <>
+                <ScrollView
+                    contentContainerStyle={styles.wrapper}
+                    bounces={false}
+                    showsVerticalScrollIndicator={false}
+                >
+                    {Platform.OS === "web" ? (
+                        <iframe src={uri} style={styles.frame} scrolling="no" />
+                    ) : (
+                        <WebView
+                            containerStyle={styles.frame}
+                            source={{ uri }}
+                        />
+                    )}
+                </ScrollView>
+                {/* TODO: chat / command toolbar */}
+                <View style={styles.toolPanel}></View>
+            </>
         );
 }
 
 const styles = StyleSheet.create({
     wrapper: {
-        width: '100%',
-        height: '100%',
-        justifyContent: "center",
+        width: "100%",
+        height: "100%",
         alignItems: "center",
         overflow: "hidden",
-        backgroundColor: "#FFF"
+        // backgroundColor: "rgb(175 175 178)",
     },
     frame: {
         width: "100%",
         height: "100%",
         borderWidth: 0,
         overflow: "hidden",
+    },
+    toolPanel: {
+        justifyContent: "center",
+        alignItems: "center",
+        width: "100%",
+        height: 77,
+     
     },
 });

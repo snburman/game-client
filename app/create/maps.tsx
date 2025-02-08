@@ -65,13 +65,6 @@ export default function Map({ navigation }: MapProps) {
 
     // place selected image at given coordinates on map
     function handlePressTile(x: number, y: number) {
-        if (containsEntrance(x, y) && editEntranceOn) {
-            if (selectedImage?.asset_type == ImageType.Object) {
-                setMessageModal("Cannot place object on entrance");
-                return;
-            }
-        }
-        // if editing entrance, set entrance coordinates
         if (editEntranceOn) {
             if (containsObject(x, y)) {
                 setMessageModal("Cannot place entrance on object");
@@ -81,6 +74,13 @@ export default function Map({ navigation }: MapProps) {
             setEditEntranceOn(false);
             return;
         }
+        if (!editDetailsOn && containsEntrance(x, y)) {
+            if (selectedImage?.asset_type == ImageType.Object) {
+                setMessageModal("Cannot place object on entrance");
+                return;
+            }
+        }
+        // if editing entrance, set entrance coordinates
         // if editing details, return after setting edit coords
         setEditCoords({ x, y });
         if (editDetailsOn) return;
@@ -127,6 +127,7 @@ export default function Map({ navigation }: MapProps) {
     }
 
     function containsObject(x: number, y: number) {
+        console.log(imageMap[y][x].images);
         return imageMap[y][x].images.some(
             (image) => image.asset_type == ImageType.Object
         );
