@@ -70,22 +70,23 @@ const styles = StyleSheet.create({
     scrollView: {
         width: "100%",
         height: "100%",
-        alignItems: "flex-start",
-        justifyContent: "flex-start",
+        alignItems: "center",
+        justifyContent: "center",
         overflow: "hidden",
-        // backgroundColor: "rgb(175 175 178)",
+        backgroundColor: "rgbrgb(0 0 0)"
     },
     frame: {
-        alignSelf: "flex-start",
-        width: "100%",
-        height: 555,
-        borderWidth: 0,
+        alignSelf: "center",
+        width: "95%",
+        height: 500,
         overflow: "hidden",
+        borderWidth: 0,
+        borderRadius: 6,
     },
     toolPanel: {
         justifyContent: "center",
         alignItems: "center",
         width: "100%",
-        height: 80,
+        height: 90,
     },
 });
