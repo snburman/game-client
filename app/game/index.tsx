@@ -73,20 +73,19 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         overflow: "hidden",
-        backgroundColor: "rgbrgb(0 0 0)"
+        backgroundColor: "rgb(0 0 0)"
     },
     frame: {
         alignSelf: "center",
         width: "95%",
         height: 500,
-        overflow: "hidden",
         borderWidth: 0,
-        borderRadius: 6,
+        overflow: "hidden",
     },
     toolPanel: {
         justifyContent: "center",
         alignItems: "center",
         width: "100%",
-        height: 90,
+        height: 85,
     },
 });
