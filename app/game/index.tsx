@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     frame: {
         alignSelf: "flex-start",
         width: "100%",
-        height: 550,
+        height: 555,
         borderWidth: 0,
         overflow: "hidden",
     },
