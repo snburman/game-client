@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     },
     scrollView: {
         width: "100%",
-        // height: "100%",
+        height: "100%",
         alignItems: "flex-start",
         justifyContent: "flex-start",
         overflow: "hidden",
@@ -86,6 +86,6 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         width: "100%",
-        flex: 1,
+        height: 80,
     },
 });
