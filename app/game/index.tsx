@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { StyleSheet, Platform, ScrollView, View } from "react-native";
 import { WebView } from "react-native-webview";
 import { useAuth } from "../context/auth_context";
 import { API_ENDPOINT } from "@/env";
-import { useLazyGetMessagesQuery } from "@/redux/game.slice";
-import { LoadingSpinner } from "@/components/loading";
 import { useModals } from "../context/modal_context";
 import { useGame } from "../context/game_context";
 import { useMaps } from "../context/map_context";
@@ -35,12 +33,13 @@ export default function Game({ navigation }: GameProps) {
     // }, []);
 
     useEffect(() => {
+        if(!isPlaying) return;
         token &&
             getMaps(token).then((res) => {
                 if (res.error) {
                     setMessageModal("Error connecting to server");
                     return;
-                } else if (res.data?.length === 0) {
+                } else if (!res.data || res.data?.length === 0) {
                     setMessageModal("Create a map to start playing", () => {
                         setIsPlaying(false);
                         navigation.navigate("create");
@@ -88,16 +87,15 @@ const styles = StyleSheet.create({
         backgroundColor: "rgb(0 0 0)",
     },
     frame: {
-        alignSelf: "center",
         width: "95%",
-        height: 500,
+        height: "100%",
         borderWidth: 0,
         overflow: "hidden",
     },
     toolPanel: {
         justifyContent: "center",
         alignItems: "center",
-        width: "100%",
-        height: 85,
+        // width: "100%",
+        // height: 85,
     },
 });

@@ -51,9 +51,9 @@ const styles = StyleSheet.create({
     container: {
         backgroundColor: "#FFFFFF",
         flex: 1,
-        justifyContent: "center",
+        justifyContent: "flex-start",
         alignItems: "center",
-        paddingTop: 40,
+        paddingTop: 80,
     },
     toolContainer: {
         display: "flex",
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     },
     newCanvasButton: {
         position: "absolute",
-        top: 15,
-        right: 15,
+        top: 10,
+        right: 10,
     },
 });
