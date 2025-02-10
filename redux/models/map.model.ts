@@ -1,6 +1,7 @@
 export type MapDTO<T> = {
     _id?: string;
     user_id: string;
+    username: string;
     name: string;
     primary: boolean;
     // main entry point of player on map

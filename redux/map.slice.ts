@@ -13,6 +13,15 @@ export enum MapError {
 
 export const mapSlice = api.injectEndpoints({
     endpoints: (builder) => ({
+        getAllMaps: builder.query<MapDTO<Image<CellData[][]>[]>, string>({
+            query: (token) => ({
+                url: "/maps",
+                method: "GET",
+                headers: {
+                    ...AuthToken(token),
+                },
+            }),
+        }),
         getMapByID: builder.query<
             MapDTO<Image<CellData[][]>[]>,
             { token: string; id: string }
@@ -74,9 +83,10 @@ export const mapSlice = api.injectEndpoints({
 });
 
 export const {
-    usePostMapMutation,
+    useLazyGetAllMapsQuery,
     useLazyGetMapByIDQuery,
     useLazyGetUserMapsQuery,
+    usePostMapMutation,
     useUpdateMapMutation,
     useDeleteMapMutation,
 } = mapSlice;

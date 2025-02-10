@@ -4,17 +4,24 @@ import {
     ImageMap,
     ImageType,
 } from "@/redux/models/image.model";
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+    createContext,
+    SetStateAction,
+    useContext,
+    useEffect,
+    useState,
+} from "react";
 import { DEFAULT_CANVAS_SIZE, DEFAULT_NAME } from "./canvas_context";
-import { cloneDeep } from "lodash";
+import { cloneDeep, get, set } from "lodash";
 import { useAuth } from "./auth_context";
 import {
     MapError,
+    useLazyGetAllMapsQuery,
     useLazyGetUserMapsQuery,
     usePostMapMutation,
     useUpdateMapMutation,
 } from "@/redux/map.slice";
-import { MapDTO } from "@/redux/models/map.model";
+import { MapDTO, MapPortal } from "@/redux/models/map.model";
 import { useModals } from "./modal_context";
 
 const MAP_DIMENSIONS = 6;
@@ -22,9 +29,12 @@ const SCALE = 3.5;
 
 type MapData = {
     getMaps(): Promise<void>;
-    loadMap: (id: string) => Promise<void>;
+    loadMap: (m: MapDTO<Image<CellData[][]>[]>) => Promise<void>;
     saveMap(): Promise<void>;
     allMaps: MapDTO<Image<CellData[][]>[]>[] | undefined;
+    portalMaps: MapDTO<Image<CellData[][]>[]>[] | undefined;
+    portals: MapPortal[] | undefined;
+    setPortals: React.Dispatch<SetStateAction<MapPortal[] | undefined>>;
     name: string;
     setName: (n: string) => void;
     primary: boolean;
@@ -68,17 +78,21 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
     const [postMap] = usePostMapMutation();
     const [updateMap] = useUpdateMapMutation();
     const [getUserMaps] = useLazyGetUserMapsQuery();
+    const [getPortalMaps] = useLazyGetAllMapsQuery();
+    // map values
     const [imageMap, setImageMap] = useState<ImageMap[][]>(createImageMap());
     const [allMaps, setAllMaps] = useState<MapDTO<Image<CellData[][]>[]>[]>();
+    const [portalMaps, setPortalMaps] =
+        useState<MapDTO<Image<CellData[][]>[]>[]>();
 
     // current map values
     const [name, setName] = useState<string>("");
     const [primary, setPrimary] = useState<boolean>(false);
-    //TODO: user must select entrance
     const [entrance, setEntrance] = useState<{ x: number; y: number }>({
         x: 0,
         y: 0,
     });
+    const [portals, setPortals] = useState<MapPortal[]>();
 
     // selected image to place on map
     const [selectedImage, setSelectedImage] = useState<
@@ -89,7 +103,7 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
         { x: number; y: number } | undefined
     >();
 
-    // fetch user maps on login
+    // fetch maps on login
     useEffect(() => {
         token && getMaps();
     }, [token]);
@@ -101,6 +115,16 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
                 setMessageModal("Error retrieving maps");
             } else {
                 setAllMaps(res.data);
+                getPortalMaps(token).then((res) => {
+                    if (res.error) {
+                        setMessageModal("Error retrieving portal maps");
+                    } else {
+                        const data = res.data as SetStateAction<
+                            MapDTO<Image<CellData[][]>[]>[] | undefined
+                        >;
+                        setPortalMaps(data);
+                    }
+                });
             }
         });
     }
@@ -127,6 +151,7 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
     function eraseMap() {
         setImageMap(createImageMap());
         setEntrance({ x: 0, y: 0 });
+        setPortals([]);
     }
 
     // place selected image at given coordinates on map
@@ -192,10 +217,9 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
         _imageMap[y][x].images[index].asset_type = assetType;
         setImageMap(_imageMap);
     }
-    // load map from cache by ID
-    async function loadMap(id: string) {
-        const _map = allMaps?.find((m) => m._id === id);
-        if (!_map) return;
+
+    // loads map into imageMap
+    async function loadMap(_map: MapDTO<Image<CellData[][]>[]>) {
         const _imageMap = createImageMap();
         const images = cloneDeep(_map.data);
         images.forEach((image) => {
@@ -210,8 +234,24 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
         setImageMap(_imageMap);
         setName(_map.name);
         setPrimary(_map.primary);
-        const entranceX = Math.floor(_map.entrance.x / (DEFAULT_CANVAS_SIZE * SCALE));
-        const entranceY = Math.floor(_map.entrance.y / (DEFAULT_CANVAS_SIZE * SCALE));
+
+        // convert portals to expected format for map area
+        const _portals = _map.portals.map((p) => {
+            return {
+                map_id: p.map_id,
+                x: Math.floor(p.x / (DEFAULT_CANVAS_SIZE * SCALE)),
+                y: Math.floor(p.y / (DEFAULT_CANVAS_SIZE * SCALE)),
+            };
+        })
+        setPortals(_portals);
+        
+        // convert entrance to expected format for map area
+        const entranceX = Math.floor(
+            _map.entrance.x / (DEFAULT_CANVAS_SIZE * SCALE)
+        );
+        const entranceY = Math.floor(
+            _map.entrance.y / (DEFAULT_CANVAS_SIZE * SCALE)
+        );
         setEntrance({ x: entranceX, y: entranceY });
     }
 
@@ -228,22 +268,32 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
         });
 
         const _name = name === "" ? DEFAULT_NAME : name;
+
         // convert entrance to expected format for wasm
         const _entrance = {
             x: entrance.x * DEFAULT_CANVAS_SIZE * SCALE,
             y: entrance.y * DEFAULT_CANVAS_SIZE * SCALE,
-        }
+        };
+
+        // convert portals to expected format for wasm
+        const _portals = !portals ? [] : portals.map((p) => {
+            return {
+                map_id: p.map_id,
+                x: p.x * DEFAULT_CANVAS_SIZE * SCALE,
+                y: p.y * DEFAULT_CANVAS_SIZE * SCALE,
+            };
+        })
+
         const mapDTO: MapDTO<string> = {
             user_id: user._id,
-            //TODO: user must select entry point
+            username: user.username || "",
             name: _name,
             primary: primary,
             entrance: _entrance,
-            //TODO: user can select portals to other maps
-            // of their own or other players
-            portals: [],
+            portals: _portals,
             data: JSON.stringify(images),
         };
+        console.log(mapDTO);
 
         await postMap({ token, map: mapDTO }).then((res) => {
             if (res.error) {
@@ -286,6 +336,9 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
     const initialValue: MapData = {
         getMaps,
         allMaps,
+        portalMaps,
+        portals,
+        setPortals,
         loadMap,
         saveMap,
         name,

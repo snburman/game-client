@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Modal, Pressable, StyleSheet, View } from "react-native";
 import EntypoIcons from "react-native-vector-icons/Entypo";
 import FontAwesomeIcons from "react-native-vector-icons/FontAwesome";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
@@ -21,6 +21,7 @@ import { useDevice } from "../hooks/device";
 import { useMaps } from "../context/map_context";
 import { useDeleteMapMutation } from "@/redux/map.slice";
 import { useAuth } from "../context/auth_context";
+import { MapPortal } from "@/redux/models/map.model";
 
 const MAP_DIMENSIONS = 6;
 const SCALE = 3.5;
@@ -34,6 +35,8 @@ export default function Map({ navigation }: MapProps) {
         setSelectedImage,
         entrance,
         setEntrance,
+        portals,
+        setPortals,
         editCoords,
         setEditCoords,
         eraseMap,
@@ -48,6 +51,10 @@ export default function Map({ navigation }: MapProps) {
     // indicates that pressing a tile will trigger editing of the contents
     const [editDetailsOn, setEditDetailsOn] = useState(false);
     const [editEntranceOn, setEditEntranceOn] = useState(false);
+    // portal
+    const [selectedPortal, setSelectedPortal] = useState<
+        MapPortal | undefined
+    >();
 
     // select image to be placed on map
     function handleSelectImage(image: Image<CellData[][]>) {
@@ -65,6 +72,25 @@ export default function Map({ navigation }: MapProps) {
 
     // place selected image at given coordinates on map
     function handlePressTile(x: number, y: number) {
+        if (selectedPortal) {
+            const existingPortal = portals?.find(
+                (portal) => portal.x == x && portal.y == y
+            );
+            if (existingPortal) {
+                setMessageModal("Portal already exists in this area");
+                return;
+            }
+            if (portals?.length == 4) {
+                setMessageModal("Maximum of 4 portals allowed");
+                return;
+            }
+            setPortals([
+                ...(portals || []),
+                { ...selectedPortal, x, y},
+            ]);
+            setSelectedPortal(undefined);
+            return;
+        }
         if (editEntranceOn) {
             if (containsObject(x, y)) {
                 setMessageModal("Cannot place entrance on object");
@@ -103,6 +129,7 @@ export default function Map({ navigation }: MapProps) {
 
     function handlePressEditDetailsButton() {
         setEditDetailsOn(!editDetailsOn);
+        setSelectedPortal(undefined);
         setEditEntranceOn(false);
     }
 
@@ -117,6 +144,7 @@ export default function Map({ navigation }: MapProps) {
         if (!editEntranceOn) {
             setMessageModal("Select an entrance location");
         }
+        setSelectedPortal(undefined);
         setEditDetailsOn(false);
         setEditEntranceOn(!editEntranceOn);
     }
@@ -140,7 +168,10 @@ export default function Map({ navigation }: MapProps) {
             <View
                 style={[
                     styles.container,
-                    { justifyContent: isMobile ? "flex-end" : "center" },
+                    {
+                        justifyContent: isMobile ? "flex-start" : "center",
+                        paddingTop: isMobile ? 70 : 0,
+                    },
                 ]}
             >
                 <View>
@@ -181,7 +212,7 @@ export default function Map({ navigation }: MapProps) {
                                         />
                                         <View
                                             style={[
-                                                styles.entranceHighlight,
+                                                styles.floatingIcon,
                                                 !(
                                                     mc.mapX == entrance?.x &&
                                                     mc.mapY == entrance.y
@@ -192,8 +223,31 @@ export default function Map({ navigation }: MapProps) {
                                             <MaterialCommunityIcons
                                                 name="door"
                                                 size={45}
+                                                color="#800000"
                                             />
                                         </View>
+                                        {portals &&
+                                            portals.map((portal, i) => (
+                                                <View
+                                                    key={"portal" + i}
+                                                    style={[
+                                                        styles.floatingIcon,
+                                                        !(
+                                                            mc.mapX ==
+                                                                portal.x &&
+                                                            mc.mapY == portal.y
+                                                        ) && {
+                                                            display: "none",
+                                                        },
+                                                    ]}
+                                                >
+                                                    <MaterialCommunityIcons
+                                                        name="run"
+                                                        size={45}
+                                                        color="#BD008B"
+                                                    />
+                                                </View>
+                                            ))}
                                         {mc.images &&
                                             mc.images.map((image, i) => (
                                                 <View key={i}>
@@ -228,6 +282,7 @@ export default function Map({ navigation }: MapProps) {
                             { backgroundColor: "#DDDDDD" },
                         ]}
                         onPress={() => {
+                            setSelectedPortal(undefined);
                             setEditDetailsOn(false);
                             setEditCoords(undefined);
                             setEditEntranceOn(false);
@@ -264,7 +319,6 @@ export default function Map({ navigation }: MapProps) {
                             style={{ color: "#D2042D" }}
                         />
                     </Pressable>
-                    <SaveMapButton />
                     {/* entrance button */}
                     <Pressable
                         onPress={handleSelectEntranceButton}
@@ -277,8 +331,14 @@ export default function Map({ navigation }: MapProps) {
                             },
                         ]}
                     >
-                        <MaterialCommunityIcons name="door" size={30} />
+                        <MaterialCommunityIcons
+                            name="door"
+                            size={30}
+                            color="#800000"
+                        />
                     </Pressable>
+                    {/* portal button */}
+                    <PortalButton setSelectedPortal={setSelectedPortal} />
                 </View>
                 {/* MODALS */}
                 {/* image selection modal*/}
@@ -505,6 +565,7 @@ export default function Map({ navigation }: MapProps) {
                 </View>
             </View>
             <View style={styles.topToolBar}>
+                <SaveMapButton />
                 <NewMapButton />
                 <LoadMapButton />
             </View>
@@ -523,10 +584,10 @@ const SaveMapButton = () => {
 
     // set map as primary if no primary map exists
     useEffect(() => {
-        if(!allMaps?.some((map) => map.primary)) {
-           setPrimary(true); 
+        if (!allMaps?.some((map) => map.primary)) {
+            setPrimary(true);
         }
-    }, [allMaps])
+    }, [allMaps]);
 
     return (
         <>
@@ -607,7 +668,7 @@ const NewMapButton = () => {
             <MaterialCommunityIcons
                 name="file-plus-outline"
                 size={30}
-                style={{ color: "rgba(0, 0, 0, 0.7)" }}
+                style={{ color: "rgb(1 95 163)" }}
             />
         </Pressable>
     );
@@ -670,8 +731,7 @@ const LoadMapButton = () => {
                             <Pressable
                                 onPress={() => {
                                     if (!map._id) return;
-                                    loadMap(map._id);
-                                    setName(map.name);
+                                    loadMap(map);
                                     setPlainModal(undefined);
                                 }}
                                 style={styles.savedEditButton}
@@ -679,7 +739,7 @@ const LoadMapButton = () => {
                                 <MaterialCommunityIcons
                                     name="folder-open-outline"
                                     size={20}
-                                    style={{ color: "rgba(0, 0, 0, 0.7)" }}
+                                    style={{ color: "rgb(204 184 3)" }}
                                 />
                             </Pressable>
                             <Pressable
@@ -718,15 +778,70 @@ const LoadMapButton = () => {
             <MaterialCommunityIcons
                 name="folder-open-outline"
                 size={30}
-                style={{ color: "rgba(0, 0, 0, 0.7)" }}
+                style={{ color: "rgb(204 184 3)" }}
             />
         </Pressable>
+    );
+};
+
+const PortalButton = (props: {
+    setSelectedPortal: (p: MapPortal | undefined) => void;
+}) => {
+    const { setSelectedPortal } = props;
+    const { portalMaps } = useMaps();
+    const { setPlainModal } = useModals();
+    console.log(portalMaps);
+
+    function handleOpen() {
+        setPlainModal(
+            <>
+                <View>
+                    {portalMaps?.map((_map, i) => (
+                        <Pressable
+                            key={i}
+                            onPress={() => {
+                                if (!_map._id) return;
+                                setSelectedPortal({
+                                    map_id: _map._id,
+                                    x: 0,
+                                    y: 0,
+                                });
+                                setPlainModal(undefined);
+                            }}
+                            style={styles.portalItem}
+                        >
+                            <View>
+                                <Typography>{_map.name}</Typography>
+                                <Typography>{_map.username}</Typography>
+                            </View>
+                        </Pressable>
+                    ))}
+                </View>
+                <Button
+                    mode="outlined"
+                    uppercase={false}
+                    onPress={() => setPlainModal(undefined)}
+                    style={{ marginTop: 10 }}
+                >
+                    <Typography>Close</Typography>
+                </Button>
+            </>
+        );
+    }
+
+    return (
+        <>
+            <Pressable onPress={handleOpen} style={styles.toolButton}>
+                <MaterialCommunityIcons name="run" size={30} color="#BD008B" />
+            </Pressable>
+        </>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
         alignItems: "center",
+        justifyContent: "flex-start",
         flex: 1,
         backgroundColor: "#FFFFFF",
     },
@@ -747,8 +862,8 @@ const styles = StyleSheet.create({
         height: DEFAULT_CANVAS_SIZE * SCALE,
         backgroundColor: "rgba(0,195,255, 0.5)",
     },
-    entranceHighlight: {
-        zIndex: 150,
+    floatingIcon: {
+        zIndex: 200,
         position: "absolute",
         top: 0,
         left: 0,
@@ -835,6 +950,10 @@ const styles = StyleSheet.create({
     },
     savedEditButton: {
         ...theme.shadow.small,
+        padding: 5,
+    },
+    portalItem: {
+        flexDirection: "row",
         padding: 5,
     },
 });
