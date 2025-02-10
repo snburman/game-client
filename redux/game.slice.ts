@@ -13,29 +13,30 @@ export const gameSlice = api.injectEndpoints({
                     data: [],
                 };
             },
-            async onCacheEntryAdded(
-                token,
-                { updateCachedData, cacheDataLoaded, cacheEntryRemoved }
-            ) {
-                const ws = new WebSocket(
-                    WS_ENDPOINT + `/game/client/connect?token=${token}`
-                );
-                try {
-                    await cacheDataLoaded;
+            // FIXME: refactor websocket connection
+            // async onCacheEntryAdded(
+            //     token,
+            //     { updateCachedData, cacheDataLoaded, cacheEntryRemoved }
+            // ) {
+            //     const ws = new WebSocket(
+            //         WS_ENDPOINT + `/game/client/connect?token=${token}`
+            //     );
+            //     try {
+            //         await cacheDataLoaded;
 
-                    const listener = (event: MessageEvent) => {
-                        const data = JSON.parse(event.data);
-                        updateCachedData((draft) => {
-                            draft.pop();
-                            draft.push(data);
-                        });
-                    };
-                    ws.addEventListener("message", listener);
-                } catch {}
+            //         const listener = (event: MessageEvent) => {
+            //             const data = JSON.parse(event.data);
+            //             updateCachedData((draft) => {
+            //                 draft.pop();
+            //                 draft.push(data);
+            //             });
+            //         };
+            //         ws.addEventListener("message", listener);
+            //     } catch {}
 
-                await cacheEntryRemoved;
-                ws.close();
-            },
+            //     await cacheEntryRemoved;
+            //     ws.close();
+            // },
         }),
     }),
 });
