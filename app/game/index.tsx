@@ -7,12 +7,17 @@ import { useLazyGetMessagesQuery } from "@/redux/game.slice";
 import { LoadingSpinner } from "@/components/loading";
 import { useModals } from "../context/modal_context";
 import { useGame } from "../context/game_context";
+import { useMaps } from "../context/map_context";
+import { GameProps } from "../types/navigation";
+import { useLazyGetUserMapsQuery } from "@/redux/map.slice";
 
-export default function Game() {
+export default function Game({ navigation }: GameProps) {
     const { token } = useAuth();
     const { isPlaying } = useGame();
     const { setMessageModal } = useModals();
-    const [getMessages, messages] = useLazyGetMessagesQuery();
+    const { allMaps } = useMaps();
+    const [getMaps] = useLazyGetUserMapsQuery();
+    const [getMessages] = useLazyGetMessagesQuery();
     const [authenticated, setAuthenticated] = useState(false);
     const uri = `${API_ENDPOINT}/game/client?token=${token}`;
 
@@ -29,6 +34,22 @@ export default function Game() {
             throw new Error("No token found");
         }
     }, []);
+
+    useEffect(() => {
+        console.log("isPlaying", isPlaying);
+        token &&
+            getMaps(token).then((res) => {
+                if (res.error) {
+                    setMessageModal("Error connecting to server");
+                    return;
+                } else if (res.data?.length === 0) {
+                    setMessageModal("Create a map to start playing", () =>
+                        navigation.navigate("create")
+                    );
+                    return;
+                }
+            });
+    }, [isPlaying, allMaps]);
 
     if (!isPlaying) {
         return null;
@@ -73,7 +94,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         overflow: "hidden",
-        backgroundColor: "rgb(0 0 0)"
+        backgroundColor: "rgb(0 0 0)",
     },
     frame: {
         alignSelf: "center",

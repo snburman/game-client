@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import EntypoIcons from "react-native-vector-icons/Entypo";
 import FontAwesomeIcons from "react-native-vector-icons/FontAwesome";
@@ -51,7 +51,7 @@ export default function Map({ navigation }: MapProps) {
 
     // select image to be placed on map
     function handleSelectImage(image: Image<CellData[][]>) {
-        if(![ImageType.Object, ImageType.Tile].includes(image.asset_type)) {
+        if (![ImageType.Object, ImageType.Tile].includes(image.asset_type)) {
             setMessageModal("Please select a tile or object", () => {
                 setImagesModalVisible(true);
             });
@@ -114,8 +114,8 @@ export default function Map({ navigation }: MapProps) {
 
     // toggle entrance selection
     function handleSelectEntranceButton() {
-        if(!editEntranceOn) {
-            setMessageModal("Select an entrance location")
+        if (!editEntranceOn) {
+            setMessageModal("Select an entrance location");
         }
         setEditDetailsOn(false);
         setEditEntranceOn(!editEntranceOn);
@@ -328,193 +328,177 @@ export default function Map({ navigation }: MapProps) {
                         {editCoords &&
                             imageMap[editCoords.y][editCoords.x].images.map(
                                 (image, i) => (
+                                    <View
+                                        key={i}
+                                        style={styles.editDetailsItem}
+                                    >
+                                        <View style={styles.editDetailsIcon}>
+                                            <LayerPreview
+                                                {...image}
+                                                cellSize={SCALE}
+                                            />
+                                        </View>
                                         <View
-                                            key={i}
-                                            style={styles.editDetailsItem}
+                                            style={{
+                                                justifyContent: "center",
+                                            }}
                                         >
-                                            <View
-                                                style={styles.editDetailsIcon}
-                                            >
-                                                <LayerPreview
-                                                    {...image}
-                                                    cellSize={SCALE}
+                                            <View style={styles.rowContainer}>
+                                                <Radio
+                                                    checked={
+                                                        image.asset_type ==
+                                                        ImageType.Tile
+                                                    }
+                                                    onChange={() =>
+                                                        changeImageType(
+                                                            editCoords.x,
+                                                            editCoords.y,
+                                                            i,
+                                                            ImageType.Tile
+                                                        )
+                                                    }
                                                 />
+                                                <Typography>Tile</Typography>
                                             </View>
-                                            <View
-                                                style={{
-                                                    justifyContent: "center",
-                                                }}
-                                            >
+                                            {!containsEntrance(
+                                                editCoords.x,
+                                                editCoords.y
+                                            ) && (
                                                 <View
                                                     style={styles.rowContainer}
                                                 >
                                                     <Radio
                                                         checked={
                                                             image.asset_type ==
-                                                            ImageType.Tile
+                                                            ImageType.Object
                                                         }
                                                         onChange={() =>
                                                             changeImageType(
                                                                 editCoords.x,
                                                                 editCoords.y,
                                                                 i,
-                                                                ImageType.Tile
+                                                                ImageType.Object
                                                             )
                                                         }
                                                     />
                                                     <Typography>
-                                                        Tile
+                                                        Object
                                                     </Typography>
                                                 </View>
-                                                {!containsEntrance(
-                                                    editCoords.x,
-                                                    editCoords.y
-                                                ) && (
-                                                    <View
-                                                        style={
-                                                            styles.rowContainer
-                                                        }
-                                                    >
-                                                        <Radio
-                                                            checked={
-                                                                image.asset_type ==
-                                                                ImageType.Object
-                                                            }
-                                                            onChange={() =>
-                                                                changeImageType(
-                                                                    editCoords.x,
-                                                                    editCoords.y,
-                                                                    i,
-                                                                    ImageType.Object
-                                                                )
-                                                            }
-                                                        />
-                                                        <Typography>
-                                                            Object
-                                                        </Typography>
-                                                    </View>
-                                                )}
+                                            )}
+                                        </View>
+                                        <View
+                                            style={{
+                                                justifyContent: "center",
+                                                alignItems: "center",
+                                            }}
+                                        >
+                                            <View
+                                                style={[
+                                                    styles.rowContainer,
+                                                    {
+                                                        opacity:
+                                                            image.width ==
+                                                            DEFAULT_CANVAS_SIZE
+                                                                ? 0.3
+                                                                : 1,
+                                                    },
+                                                ]}
+                                            >
+                                                <Slider
+                                                    value={image.x}
+                                                    step={1}
+                                                    minimumValue={
+                                                        editCoords.x *
+                                                        (DEFAULT_CANVAS_SIZE *
+                                                            SCALE)
+                                                    }
+                                                    maximumValue={
+                                                        editCoords.x *
+                                                            (DEFAULT_CANVAS_SIZE *
+                                                                SCALE) +
+                                                        DEFAULT_CANVAS_SIZE *
+                                                            SCALE -
+                                                        image.width * SCALE
+                                                    }
+                                                    style={styles.slider}
+                                                    onValueChange={(value) =>
+                                                        changeXPosition(
+                                                            editCoords.x,
+                                                            editCoords.y,
+                                                            i,
+                                                            value
+                                                        )
+                                                    }
+                                                    thumbTintColor={"#019B0B"}
+                                                />
+                                                <Typography>X</Typography>
                                             </View>
                                             <View
-                                                style={{
-                                                    justifyContent: "center",
-                                                    alignItems: "center",
-                                                }}
+                                                style={[
+                                                    styles.rowContainer,
+                                                    {
+                                                        opacity:
+                                                            image.width ==
+                                                            DEFAULT_CANVAS_SIZE
+                                                                ? 0.3
+                                                                : 1,
+                                                    },
+                                                ]}
                                             >
-                                                <View
-                                                    style={[
-                                                        styles.rowContainer,
-                                                        {
-                                                            opacity:
-                                                                image.width ==
-                                                                DEFAULT_CANVAS_SIZE
-                                                                    ? 0.3
-                                                                    : 1,
-                                                        },
-                                                    ]}
-                                                >
-                                                    <Slider
-                                                        value={image.x}
-                                                        step={1}
-                                                        minimumValue={
-                                                            editCoords.x *
+                                                <Slider
+                                                    value={image.y}
+                                                    step={1}
+                                                    minimumValue={
+                                                        editCoords.y *
+                                                        (DEFAULT_CANVAS_SIZE *
+                                                            SCALE)
+                                                    }
+                                                    maximumValue={
+                                                        editCoords.y *
                                                             (DEFAULT_CANVAS_SIZE *
-                                                                SCALE)
-                                                        }
-                                                        maximumValue={
-                                                            editCoords.x *
-                                                                (DEFAULT_CANVAS_SIZE *
-                                                                    SCALE) +
-                                                            DEFAULT_CANVAS_SIZE *
-                                                                SCALE -
-                                                            image.width * SCALE
-                                                        }
-                                                        style={styles.slider}
-                                                        onValueChange={(
+                                                                SCALE) +
+                                                        DEFAULT_CANVAS_SIZE *
+                                                            SCALE -
+                                                        image.height * SCALE
+                                                    }
+                                                    style={styles.slider}
+                                                    onValueChange={(value) =>
+                                                        changeYPosition(
+                                                            editCoords.x,
+                                                            editCoords.y,
+                                                            i,
                                                             value
-                                                        ) =>
-                                                            changeXPosition(
-                                                                editCoords.x,
-                                                                editCoords.y,
-                                                                i,
-                                                                value
-                                                            )
-                                                        }
-                                                        thumbTintColor={
-                                                            "#019B0B"
-                                                        }
-                                                    />
-                                                    <Typography>X</Typography>
-                                                </View>
-                                                <View
-                                                    style={[
-                                                        styles.rowContainer,
-                                                        {
-                                                            opacity:
-                                                                image.width ==
-                                                                DEFAULT_CANVAS_SIZE
-                                                                    ? 0.3
-                                                                    : 1,
-                                                        },
-                                                    ]}
-                                                >
-                                                    <Slider
-                                                        value={image.y}
-                                                        step={1}
-                                                        minimumValue={
-                                                            editCoords.y *
-                                                            (DEFAULT_CANVAS_SIZE *
-                                                                SCALE)
-                                                        }
-                                                        maximumValue={
-                                                            editCoords.y *
-                                                                (DEFAULT_CANVAS_SIZE *
-                                                                    SCALE) +
-                                                            DEFAULT_CANVAS_SIZE *
-                                                                SCALE -
-                                                            image.height * SCALE
-                                                        }
-                                                        style={styles.slider}
-                                                        onValueChange={(
-                                                            value
-                                                        ) =>
-                                                            changeYPosition(
-                                                                editCoords.x,
-                                                                editCoords.y,
-                                                                i,
-                                                                value
-                                                            )
-                                                        }
-                                                        thumbTintColor={
-                                                            "#019B0B"
-                                                        }
-                                                    />
-                                                    <Typography>Y</Typography>
-                                                </View>
-                                            </View>
-                                            <Pressable
-                                                style={{
-                                                    justifyContent: "center",
-                                                    alignItems: "center",
-                                                    paddingLeft: 10,
-                                                }}
-                                                onPress={() =>
-                                                    removeImage(
-                                                        editCoords.x,
-                                                        editCoords.y,
-                                                        i
-                                                    )
-                                                }
-                                            >
-                                                <MaterialCommunityIcons
-                                                    name="delete"
-                                                    style={{
-                                                        color: "#D2042D",
-                                                        fontSize: 30,
-                                                    }}
+                                                        )
+                                                    }
+                                                    thumbTintColor={"#019B0B"}
                                                 />
-                                            </Pressable>
+                                                <Typography>Y</Typography>
+                                            </View>
                                         </View>
+                                        <Pressable
+                                            style={{
+                                                justifyContent: "center",
+                                                alignItems: "center",
+                                                paddingLeft: 10,
+                                            }}
+                                            onPress={() =>
+                                                removeImage(
+                                                    editCoords.x,
+                                                    editCoords.y,
+                                                    i
+                                                )
+                                            }
+                                        >
+                                            <MaterialCommunityIcons
+                                                name="delete"
+                                                style={{
+                                                    color: "#D2042D",
+                                                    fontSize: 30,
+                                                }}
+                                            />
+                                        </Pressable>
+                                    </View>
                                 )
                             )}
                     </ScrollView>
@@ -530,12 +514,19 @@ export default function Map({ navigation }: MapProps) {
 
 const SaveMapButton = () => {
     const [modalVisible, setModalVisible] = useState(false);
-    const { saveMap, name, setName, primary, setPrimary } = useMaps();
+    const { allMaps, saveMap, name, setName, primary, setPrimary } = useMaps();
 
     function handleSave() {
         saveMap();
         setModalVisible(false);
     }
+
+    // set map as primary if no primary map exists
+    useEffect(() => {
+        if(!allMaps?.some((map) => map.primary)) {
+           setPrimary(true); 
+        }
+    }, [allMaps])
 
     return (
         <>

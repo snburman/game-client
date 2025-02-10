@@ -89,8 +89,9 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
         { x: number; y: number } | undefined
     >();
 
+    // fetch user maps on login
     useEffect(() => {
-        getMaps();
+        token && getMaps();
     }, [token]);
 
     async function getMaps() {
