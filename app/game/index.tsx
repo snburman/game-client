@@ -13,39 +13,38 @@ import { useLazyGetUserMapsQuery } from "@/redux/map.slice";
 
 export default function Game({ navigation }: GameProps) {
     const { token } = useAuth();
-    const { isPlaying } = useGame();
+    const { isPlaying, setIsPlaying } = useGame();
     const { setMessageModal } = useModals();
     const { allMaps } = useMaps();
     const [getMaps] = useLazyGetUserMapsQuery();
-    const [getMessages] = useLazyGetMessagesQuery();
-    const [authenticated, setAuthenticated] = useState(false);
     const uri = `${API_ENDPOINT}/game/client?token=${token}`;
 
-    useEffect(() => {
-        if (token) {
-            getMessages(token).then((res) => {
-                if (res.error) {
-                    setMessageModal("Error connecting to server");
-                    return;
-                }
-                setAuthenticated(true);
-            });
-        } else {
-            throw new Error("No token found");
-        }
-    }, []);
+    // FIXME: refactor websocket connection
+    // useEffect(() => {
+    //     if (token) {
+    //         getMessages(token).then((res) => {
+    //             if (res.error) {
+    //                 setMessageModal("Error connecting to server");
+    //                 return;
+    //             }
+    //             setAuthenticated(true);
+    //         });
+    //     } else {
+    //         throw new Error("No token found");
+    //     }
+    // }, []);
 
     useEffect(() => {
-        console.log("isPlaying", isPlaying);
         token &&
             getMaps(token).then((res) => {
                 if (res.error) {
                     setMessageModal("Error connecting to server");
                     return;
                 } else if (res.data?.length === 0) {
-                    setMessageModal("Create a map to start playing", () =>
-                        navigation.navigate("create")
-                    );
+                    setMessageModal("Create a map to start playing", () => {
+                        setIsPlaying(false);
+                        navigation.navigate("create");
+                    });
                     return;
                 }
             });
@@ -55,31 +54,23 @@ export default function Game({ navigation }: GameProps) {
         return null;
     }
 
-    if (!authenticated) {
-        return <LoadingSpinner />;
-    }
-
-    if (authenticated)
-        return (
-            <View style={styles.container}>
-                <ScrollView
-                    contentContainerStyle={styles.scrollView}
-                    bounces={false}
-                    showsVerticalScrollIndicator={false}
-                >
-                    {Platform.OS === "web" ? (
-                        <iframe src={uri} style={styles.frame} scrolling="no" />
-                    ) : (
-                        <WebView
-                            containerStyle={styles.frame}
-                            source={{ uri }}
-                        />
-                    )}
-                </ScrollView>
-                {/* TODO: chat / command toolbar */}
-                <View style={styles.toolPanel}></View>
-            </View>
-        );
+    return (
+        <View style={styles.container}>
+            <ScrollView
+                contentContainerStyle={styles.scrollView}
+                bounces={false}
+                showsVerticalScrollIndicator={false}
+            >
+                {Platform.OS === "web" ? (
+                    <iframe src={uri} style={styles.frame} scrolling="no" />
+                ) : (
+                    <WebView containerStyle={styles.frame} source={{ uri }} />
+                )}
+            </ScrollView>
+            {/* TODO: chat / command toolbar */}
+            <View style={styles.toolPanel}></View>
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
