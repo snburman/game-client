@@ -124,7 +124,7 @@ export default function Login() {
                 <TextInput
                     label="Username"
                     value={username}
-                    onChangeText={(username) => setUsername(username)}
+                    onChangeText={(username) => setUsername(username.toLowerCase())}
                     mode="outlined"
                     style={styles.input}
                 />

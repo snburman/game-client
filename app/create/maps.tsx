@@ -21,7 +21,8 @@ import { useDevice } from "../hooks/device";
 import { useMaps } from "../context/map_context";
 import { useDeleteMapMutation } from "@/redux/map.slice";
 import { useAuth } from "../context/auth_context";
-import { MapPortal } from "@/redux/models/map.model";
+import { MapDTO, MapPortal } from "@/redux/models/map.model";
+import { LoadingSpinner } from "@/components/loading";
 
 const MAP_DIMENSIONS = 6;
 const SCALE = 3.5;
@@ -73,27 +74,29 @@ export default function Map({ navigation }: MapProps) {
     // place selected image at given coordinates on map
     function handlePressTile(x: number, y: number) {
         if (selectedPortal) {
-            const existingPortal = portals?.find(
-                (portal) => portal.x == x && portal.y == y
-            );
-            if (existingPortal) {
+            if (containsPortal(x, y)) {
                 setMessageModal("Portal already exists in this area");
+                return;
+            }
+            if (containsEntrance(x, y)) {
+                setMessageModal("Cannot place portal on entrance");
                 return;
             }
             if (portals?.length == 4) {
                 setMessageModal("Maximum of 4 portals allowed");
                 return;
             }
-            setPortals([
-                ...(portals || []),
-                { ...selectedPortal, x, y},
-            ]);
+            setPortals([...(portals || []), { ...selectedPortal, x, y }]);
             setSelectedPortal(undefined);
             return;
         }
         if (editEntranceOn) {
             if (containsObject(x, y)) {
                 setMessageModal("Cannot place entrance on object");
+                return;
+            }
+            if (containsPortal(x, y)) {
+                setMessageModal("Cannot place entrance on portal");
                 return;
             }
             setEntrance({ x, y });
@@ -159,6 +162,11 @@ export default function Map({ navigation }: MapProps) {
         return imageMap[y][x].images.some(
             (image) => image.asset_type == ImageType.Object
         );
+    }
+
+    // check if cell contains portal
+    function containsPortal(x: number, y: number) {
+        return portals?.find((portal) => portal.x == x && portal.y == y);
     }
 
     if (isUsingCanvas) return null;
@@ -720,13 +728,28 @@ const LoadMapButton = () => {
                             key={i}
                             style={{
                                 alignItems: "center",
+                                justifyContent: "center",
                                 flexDirection: "row",
                                 paddingRight: 5,
                                 marginBottom: 15,
                             }}
                         >
-                            <Typography style={{ flex: 1 }}>
+                            <Typography
+                                style={{
+                                    flex: 1,
+                                }}
+                            >
                                 {map.name}
+                                {map.primary && (
+                                    <MaterialCommunityIcons
+                                        name="home"
+                                        size={20}
+                                        style={{
+                                            color: "#138007",
+                                            marginLeft: 10,
+                                        }}
+                                    />
+                                )}
                             </Typography>
                             <Pressable
                                 onPress={() => {
@@ -784,56 +807,317 @@ const LoadMapButton = () => {
     );
 };
 
-const PortalButton = (props: {
+const PortalButton = ({
+    setSelectedPortal,
+}: {
     setSelectedPortal: (p: MapPortal | undefined) => void;
 }) => {
-    const { setSelectedPortal } = props;
-    const { portalMaps } = useMaps();
     const { setPlainModal } = useModals();
-    console.log(portalMaps);
+    const { portalMaps, portals, setPortals } = useMaps();
 
-    function handleOpen() {
+    const [portalSelectionVisible, setPortalSelectionVisible] = useState(false);
+    const [portalEditVisible, setPortalEditVisible] = useState(false);
+    const [portalMapsFilitered, setPortalMapsFiltered] = useState<
+        MapDTO<Image<CellData[][]>[]>[] | undefined
+    >();
+    const [portalQuery, setPortalQuery] = useState("");
+
+    useEffect(() => {
+        setPortalMapsFiltered(portalMaps);
+    }, [portalMaps]);
+
+    function handleSearchQuery(query: string) {
+        console.log(query);
+        if (!portalMaps) return;
+        setPortalQuery(query);
+        const filteredMaps = portalMaps.filter(
+            (map) =>
+                map.name.toLowerCase().includes(query.toLowerCase()) ||
+                map.username.toLowerCase().includes(query.toLowerCase())
+        );
+        setPortalMapsFiltered(filteredMaps);
+    }
+
+    function handlePreview(map: MapDTO<Image<CellData[][]>[]>) {
         setPlainModal(
             <>
-                <View>
-                    {portalMaps?.map((_map, i) => (
-                        <Pressable
-                            key={i}
-                            onPress={() => {
-                                if (!_map._id) return;
-                                setSelectedPortal({
-                                    map_id: _map._id,
-                                    x: 0,
-                                    y: 0,
-                                });
-                                setPlainModal(undefined);
-                            }}
-                            style={styles.portalItem}
-                        >
-                            <View>
-                                <Typography>{_map.name}</Typography>
-                                <Typography>{_map.username}</Typography>
-                            </View>
-                        </Pressable>
-                    ))}
+                <MapPreview map={map} />
+                <View style={{ flexDirection: "row", gap: 10 }}>
+                    <Button
+                        mode="outlined"
+                        uppercase={false}
+                        onPress={() => handleSelectPortal(map)}
+                        style={{ marginTop: 10 }}
+                    >
+                        <Typography>Select</Typography>
+                    </Button>
+                    <Button
+                        mode="outlined"
+                        uppercase={false}
+                        onPress={() => setPlainModal(undefined)}
+                        style={{ marginTop: 10 }}
+                    >
+                        <Typography>Close</Typography>
+                    </Button>
                 </View>
-                <Button
-                    mode="outlined"
-                    uppercase={false}
-                    onPress={() => setPlainModal(undefined)}
-                    style={{ marginTop: 10 }}
-                >
-                    <Typography>Close</Typography>
-                </Button>
             </>
         );
     }
 
+    function handleEditPortals() {
+        if (!portals || portals.length == 0) {
+            setPortalSelectionVisible(true);
+            return;
+        }
+        setPortalEditVisible(true);
+    }
+
+    function handleAddPortal() {
+        setPortalSelectionVisible(true);
+        setPortalEditVisible(false);
+    }
+
+    function handleSelectPortal(map: MapDTO<Image<CellData[][]>[]>) {
+        setSelectedPortal({ map_id: map._id!, x: 0, y: 0 });
+        setPortalSelectionVisible(false);
+        setPlainModal(undefined);
+    }
+
     return (
         <>
-            <Pressable onPress={handleOpen} style={styles.toolButton}>
+            {/* portal edit modal*/}
+            <PlainModal
+                visible={portalEditVisible}
+                setVisible={setPortalEditVisible}
+            >
+                <View style={{ width: 250, alignItems: "center" }}>
+                    <Typography
+                        style={{
+                            fontWeight: "bold",
+                            alignSelf: "center",
+                            marginBottom: 15,
+                        }}
+                    >
+                        Portals
+                    </Typography>
+                    {portals?.map((portal, i) => (
+                        <View
+                            key={i}
+                            style={{
+                                flexDirection: "row",
+                                gap: 15,
+                                alignItems: "center",
+                                width: "100%",
+                            }}
+                        >
+                            <View style={{ flex: 1, flexDirection: "row" }}>
+                                <Typography fontWeight={"bold"}>
+                                    {/* map name */}
+                                    {
+                                        portalMaps?.find(
+                                            (p) => p._id === portal.map_id
+                                        )?.name
+                                    }
+                                </Typography>
+                            </View>
+                            <View style={{ flex: 1, flexDirection: "row" }}>
+                                <Typography>
+                                    {/* portal coordinates */}
+                                    X: {portal.x + 1}, Y: {portal.y + 1}
+                                </Typography>
+                            </View>
+                            <View style={{ flex: 1, flexDirection: "row" }}>
+                                {/* preview portal map button */}
+                                <Pressable
+                                    onPress={() => {
+                                        handlePreview(
+                                            portalMaps?.find(
+                                                (p) => p._id === portal.map_id
+                                            )!
+                                        );
+                                    }}
+                                    style={{ padding: 10 }}
+                                >
+                                    <MaterialCommunityIcons
+                                        name="eye"
+                                        size={20}
+                                        color="#BD008B"
+                                    />
+                                </Pressable>
+                                {/* delete portal button */}
+                                <Pressable
+                                    onPress={() => {
+                                        setPortals(
+                                            portals.filter(
+                                                (_, index) => index !== i
+                                            )
+                                        );
+                                        if (portals.length == 1) {
+                                            setPortalEditVisible(false);
+                                        }
+                                    }}
+                                    style={{ padding: 10 }}
+                                >
+                                    <MaterialCommunityIcons
+                                        name="delete"
+                                        size={20}
+                                        color="#D2042D"
+                                    />
+                                </Pressable>
+                            </View>
+                        </View>
+                    ))}
+                </View>
+                {/* add portal button */}
+                <Button
+                    mode="outlined"
+                    uppercase={false}
+                    onPress={handleAddPortal}
+                    style={{ marginTop: 15 }}
+                >
+                    <Typography>Add Portal</Typography>
+                </Button>
+            </PlainModal>
+            {/* portal selection modal */}
+            <PlainModal
+                visible={portalSelectionVisible}
+                setVisible={setPortalSelectionVisible}
+            >
+                <View>
+                    <View style={{ height: 140 }}>
+                        <Typography
+                            style={{ alignSelf: "center", fontWeight: "bold" }}
+                        >
+                            Portal Maps
+                        </Typography>
+                        <TextInput
+                            label="Search by name / username"
+                            value={portalQuery}
+                            onChangeText={(query) => handleSearchQuery(query)}
+                            mode="outlined"
+                            style={styles.portalSearchInput}
+                            right={<TextInput.Icon icon={"magnify"} />}
+                        />
+                        <View style={styles.portalRow}>
+                            <View style={styles.portalColumn}>
+                                <Typography fontWeight={"bold"}>
+                                    Name
+                                </Typography>
+                            </View>
+                            <View style={styles.portalColumn}>
+                                <Typography fontWeight={"bold"}>
+                                    Username
+                                </Typography>
+                            </View>
+                            <View style={styles.portalColumn} />
+                        </View>
+                    </View>
+                    <ScrollView
+                        contentContainerStyle={{
+                            height: 300,
+                            // justifyContent: "center",
+                            alignItems: "center",
+                            paddingRight: 10,
+                        }}
+                    >
+                        {!portalMapsFilitered && <LoadingSpinner />}
+                        {portalMapsFilitered?.map((_map, i) => (
+                            <View style={styles.portalRow} key={i}>
+                                <View style={styles.portalColumn}>
+                                    <Typography>{_map.name}</Typography>
+                                </View>
+                                <View style={styles.portalColumn}>
+                                    <Typography>{_map.username}</Typography>
+                                </View>
+                                <View
+                                    style={[
+                                        styles.portalColumn,
+                                        { flexDirection: "row", gap: 10 },
+                                    ]}
+                                >
+                                    <Pressable
+                                        onPress={() => handlePreview(_map)}
+                                        style={{ padding: 10 }}
+                                    >
+                                        <MaterialCommunityIcons
+                                            name="eye"
+                                            size={20}
+                                            color="#BD008B"
+                                        />
+                                    </Pressable>
+                                    <Pressable
+                                        onPress={() => handleSelectPortal(_map)}
+                                        style={{ padding: 10 }}
+                                    >
+                                        <MaterialCommunityIcons
+                                            name="folder-open-outline"
+                                            size={20}
+                                            color="rgb(204 184 3)"
+                                        />
+                                    </Pressable>
+                                </View>
+                            </View>
+                        ))}
+                    </ScrollView>
+                </View>
+                <Button
+                    mode="outlined"
+                    uppercase={false}
+                    onPress={() => setPortalSelectionVisible(false)}
+                    style={{ marginTop: 10 }}
+                >
+                    <Typography>Close</Typography>
+                </Button>
+            </PlainModal>
+
+            {/* portal button */}
+            <Pressable onPress={handleEditPortals} style={styles.toolButton}>
                 <MaterialCommunityIcons name="run" size={30} color="#BD008B" />
             </Pressable>
+        </>
+    );
+};
+
+const MapPreview = ({ map }: { map: MapDTO<Image<CellData[][]>[]> }) => {
+    const map_scale = 3;
+    return (
+        <>
+            <Typography fontWeight={"bold"}>Map Preview</Typography>
+            <View style={{ flexDirection: "row", gap: 20, marginBottom: 10 }}>
+                <Typography>Name: {map.name}</Typography>
+                <Typography>Username: {map.username}</Typography>
+            </View>
+            <View
+                style={{
+                    width: DEFAULT_CANVAS_SIZE * map_scale * MAP_DIMENSIONS,
+                    height: DEFAULT_CANVAS_SIZE * map_scale * MAP_DIMENSIONS,
+                    flexWrap: "wrap",
+                    flexDirection: "row",
+                }}
+            >
+                {map.data.map((row, i) => (
+                    <View
+                        key={i}
+                        style={{
+                            position: "absolute",
+                            top:
+                                row.y == 0
+                                    ? 0
+                                    : row.y /
+                                      ((DEFAULT_CANVAS_SIZE * SCALE) /
+                                          (DEFAULT_CANVAS_SIZE * map_scale)),
+                            left:
+                                row.x == 0
+                                    ? 0
+                                    : row.x /
+                                      ((DEFAULT_CANVAS_SIZE * SCALE) /
+                                          (DEFAULT_CANVAS_SIZE * map_scale)),
+                        }}
+                    >
+                        <LayerPreview key={i} {...row} cellSize={map_scale} />
+                    </View>
+                ))}
+            </View>
         </>
     );
 };
@@ -952,8 +1236,20 @@ const styles = StyleSheet.create({
         ...theme.shadow.small,
         padding: 5,
     },
-    portalItem: {
+    portalRow: {
         flexDirection: "row",
         padding: 5,
+        width: 300,
+    },
+    portalColumn: {
+        flex: 1,
+        flexDirection: "column",
+        justifyContent: "center",
+        padding: 5,
+    },
+    portalSearchInput: {
+        backgroundColor: "#FFFFFF",
+        marginTop: 10,
+        width: "100%",
     },
 });
