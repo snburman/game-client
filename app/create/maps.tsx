@@ -178,7 +178,7 @@ export default function Map({ navigation }: MapProps) {
             <View
                 style={[
                     styles.container,
-                    {
+                    { 
                         justifyContent: isMobile ? "flex-start" : "center",
                         paddingTop: isMobile || isIpadLandscape ? 70 : 0,
                     },
