@@ -15,16 +15,14 @@ export type HomeStackProps = NativeStackScreenProps<RootStackParamList>;
 
 // Tabs
 export type HomeTabsParamList = {
-    index: undefined;
+    home: undefined;
     create: undefined;
     game: undefined;
     settings: undefined;
-    images: undefined;
-    map: undefined;
 };
 
 export type HomeTabsProps = NavigatorScreenParams<HomeTabsParamList>;
-export type IndexProps = BottomTabScreenProps<HomeTabsParamList, "index">;
+export type HomeProps = BottomTabScreenProps<HomeTabsParamList, "home">;
 export type CreateProps = BottomTabScreenProps<HomeTabsParamList, "create">;
 export type GameProps = BottomTabScreenProps<HomeTabsParamList, "game">;
 export type SettingsProps = BottomTabScreenProps<HomeTabsParamList, "settings">;

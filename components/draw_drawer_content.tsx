@@ -12,16 +12,17 @@ import {
     ViewStyle,
 } from "react-native";
 import IonIcons from "react-native-vector-icons/Ionicons";
+import EntypoIcons from "react-native-vector-icons/Entypo";
 
 export default function DrawDrawerContent({
     navigation,
 }: DrawerContentComponentProps) {
     const { setIsUsingCanvas } = useCanvas();
 
-    const routes: { path: "draw" | "images" | "map"; label: string }[] = [
-        { path: "draw", label: "Draw" },
-        { path: "images", label: "Images" },
-        { path: "map", label: "Maps" },
+    const routes: { path: "draw" | "images" | "map"; label: string, icon: string }[] = [
+        { path: "draw", label: "Draw", icon: "pencil" },
+        { path: "images", label: "Images", icon: "image" },
+        { path: "map", label: "Maps", icon: "map" },
     ];
 
     function handlePress(path: "draw" | "images" | "map") {
@@ -42,7 +43,8 @@ export default function DrawDrawerContent({
                     style={styles.menuButton}
                     key={i}
                 >
-                    <Typography fontSize={16}>{route.label}</Typography>
+                    <EntypoIcons name={route.icon} style={styles.icon} />
+                    <Typography style={styles.routeLabel}>{route.label}</Typography>
                 </Pressable>
             ))}
         </View>
@@ -71,6 +73,7 @@ const styles = StyleSheet.create({
         paddingTop: 15,
     },
     menuButton: {
+        flexDirection: "row",
         padding: 15,
         paddingLeft: 20,
     },
@@ -84,5 +87,13 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         borderBottomRightRadius: 6,
         zIndex: 100,
+    },
+    routeLabel: {
+        ...theme.typography.fonts.PixelifySans,
+        fontSize: 18,
+    },
+    icon: {
+        fontSize: 20,
+        marginRight: 15,
     },
 });

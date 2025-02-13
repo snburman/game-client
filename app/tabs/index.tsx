@@ -4,6 +4,7 @@ import { HomeTabsParamList } from "../types/navigation";
 import Create from "../create";
 import Game from "../game";
 import Settings from "../settings";
+import Home from "../home";
 
 export default function Tabs() {
     const Tabs = createBottomTabNavigator<HomeTabsParamList>();
@@ -16,6 +17,11 @@ export default function Tabs() {
                 tabBarStyle: { display: "none" },
             }}
         >
+            <Tabs.Screen
+                name="home"
+                component={Home}
+                options={{ title: "Home" }}
+            />
             <Tabs.Screen
                 name="create"
                 component={Create}

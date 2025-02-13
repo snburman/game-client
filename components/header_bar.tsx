@@ -5,12 +5,13 @@ import FeatherIcons from "react-native-vector-icons/Feather";
 import EntypoIcons from "react-native-vector-icons/Entypo";
 import { Typography } from "@mui/joy";
 import { useGame } from "@/app/context/game_context";
+import { theme } from "@/app/_theme";
 
 export default function HeaderBar({ navigation }: BottomTabHeaderProps) {
     const { user } = useAuth();
     const { setIsPlaying } = useGame();
 
-    function handleNavigation(route: string) {
+    function handleNavigation(route: "home" | "create" | "game" | "settings") {
         setIsPlaying(route === "game");
         navigation.navigate(route);
     }
@@ -20,9 +21,9 @@ export default function HeaderBar({ navigation }: BottomTabHeaderProps) {
             <View style={styles.menuButtonContainer}>
                 <Pressable
                     onPress={() => handleNavigation("home")}
-                    style={styles.menuButton}
+                    style={[styles.menuButton, { paddingVertical: 6, paddingHorizontal: 10 }]}
                 >
-                    <EntypoIcons name="home" style={styles.icon} />
+                    <Typography style={styles.logo}>BC</Typography>
                 </Pressable>
                 <Pressable
                     onPress={() => handleNavigation("create")}
@@ -41,7 +42,7 @@ export default function HeaderBar({ navigation }: BottomTabHeaderProps) {
                 style={styles.profileContainer}
                 onPress={() => handleNavigation("settings")}
             >
-                <Typography style={styles.userName} fontSize={16}>
+                <Typography style={styles.userName}>
                     {user?.username}
                 </Typography>
                 <FeatherIcons name="user" size={18} color={"#FFFFFF"} />
@@ -83,7 +84,17 @@ const styles = StyleSheet.create({
         marginRight: 20,
         cursor: "pointer",
     },
+    logo: {
+        ...theme.typography.fonts.PixelifySans,
+        fontSize: 20,
+        color: "#0E0E0E",
+        padding: 0,
+        margin: 0,
+        borderRadius: 100,
+    },
     userName: {
+        ...theme.typography.fonts.PixelifySans,
+        fontSize: 20,
         marginRight: 5,
         color: "#FFFFFF",
     },

@@ -178,7 +178,7 @@ export default function Map({ navigation }: MapProps) {
             <View
                 style={[
                     styles.container,
-                    { 
+                    {
                         justifyContent: isMobile ? "flex-start" : "center",
                         paddingTop: isMobile || isIpadLandscape ? 70 : 0,
                     },
@@ -728,7 +728,9 @@ const LoadMapButton = () => {
         }
         setPlainModal(
             <>
-                <ScrollView style={{ width: 250, maxHeight: 300 }}>
+                <ScrollView
+                    style={{ width: 250, maxHeight: 300, paddingRight: 10 }}
+                >
                     {allMaps?.map((map, i) => (
                         <View
                             key={i}
@@ -740,22 +742,23 @@ const LoadMapButton = () => {
                                 marginBottom: 15,
                             }}
                         >
+                            {map.primary && (
+                                <MaterialCommunityIcons
+                                    name="home"
+                                    size={20}
+                                    style={{
+                                        color: "#138007",
+                                        marginRight: 5,
+                                    }}
+                                />
+                            )}
                             <Typography
                                 style={{
                                     flex: 1,
+                                    ...theme.typography.fonts.PixelifySans,
                                 }}
                             >
                                 {map.name}
-                                {map.primary && (
-                                    <MaterialCommunityIcons
-                                        name="home"
-                                        size={20}
-                                        style={{
-                                            color: "#138007",
-                                            marginLeft: 10,
-                                        }}
-                                    />
-                                )}
                             </Typography>
                             <Pressable
                                 onPress={() => {

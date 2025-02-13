@@ -12,6 +12,7 @@ import { Button, TextInput } from "react-native-paper";
 import { useAuth } from "../context/auth_context";
 import { useModals } from "../context/modal_context";
 import { LoadingSpinner } from "@/components/loading";
+import { Typography } from "@mui/joy";
 
 export default function Login() {
     const [username, setUsername] = useState("");
@@ -20,18 +21,22 @@ export default function Login() {
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [register, setRegister] = useState(false);
     const [loginUser, { isLoading: loginLoading }] = useLoginUserMutation();
-    const [registerUser, {isLoading: registerLoading}] = useRegisterUserMutation();
+    const [registerUser, { isLoading: registerLoading }] =
+        useRegisterUserMutation();
     const { setToken, setRefreshTokenStorage } = useAuth();
     const { setMessageModal } = useModals();
 
     const requiredFields = useCallback(() => {
         const error_msg = "Please fill out all fields";
-        if (register && (username == "" || password == "" || confirmPassword == "")) {
-            setMessageModal(error_msg)
+        if (
+            register &&
+            (username == "" || password == "" || confirmPassword == "")
+        ) {
+            setMessageModal(error_msg);
             return false;
         }
         if (!register && !every([username, password])) {
-            setMessageModal(error_msg)
+            setMessageModal(error_msg);
             return false;
         }
         return true;
@@ -89,17 +94,17 @@ export default function Login() {
         }).then((res) => {
             if (res.error) {
                 const err = res.error as { data: AuthResponse };
-                if(err.data?.error)
-                switch (err.data?.error) {
-                    case AuthError.UserExists:
-                        setMessageModal("Username already exists");
-                        break;
-                    case AuthError.WeakPassword:
-                        setMessageModal(PASSWORD_REQUIREMENTS);
-                        break;
-                    default:
-                        setMessageModal("Error creating user");
-                }
+                if (err.data?.error)
+                    switch (err.data?.error) {
+                        case AuthError.UserExists:
+                            setMessageModal("Username already exists");
+                            break;
+                        case AuthError.WeakPassword:
+                            setMessageModal(PASSWORD_REQUIREMENTS);
+                            break;
+                        default:
+                            setMessageModal("Error creating user");
+                    }
             } else if (res.data) {
                 setTokens(res.data);
             } else {
@@ -113,18 +118,26 @@ export default function Login() {
     }
 
     if (loginLoading || registerLoading) {
-        return (
-            <LoadingSpinner />
-        );
+        return <LoadingSpinner />;
     }
 
     return (
         <View style={styles.container}>
+            <Typography
+                style={{
+                    fontFamily: "PixelifySans",
+                    fontSize: 40,
+                }}
+            >
+                BitsCrawler
+            </Typography>
             <View>
                 <TextInput
                     label="Username"
                     value={username}
-                    onChangeText={(username) => setUsername(username.toLowerCase())}
+                    onChangeText={(username) =>
+                        setUsername(username.toLowerCase())
+                    }
                     mode="outlined"
                     style={styles.input}
                 />
@@ -154,7 +167,7 @@ export default function Login() {
                         style={styles.input}
                         right={
                             <TextInput.Icon
-                            icon={passwordVisible ? "eye" : "eye-off"}
+                                icon={passwordVisible ? "eye" : "eye-off"}
                                 onPress={togglePasswordVisible}
                             />
                         }
