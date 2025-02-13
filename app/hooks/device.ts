@@ -5,7 +5,7 @@ const MAX_WIDTH = 700;
 export function useDevice() {
     const { width, height } = useWindowDimensions();
     const isMobile = width < MAX_WIDTH;
-    const isIpadLandscape = width > 1023
+    const isIpadLandscape = width < 1000 && !isMobile;
 
     return {
         isMobile,

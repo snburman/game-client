@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Modal, Pressable, StyleSheet, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Pressable, StyleSheet, View } from "react-native";
 import EntypoIcons from "react-native-vector-icons/Entypo";
 import FontAwesomeIcons from "react-native-vector-icons/FontAwesome";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
@@ -28,7 +28,7 @@ const MAP_DIMENSIONS = 6;
 const SCALE = 3.5;
 
 export default function Map({ navigation }: MapProps) {
-    const { isMobile, width } = useDevice();
+    const { isMobile, isIpadLandscape, width } = useDevice();
     const { isUsingCanvas } = useCanvas();
     const {
         imageMap,
@@ -180,7 +180,7 @@ export default function Map({ navigation }: MapProps) {
                     styles.container,
                     {
                         justifyContent: isMobile ? "flex-start" : "center",
-                        paddingTop: isMobile ? 70 : 0,
+                        paddingTop: isMobile || isIpadLandscape ? 70 : 0,
                     },
                 ]}
             >
@@ -910,7 +910,6 @@ const PortalButton = ({
         setPortalSelectionVisible(visible);
         setPortalEdit(visible);
     }
-    
 
     return (
         <>
@@ -1079,10 +1078,10 @@ const PortalButton = ({
                                         onPress={() => handleSelectPortal(_map)}
                                         style={{ padding: 10 }}
                                     >
-                                        <MaterialCommunityIcons
-                                            name="folder-open-outline"
+                                        <FontAwesomeIcons
+                                            name="hand-pointer-o"
                                             size={20}
-                                            color="rgb(204 184 3)"
+                                            color="rgb(0 0 0)"
                                         />
                                     </Pressable>
                                 </View>
@@ -1165,7 +1164,6 @@ const MapPreview = ({ map }: { map: MapDTO<Image<CellData[][]>[]> }) => {
 const styles = StyleSheet.create({
     container: {
         alignItems: "center",
-        justifyContent: "flex-start",
         flex: 1,
         backgroundColor: "#FFFFFF",
     },
