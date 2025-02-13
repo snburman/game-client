@@ -56,6 +56,7 @@ export default function Map({ navigation }: MapProps) {
     const [selectedPortal, setSelectedPortal] = useState<
         MapPortal | undefined
     >();
+    const [portalEdit, setPortalEdit] = useState(false);
 
     // select image to be placed on map
     function handleSelectImage(image: Image<CellData[][]>) {
@@ -88,6 +89,7 @@ export default function Map({ navigation }: MapProps) {
             }
             setPortals([...(portals || []), { ...selectedPortal, x, y }]);
             setSelectedPortal(undefined);
+            setPortalEdit(false);
             return;
         }
         if (editEntranceOn) {
@@ -346,7 +348,11 @@ export default function Map({ navigation }: MapProps) {
                         />
                     </Pressable>
                     {/* portal button */}
-                    <PortalButton setSelectedPortal={setSelectedPortal} />
+                    <PortalButton
+                        portalEdit={portalEdit}
+                        setPortalEdit={setPortalEdit}
+                        setSelectedPortal={setSelectedPortal}
+                    />
                 </View>
                 {/* MODALS */}
                 {/* image selection modal*/}
@@ -809,8 +815,12 @@ const LoadMapButton = () => {
 
 const PortalButton = ({
     setSelectedPortal,
+    portalEdit,
+    setPortalEdit,
 }: {
     setSelectedPortal: (p: MapPortal | undefined) => void;
+    portalEdit: boolean;
+    setPortalEdit: (b: boolean) => void;
 }) => {
     const { setPlainModal } = useModals();
     const { portalMaps, portals, setPortals } = useMaps();
@@ -823,7 +833,6 @@ const PortalButton = ({
     >();
     // user input
     const [portalQuery, setPortalQuery] = useState("");
-    const [portalEdit, setPortalEdit] = useState(false);
 
     useEffect(() => {
         setPortalMapsFiltered(portalMaps);
@@ -869,17 +878,15 @@ const PortalButton = ({
 
     function handleEditPortals() {
         // toggle portal edit button
-        if(portalEdit) {
-            setPortalEditVisible(false);
-            setPortalEdit(false)
+        if (portalEdit) {
+            setPortalEdit(false);
             return;
         }
         if (!portals || portals.length == 0) {
-            setPortalSelectionVisible(true);
+            handleTogglePortalSelection(true);
             return;
         }
-        setPortalEditVisible(true);
-        setPortalEdit(true)
+        handleTogglePortalEdit(true);
     }
 
     function handleAddPortal() {
@@ -891,15 +898,25 @@ const PortalButton = ({
         setSelectedPortal({ map_id: map._id!, x: 0, y: 0 });
         setPortalSelectionVisible(false);
         setPlainModal(undefined);
-        setPortalEdit(false);
     }
+
+    function handleTogglePortalEdit(visible: boolean) {
+        setPortalEditVisible(visible);
+        setPortalEdit(visible);
+    }
+
+    function handleTogglePortalSelection(visible: boolean) {
+        setPortalSelectionVisible(visible);
+        setPortalEdit(visible);
+    }
+    
 
     return (
         <>
             {/* portal edit modal*/}
             <PlainModal
                 visible={portalEditVisible}
-                setVisible={setPortalEditVisible}
+                setVisible={handleTogglePortalEdit}
             >
                 <View style={{ width: 250, alignItems: "center" }}>
                     <Typography
@@ -966,6 +983,7 @@ const PortalButton = ({
                                         // portal is last remaining
                                         if (portals.length == 1) {
                                             setPortalEditVisible(false);
+                                            setPortalEdit(false);
                                         }
                                     }}
                                     style={{ padding: 10 }}
@@ -993,7 +1011,7 @@ const PortalButton = ({
             {/* portal selection modal */}
             <PlainModal
                 visible={portalSelectionVisible}
-                setVisible={setPortalSelectionVisible}
+                setVisible={handleTogglePortalSelection}
             >
                 <View>
                     <View style={{ height: 140 }}>
@@ -1027,7 +1045,6 @@ const PortalButton = ({
                     <ScrollView
                         contentContainerStyle={{
                             height: 300,
-                            // justifyContent: "center",
                             alignItems: "center",
                             paddingRight: 10,
                         }}
@@ -1075,7 +1092,7 @@ const PortalButton = ({
                 <Button
                     mode="outlined"
                     uppercase={false}
-                    onPress={() => setPortalSelectionVisible(false)}
+                    onPress={() => handleTogglePortalSelection(false)}
                     style={{ marginTop: 10 }}
                 >
                     <Typography>Close</Typography>
