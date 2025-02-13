@@ -815,12 +815,15 @@ const PortalButton = ({
     const { setPlainModal } = useModals();
     const { portalMaps, portals, setPortals } = useMaps();
 
+    // local state
     const [portalSelectionVisible, setPortalSelectionVisible] = useState(false);
     const [portalEditVisible, setPortalEditVisible] = useState(false);
     const [portalMapsFilitered, setPortalMapsFiltered] = useState<
         MapDTO<Image<CellData[][]>[]>[] | undefined
     >();
+    // user input
     const [portalQuery, setPortalQuery] = useState("");
+    const [portalEdit, setPortalEdit] = useState(false);
 
     useEffect(() => {
         setPortalMapsFiltered(portalMaps);
@@ -865,11 +868,18 @@ const PortalButton = ({
     }
 
     function handleEditPortals() {
+        // toggle portal edit button
+        if(portalEdit) {
+            setPortalEditVisible(false);
+            setPortalEdit(false)
+            return;
+        }
         if (!portals || portals.length == 0) {
             setPortalSelectionVisible(true);
             return;
         }
         setPortalEditVisible(true);
+        setPortalEdit(true)
     }
 
     function handleAddPortal() {
@@ -881,6 +891,7 @@ const PortalButton = ({
         setSelectedPortal({ map_id: map._id!, x: 0, y: 0 });
         setPortalSelectionVisible(false);
         setPlainModal(undefined);
+        setPortalEdit(false);
     }
 
     return (
@@ -952,6 +963,7 @@ const PortalButton = ({
                                                 (_, index) => index !== i
                                             )
                                         );
+                                        // portal is last remaining
                                         if (portals.length == 1) {
                                             setPortalEditVisible(false);
                                         }
@@ -1071,7 +1083,17 @@ const PortalButton = ({
             </PlainModal>
 
             {/* portal button */}
-            <Pressable onPress={handleEditPortals} style={styles.toolButton}>
+            <Pressable
+                onPress={handleEditPortals}
+                style={[
+                    styles.toolButton,
+                    {
+                        backgroundColor: portalEdit
+                            ? "rgba(0,195,255, 0.5)"
+                            : "#FFFFFF",
+                    },
+                ]}
+            >
                 <MaterialCommunityIcons name="run" size={30} color="#BD008B" />
             </Pressable>
         </>
@@ -1079,7 +1101,7 @@ const PortalButton = ({
 };
 
 const MapPreview = ({ map }: { map: MapDTO<Image<CellData[][]>[]> }) => {
-    const map_scale = 3;
+    const MAP_SCALE = 3;
     return (
         <>
             <Typography fontWeight={"bold"}>Map Preview</Typography>
@@ -1089,8 +1111,8 @@ const MapPreview = ({ map }: { map: MapDTO<Image<CellData[][]>[]> }) => {
             </View>
             <View
                 style={{
-                    width: DEFAULT_CANVAS_SIZE * map_scale * MAP_DIMENSIONS,
-                    height: DEFAULT_CANVAS_SIZE * map_scale * MAP_DIMENSIONS,
+                    width: DEFAULT_CANVAS_SIZE * MAP_SCALE * MAP_DIMENSIONS,
+                    height: DEFAULT_CANVAS_SIZE * MAP_SCALE * MAP_DIMENSIONS,
                     flexWrap: "wrap",
                     flexDirection: "row",
                 }}
@@ -1105,16 +1127,16 @@ const MapPreview = ({ map }: { map: MapDTO<Image<CellData[][]>[]> }) => {
                                     ? 0
                                     : row.y /
                                       ((DEFAULT_CANVAS_SIZE * SCALE) /
-                                          (DEFAULT_CANVAS_SIZE * map_scale)),
+                                          (DEFAULT_CANVAS_SIZE * MAP_SCALE)),
                             left:
                                 row.x == 0
                                     ? 0
                                     : row.x /
                                       ((DEFAULT_CANVAS_SIZE * SCALE) /
-                                          (DEFAULT_CANVAS_SIZE * map_scale)),
+                                          (DEFAULT_CANVAS_SIZE * MAP_SCALE)),
                         }}
                     >
-                        <LayerPreview key={i} {...row} cellSize={map_scale} />
+                        <LayerPreview key={i} {...row} cellSize={MAP_SCALE} />
                     </View>
                 ))}
             </View>
