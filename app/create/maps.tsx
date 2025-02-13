@@ -880,6 +880,7 @@ const PortalButton = ({
         // toggle portal edit button
         if (portalEdit) {
             setPortalEdit(false);
+            setSelectedPortal(undefined);
             return;
         }
         if (!portals || portals.length == 0) {
