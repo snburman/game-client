@@ -19,18 +19,23 @@ export type AuthResponse = {
 };
 
 type ClientDataDTO = {
-    client_id: string;
-    client_secret: string;
     data: any;
 };
 
 function createClientDataDTO<T>(data: T): ClientDataDTO {
     return {
-        client_id: CLIENT_ID,
-        client_secret: CLIENT_SECRET,
         data: data,
     };
 }
+
+function createClientAuthHeaders() {
+    return {
+        "CLIENT_ID": CLIENT_ID,
+        "CLIENT_SECRET": CLIENT_SECRET
+    }
+}
+
+
 
 export const authSlice = api.injectEndpoints({
     endpoints: (build) => ({
@@ -38,6 +43,7 @@ export const authSlice = api.injectEndpoints({
             query: (user) => ({
                 url: "/user/login",
                 method: "POST",
+                headers: createClientAuthHeaders(),
                 body: createClientDataDTO(user),
             }),
         }),
@@ -45,6 +51,7 @@ export const authSlice = api.injectEndpoints({
             query: (user) => ({
                 url: "/user/create",
                 method: "POST",
+                headers: createClientAuthHeaders(),
                 body: createClientDataDTO(user),
             }),
         }),
@@ -86,6 +93,7 @@ export const authSlice = api.injectEndpoints({
             query: (refreshToken) => ({
                 url: "/token/refresh",
                 method: "POST",
+                headers: createClientAuthHeaders(),
                 body: createClientDataDTO(refreshToken),
             }),
         }),

@@ -106,7 +106,7 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
     // fetch maps on login
     useEffect(() => {
         token && getMaps();
-    }, []);
+    }, [token]);
 
     async function getMaps() {
         if (!token) return;

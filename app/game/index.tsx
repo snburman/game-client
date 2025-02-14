@@ -47,7 +47,7 @@ export default function Game({ navigation }: GameProps) {
                     return;
                 }
             });
-    }, [isPlaying, allMaps]);
+    }, [isPlaying]);
 
     if (!isPlaying) {
         return null;
