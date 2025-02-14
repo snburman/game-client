@@ -23,17 +23,6 @@ type AuthData = {
 
 const AuthContext = createContext<AuthData | undefined>(undefined);
 
-export function useToken() {
-    const { token, tokenIsExpired, refreshTokens } = useAuth();
-    async function getToken() {
-        if (token && tokenIsExpired(token)) {
-            return await refreshTokens().then((data) => data?.token);
-        }
-        return token;
-    }
-    return getToken;
-}
-
 export default function AuthProvider({ children }: React.PropsWithChildren) {
     const [user, setUser] = useState<User | undefined>(undefined);
     const [getUser, getUserResult] = authSlice.endpoints.getUser.useLazyQuery();
