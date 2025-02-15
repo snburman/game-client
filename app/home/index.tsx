@@ -8,7 +8,7 @@ export default function Home({navigation}: HomeProps) {
     const {setIsPlaying} = useGame();
     return (
         <View style={styles.container}>
-            <Typography style={styles.title}>Welcome to BitsCrawler</Typography>
+            <Typography style={styles.title}>Welcome to Bitscrawler</Typography>
             <Typography style={{...theme.typography.fonts.PixelifySans, fontSize: 24}}>
                 HOW TO PLAY
             </Typography>

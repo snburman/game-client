@@ -129,7 +129,7 @@ export default function Login() {
                     fontSize: 40,
                 }}
             >
-                BitsCrawler
+                bitscrawler
             </Typography>
             <View>
                 <TextInput
