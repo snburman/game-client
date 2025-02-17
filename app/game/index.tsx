@@ -13,24 +13,8 @@ export default function Game({ navigation }: GameProps) {
     const { token } = useAuth();
     const { isPlaying, setIsPlaying } = useGame();
     const { setMessageModal } = useModals();
-    const { allMaps } = useMaps();
     const [getMaps] = useLazyGetUserMapsQuery();
     const uri = `${API_ENDPOINT}/game/client?token=${token}`;
-
-    // FIXME: refactor websocket connection
-    // useEffect(() => {
-    //     if (token) {
-    //         getMessages(token).then((res) => {
-    //             if (res.error) {
-    //                 setMessageModal("Error connecting to server");
-    //                 return;
-    //             }
-    //             setAuthenticated(true);
-    //         });
-    //     } else {
-    //         throw new Error("No token found");
-    //     }
-    // }, []);
 
     useEffect(() => {
         if(!isPlaying) return;
@@ -66,7 +50,6 @@ export default function Game({ navigation }: GameProps) {
                     <WebView containerStyle={styles.frame} source={{ uri }} />
                 )}
             </ScrollView>
-            {/* TODO: chat / command toolbar */}
             <View style={styles.toolPanel}></View>
         </View>
     );
@@ -95,7 +78,5 @@ const styles = StyleSheet.create({
     toolPanel: {
         justifyContent: "center",
         alignItems: "center",
-        // width: "100%",
-        // height: 85,
     },
 });
