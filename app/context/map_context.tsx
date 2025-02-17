@@ -105,7 +105,7 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
 
     // fetch maps on login
     useEffect(() => {
-        token && getMaps();
+        if ((!allMaps || !portalMaps) && token) getMaps();
     }, [token]);
 
     async function getMaps() {
@@ -242,9 +242,9 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
                 x: Math.floor(p.x / (DEFAULT_CANVAS_SIZE * SCALE)),
                 y: Math.floor(p.y / (DEFAULT_CANVAS_SIZE * SCALE)),
             };
-        })
+        });
         setPortals(_portals);
-        
+
         // convert entrance to expected format for map area
         const entranceX = Math.floor(
             _map.entrance.x / (DEFAULT_CANVAS_SIZE * SCALE)
@@ -276,13 +276,15 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
         };
 
         // convert portals to expected format for wasm
-        const _portals = !portals ? [] : portals.map((p) => {
-            return {
-                map_id: p.map_id,
-                x: p.x * DEFAULT_CANVAS_SIZE * SCALE,
-                y: p.y * DEFAULT_CANVAS_SIZE * SCALE,
-            };
-        })
+        const _portals = !portals
+            ? []
+            : portals.map((p) => {
+                  return {
+                      map_id: p.map_id,
+                      x: p.x * DEFAULT_CANVAS_SIZE * SCALE,
+                      y: p.y * DEFAULT_CANVAS_SIZE * SCALE,
+                  };
+              });
 
         const mapDTO: MapDTO<string> = {
             user_id: user._id,
