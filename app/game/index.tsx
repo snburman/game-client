@@ -8,6 +8,7 @@ import { useGame } from "../context/game_context";
 import { GameProps } from "../types/navigation";
 import { useLazyGetUserMapsQuery } from "@/redux/map.slice";
 import Chat from "./chat";
+import DispatchProvider from "../context/dispatch_context";
 
 export default function Game({ navigation }: GameProps) {
     const { token } = useAuth();
@@ -51,7 +52,9 @@ export default function Game({ navigation }: GameProps) {
                 ) : (
                     <WebView containerStyle={styles.frame} source={{ uri }} />
                 )}
-            <Chat />
+                <DispatchProvider>
+                    <Chat />
+                </DispatchProvider>
             </ScrollView>
         </View>
     );

@@ -1,19 +1,29 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
-import { Button, TextInput } from "react-native-paper";
-import { useAuth } from "../context/auth_context";
-import { useDevice } from "../hooks/device";
+import { TextInput } from "react-native-paper";
+import { useDispatch } from "../context/dispatch_context";
+import { useModals } from "../context/modal_context";
 
 export default function Chat() {
-    const { user } = useAuth();
-    const { isMobile } = useDevice();
+    const { setMessageModal } = useModals();
+    const { initWebSocket, connected, chatMessages, sendChatMessage } =
+        useDispatch();
     const [inputText, setInputText] = useState("");
-    const [messages, setMessages] = useState<string[]>([]);
     const scrollViewRef = useRef<ScrollView>(null);
 
+    useEffect(() => {
+        initWebSocket();
+    }, []);
+
     function handleSubmit() {
-        setMessages([...messages, user?.username + ": " + inputText]);
+        // if (!connected) {
+        //     setMessageModal("Chat server disconnected");
+        //     return;
+        // }
+        if (inputText.length > 0) {
+            sendChatMessage(inputText);
+        }
         setInputText("");
     }
 
@@ -25,7 +35,7 @@ export default function Chat() {
                 onContentSizeChange={() => scrollViewRef.current?.scrollToEnd()}
                 ref={scrollViewRef}
             >
-                {messages.map((message, index) => (
+                {chatMessages.map((message, index) => (
                     <View key={index}>
                         <Text style={styles.messageText}>{message}</Text>
                     </View>
@@ -59,7 +69,7 @@ const styles = StyleSheet.create({
         maxWidth: 500,
         flexDirection: "column",
         justifyContent: "flex-start",
-        backgroundColor: "rgb(255 255 255)"
+        backgroundColor: "rgb(255 255 255)",
     },
     messagesContainer: {
         width: "100%",
