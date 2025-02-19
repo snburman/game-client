@@ -99,7 +99,6 @@ export default function Canvas({
 }
 
 // Layer component represents a single layer of the canvas
-// Multiple layers are currently slated for future development
 const Layer = (props: { index: number; width: number; height: number }) => {
     const { index, width, height } = props;
     const { cells, getCells, cellSize } = useCanvas();
@@ -305,7 +304,7 @@ export const SaveButton = () => {
     const handleSave = useCallback(() => {
         saveImage(name, imageType);
         setModalVisible(false);
-    }, [name, imageType]);
+    }, [name, imageType, saveImage]);
 
     return (
         <>

@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useMemo, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
 import { CellData, Image, ImageType } from "@/redux/models/image.model";
 import cloneDeep from "lodash/cloneDeep";
 import { isEqual } from "lodash";
@@ -231,9 +231,9 @@ export default function CanvasProvider({ children }: React.PropsWithChildren) {
     //////////////////////////////////////////
     // Cell manipulation
     //////////////////////////////////////////
-    function getCells(index: number): CellData[][] {
+    const getCells = useCallback((index: number): CellData[][] => {
         return cells[index];
-    }
+    },[cells]);
 
     function update(x: number, y: number) {
         if (!isUsingCanvas) setIsUsingCanvas(true);

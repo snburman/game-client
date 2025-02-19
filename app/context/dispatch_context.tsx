@@ -86,7 +86,6 @@ export default function DispatchProvider({
             username: user?.username!,
             message: message,
         };
-        console.log("message payload", msgPayload);
         const uint8Array = encoder.encode(JSON.stringify(msgPayload));
         const encodedPayload = btoa(String.fromCharCode(...uint8Array));
         webSocket.current?.send(
