@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { Filter } from "bad-words";
 import { ScrollView } from "react-native-gesture-handler";
 import { TextInput } from "react-native-paper";
 import { useDispatch } from "../context/dispatch_context";
 import { useModals } from "../context/modal_context";
+
+const filter = new Filter();
 
 export default function Chat() {
     const { setMessageModal } = useModals();
@@ -17,14 +20,27 @@ export default function Chat() {
     }, []);
 
     function handleSubmit() {
-        // if (!connected) {
-        //     setMessageModal("Chat server disconnected");
-        //     return;
-        // }
         if (inputText.length > 0) {
+            const filtered = filter.clean(inputText);
+            if (filtered !== inputText) {
+                setMessageModal("Please avoid using bad words");
+                return;
+            }
             sendChatMessage(inputText);
         }
         setInputText("");
+    }
+
+    function formatMessage(message: string) {
+        const parts = message.split(":");
+        let name = parts[0];
+        let text = parts.slice(1).join();
+        text = text.length > 0 ? ":" + text : "";
+        return (
+            <Text>
+                <Text style={{ fontWeight: "bold" }}>{name}</Text>{text}
+            </Text>
+        );
     }
 
     return (
@@ -37,7 +53,7 @@ export default function Chat() {
             >
                 {chatMessages.map((message, index) => (
                     <View key={index}>
-                        <Text style={styles.messageText}>{message}</Text>
+                        {formatMessage(message)}
                     </View>
                 ))}
             </ScrollView>
@@ -48,6 +64,7 @@ export default function Chat() {
                     mode="flat"
                     placeholder="Type a message..."
                     value={inputText}
+                    maxLength={50}
                     onChangeText={(text) => setInputText(text)}
                     right={
                         <TextInput.Icon icon={"send"} onPress={handleSubmit} />
