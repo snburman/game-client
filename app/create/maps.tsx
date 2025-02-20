@@ -1068,7 +1068,7 @@ const PortalButton = ({
                         {!portalMapsFilitered && <LoadingSpinner />}
                         {portalMapsFilitered?.map((_map, i) => (
                             <View style={styles.portalRow} key={i}>
-                                <View style={styles.portalColumn}>
+                                <View style={[styles.portalColumn, {overflow: "scroll"}]}>
                                     <Typography>{_map.name}</Typography>
                                 </View>
                                 <View style={[styles.portalColumn, {paddingLeft: 10}]}>
@@ -1300,7 +1300,6 @@ const styles = StyleSheet.create({
         flexDirection: "column",
         justifyContent: "center",
         padding: 5,
-        overflow: "scroll",
     },
     portalSearchInput: {
         backgroundColor: "#FFFFFF",
