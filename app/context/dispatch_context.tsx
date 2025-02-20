@@ -57,7 +57,8 @@ export default function DispatchProvider({
         );
         // set up event listeners
         webSocket.current.onopen = () => {
-            pushChatMessage("Connected to chat server...");
+            pushChatMessage("Welcome to Bitscrawler!");
+            pushChatMessage("Hint: create images with player types to customize your character");
             // authenticate with server
             const auth = JSON.stringify({
                 CLIENT_ID: [CLIENT_ID],
