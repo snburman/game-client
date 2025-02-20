@@ -7,7 +7,7 @@ import {
 } from "@/redux/auth.slice";
 import { every } from "lodash";
 import React, { useCallback, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { ImageBackground, StyleSheet, Text, View } from "react-native";
 import { Button, TextInput } from "react-native-paper";
 import { useAuth } from "../context/auth_context";
 import { useModals } from "../context/modal_context";
@@ -122,11 +122,12 @@ export default function Login() {
     }
 
     return (
-        <View style={styles.container}>
+        <ImageBackground style={styles.container} source={{ uri: "/img/gradient.png" }}>
             <Typography
                 style={{
                     fontFamily: "PixelifySans",
                     fontSize: 40,
+                    color: "#000000"
                 }}
             >
                 bitscrawler
@@ -192,7 +193,7 @@ export default function Login() {
                     </Button>
                 </View>
             </View>
-        </View>
+        </ImageBackground>
     );
 }
 
@@ -219,6 +220,7 @@ const styles = StyleSheet.create({
     },
     button: {
         flex: 1,
+        backgroundColor: "#FFFFFF",
     },
     message: {
         color: "red",

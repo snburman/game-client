@@ -1,6 +1,7 @@
 {
   "expo": {
     "name": "BitsCrawler",
+    "description": "Create and explore your own pixel world with our interactive drawing app! Design custom world layouts, link maps together, and play online with friends. Chat, explore, and bring your creativity to life in a fun and engaging community!",
     "slug": "bits-crawler",
     "version": "1.0.0",
     "orientation": "portrait",
