@@ -1,8 +1,0 @@
-@font-face {
-    font-family: 'Pixelify';
-    src: url('../fonts/PixelifySans.ttf') format('ttf');
-  }
-  
-  .pixelify {
-    font-family: 'Pixelify', sans-serif;
-  }

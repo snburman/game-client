@@ -10,15 +10,15 @@ const config: Config = {
   favicon: 'img/favicon.png',
 
   // Set the production url of your site here
-  url: 'https://your-docusaurus-site.example.com',
+  url: 'https://docs.bitscrawler.com',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'facebook', // Usually your GitHub org/user name.
-  projectName: 'docusaurus', // Usually your repo name.
+  organizationName: 'snburman', // Usually your GitHub org/user name.
+  projectName: 'game-client', // Usually your repo name.
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
@@ -65,7 +65,7 @@ const config: Config = {
           position: 'left',
           label: 'Tutorial',
         },
-        // {to: '/blog', label: 'Blog', position: 'left'},
+        {to: 'https://bitscrawler.com', label: 'Play', position: 'left'},
         {
           href: 'https://github.com/snburman/game-client',
           label: 'GitHub',
@@ -86,11 +86,11 @@ const config: Config = {
           ],
         },
         {
-          title: 'Community',
+          title: 'Play',
           items: [
             {
-              label: 'seanburman.com',
-              to: 'https://seanburman.com',
+              label: 'Bitscrawler',
+              to: 'https://bitscrawler.com',
             },
           ],
         },
@@ -98,7 +98,7 @@ const config: Config = {
           title: 'About',
           items: [
             {
-              label: 'seanburman.com',
+              label: 'Developer',
               to: 'https://seanburman.com',
             },
           ],

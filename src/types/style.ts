@@ -1,0 +1,1 @@
+export type StyleSheet = { [key: string]: React.CSSProperties }
