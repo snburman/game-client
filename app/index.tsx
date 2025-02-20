@@ -5,6 +5,7 @@ import Tabs from "./tabs";
 import { useAuth } from "./context/auth_context";
 import { RootStackParamList } from "./types/navigation";
 import { useModals } from "./context/modal_context";
+import './styles.css';
 
 export default function Index() {
     const Stack = createStackNavigator<RootStackParamList>();

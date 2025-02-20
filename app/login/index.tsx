@@ -7,12 +7,22 @@ import {
 } from "@/redux/auth.slice";
 import { every } from "lodash";
 import React, { useCallback, useState } from "react";
-import { ImageBackground, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { Button, TextInput } from "react-native-paper";
 import { useAuth } from "../context/auth_context";
 import { useModals } from "../context/modal_context";
 import { LoadingSpinner } from "@/components/loading";
 import { Typography } from "@mui/joy";
+import { styled } from "styled-components";
+import { theme } from "../_theme";
+
+const Gradient = styled.div`
+    background: radial-gradient(
+        circle,
+        rgba(0, 168, 24, 1) 0%,
+        rgba(0, 70, 10, 1) 100%
+    );
+`;
 
 export default function Login() {
     const [username, setUsername] = useState("");
@@ -122,48 +132,27 @@ export default function Login() {
     }
 
     return (
-        <View style={styles.container}>
-            <Typography
-                style={{
-                    fontFamily: "PixelifySans",
-                    fontSize: 40,
-                    color: "#000000"
-                }}
-            >
-                bitscrawler
-            </Typography>
-            <View>
-                <TextInput
-                    label="Username"
-                    value={username}
-                    onChangeText={(username) =>
-                        setUsername(username.toLowerCase())
-                    }
-                    mode="outlined"
-                    style={styles.input}
-                />
-                <TextInput
-                    label="Password"
-                    value={password}
-                    secureTextEntry={!passwordVisible}
-                    onChangeText={(password) => setPassword(password)}
-                    mode="outlined"
-                    style={styles.input}
-                    right={
-                        <TextInput.Icon
-                            icon={passwordVisible ? "eye" : "eye-off"}
-                            onPress={togglePasswordVisible}
-                        />
-                    }
-                />
-                {register && (
+        <Gradient style={styles.container}>
+            <Typography style={styles.title}>bitscrawler</Typography>
+            <Text style={styles.subtitle}>
+                The multiplayer online pixel world created by players
+            </Text>
+            <View style={styles.loginContainer}>
+                <View>
                     <TextInput
-                        label="Confirm Password"
-                        value={confirmPassword}
-                        secureTextEntry={!passwordVisible}
-                        onChangeText={(password) =>
-                            setConfirmPassword(password)
+                        label="Username"
+                        value={username}
+                        onChangeText={(username) =>
+                            setUsername(username.toLowerCase())
                         }
+                        mode="outlined"
+                        style={styles.input}
+                    />
+                    <TextInput
+                        label="Password"
+                        value={password}
+                        secureTextEntry={!passwordVisible}
+                        onChangeText={(password) => setPassword(password)}
                         mode="outlined"
                         style={styles.input}
                         right={
@@ -173,43 +162,89 @@ export default function Login() {
                             />
                         }
                     />
-                )}
-                <View style={styles.buttonContainer}>
-                    <Button
-                        uppercase={false}
-                        mode={register ? "text" : "outlined"}
-                        style={styles.button}
-                        onPress={handleLogin}
-                    >
-                        <Text>{register ? "< Login" : "Login"}</Text>
-                    </Button>
-                    <Button
-                        uppercase={false}
-                        mode="outlined"
-                        style={styles.button}
-                        onPress={handleRegister}
-                    >
-                        <Text>Register</Text>
-                    </Button>
+                    {register && (
+                        <TextInput
+                            label="Confirm Password"
+                            value={confirmPassword}
+                            secureTextEntry={!passwordVisible}
+                            onChangeText={(password) =>
+                                setConfirmPassword(password)
+                            }
+                            mode="outlined"
+                            style={styles.input}
+                            right={
+                                <TextInput.Icon
+                                    icon={passwordVisible ? "eye" : "eye-off"}
+                                    onPress={togglePasswordVisible}
+                                />
+                            }
+                        />
+                    )}
+                    <View style={styles.buttonContainer}>
+                        <Button
+                            uppercase={false}
+                            mode={register ? "text" : "outlined"}
+                            style={styles.button}
+                            onPress={handleLogin}
+                        >
+                            <Text>{register ? "< Login" : "Login"}</Text>
+                        </Button>
+                        <Button
+                            uppercase={false}
+                            mode="outlined"
+                            style={styles.button}
+                            onPress={handleRegister}
+                        >
+                            <Text>Register</Text>
+                        </Button>
+                    </View>
                 </View>
             </View>
-        </View>
+            <View style={styles.footer}>
+                <Typography style={styles.copy}>
+                    &copy; 2025 bitscrawler
+                </Typography>
+            </View>
+        </Gradient>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         display: "flex",
+        flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
         height: "100%",
         width: "100%",
+    },
+    loginContainer: {
         backgroundColor: "#FFFFFF",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: 25,
+        borderRadius: 10,
+    },
+    title: {
+        fontFamily: "PixelifySans",
+        fontSize: 55,
+        color: "#000000",
+    },
+    subtitle: {
+        fontFamily: "PixelifySans",
+        fontSize: 20,
+        color: "#FFFFFF",
+        width: "100%",
+        textAlign: "center",
+        marginBottom: 20,
     },
     input: {
         backgroundColor: "#FFFFFF",
         marginTop: 10,
         width: 250,
+        borderWidth: 0,
     },
     buttonContainer: {
         display: "flex",
@@ -221,10 +256,23 @@ const styles = StyleSheet.create({
     button: {
         flex: 1,
         backgroundColor: "#FFFFFF",
+        ...theme.shadow.small,
     },
     message: {
         color: "red",
         textAlign: "center",
         paddingBottom: 10,
+    },
+    footer: {
+        position: "absolute",
+        bottom: 10,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    copy: {
+        color: "#D6D6D6",
+        fontSize: 14,
     },
 });
