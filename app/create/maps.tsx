@@ -839,30 +839,31 @@ const PortalButton = ({
     const [portalQuery, setPortalQuery] = useState("");
 
     useEffect(() => {
-        setPortalMapsFiltered(portalMaps);
+        setPortalMapsFiltered(filterMapsByUser(portalMaps));
     }, [portalMaps]);
 
+    function filterMapsByUser(
+        maps: MapDTO<Image<CellData[][]>[]>[] | undefined
+    ) {
+        if (!maps) return;
+        // filter maps belonging to user
+        const userMaps = maps.filter((map) => map.user_id === user?._id);
+        // filter maps not belonging to user
+        const otherMaps = maps.filter((map) => map.user_id !== user?._id);
+        // combine user maps and other maps
+        return [...userMaps, ...otherMaps];
+    }
+
     function handleSearchQuery(query: string) {
-        console.log(query);
         if (!portalMaps) return;
         setPortalQuery(query);
         // filter maps by name or username
-        const filteredMaps = portalMaps.filter(
+        const queriedMaps = portalMaps.filter(
             (map) =>
                 map.name.toLowerCase().includes(query.toLowerCase()) ||
                 map.username.toLowerCase().includes(query.toLowerCase())
         );
-        // filter maps belonging to user
-        const userMaps = filteredMaps.filter(
-            (map) => map.user_id === user?._id
-        );
-        // filter maps not belonging to user
-        const otherMaps = filteredMaps.filter(
-            (map) => map.user_id !== user?._id
-        );
-        // combine user maps and other maps
-        const sortedMaps = [...userMaps, ...otherMaps];
-        setPortalMapsFiltered(sortedMaps);
+        setPortalMapsFiltered(filterMapsByUser(queriedMaps));
     }
 
     function handlePreview(map: MapDTO<Image<CellData[][]>[]>) {
