@@ -122,7 +122,7 @@ export default function Login() {
     }
 
     return (
-        <ImageBackground style={styles.container} source={{ uri: "/img/gradient.png" }}>
+        <View style={styles.container}>
             <Typography
                 style={{
                     fontFamily: "PixelifySans",
@@ -193,7 +193,7 @@ export default function Login() {
                     </Button>
                 </View>
             </View>
-        </ImageBackground>
+        </View>
     );
 }
 
