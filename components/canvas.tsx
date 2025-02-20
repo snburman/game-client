@@ -438,12 +438,12 @@ export const NewCanvasButton = () => {
     }
 
     function handleSubmit() {
-        if (width > 16 || height > 16) {
-            setMessageModal("Values must be 16 or less");
-            return;
+        if (width > 16 ||  width < 4) {
+            setMessageModal("Width must be between 4 and 16");
+            return
         }
-        if (width < 4 || height < 4) {
-            setMessageModal("Values must be 4 or greater");
+        if (height > 16 || height < 4) {
+            setMessageModal("Height must be between 4 and 16");
             return;
         }
         newCanvas(width, height);

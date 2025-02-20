@@ -856,6 +856,7 @@ const PortalButton = ({
 
     function handleSearchQuery(query: string) {
         if (!portalMaps) return;
+        // update input
         setPortalQuery(query);
         // filter maps by name or username
         const queriedMaps = portalMaps.filter(
