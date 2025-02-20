@@ -23,7 +23,7 @@ export default function HeaderBar({ navigation }: BottomTabHeaderProps) {
                     onPress={() => handleNavigation("home")}
                     style={[styles.menuButton, { paddingVertical: 3, paddingHorizontal: 14 }]}
                 >
-                    <Typography style={styles.logo}>B</Typography>
+                    <Typography style={styles.logo}>b</Typography>
                 </Pressable>
                 <Pressable
                     onPress={() => handleNavigation("create")}
@@ -67,7 +67,6 @@ const styles = StyleSheet.create({
         marginLeft: 18,
         height: "100%",
         gap: 15,
-        // backgroundColor: 'red'
     },
     menuButton: {
         backgroundColor: "#FFFFFF",
