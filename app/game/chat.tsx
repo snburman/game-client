@@ -8,9 +8,15 @@ import { useModals } from "../context/modal_context";
 
 const filter = new Filter();
 
+const commands = new Map<string, string>();
+commands.set("help", `
+Commands:
+/help - show this message
+`);
+
 export default function Chat() {
     const { setMessageModal } = useModals();
-    const { initWebSocket, connected, chatMessages, sendChatMessage } =
+    const { initWebSocket, chatMessages, pushChatMessage, sendChatMessage } =
         useDispatch();
     const [inputText, setInputText] = useState("");
     const scrollViewRef = useRef<ScrollView>(null);
@@ -26,8 +32,21 @@ export default function Chat() {
                 setMessageModal("Please avoid using bad words");
                 return;
             }
-            sendChatMessage(inputText);
         }
+
+        if (inputText.startsWith("/")) {
+            const command = inputText.slice(1);
+            if (commands.has(command)) {
+                const msg = commands.get(command);
+                msg && pushChatMessage(msg);
+            } else {
+                pushChatMessage("Command not found. Type /help for a list of commands");
+            }
+            setInputText("");
+            return;
+        }
+
+        sendChatMessage(inputText);
         setInputText("");
     }
 

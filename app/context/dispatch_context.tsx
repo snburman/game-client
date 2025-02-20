@@ -32,6 +32,7 @@ type DispatchData = {
     connected: boolean;
     chatMessages: string[];
     sendChatMessage(message: string): void;
+    pushChatMessage: (message: string) => void
 };
 
 const DispatchContext = createContext<DispatchData | undefined>(undefined);
@@ -121,6 +122,7 @@ export default function DispatchProvider({
         connected,
         chatMessages,
         sendChatMessage,
+        pushChatMessage,
     };
 
     return (
