@@ -1050,7 +1050,7 @@ const PortalButton = ({
                                     Name
                                 </Typography>
                             </View>
-                            <View style={styles.portalColumn}>
+                            <View style={[styles.portalColumn, { paddingLeft: 10 }]}>
                                 <Typography fontWeight={"bold"}>
                                     Username
                                 </Typography>
@@ -1071,7 +1071,7 @@ const PortalButton = ({
                                 <View style={styles.portalColumn}>
                                     <Typography>{_map.name}</Typography>
                                 </View>
-                                <View style={styles.portalColumn}>
+                                <View style={[styles.portalColumn, {paddingLeft: 10}]}>
                                     <Typography>{_map.username}</Typography>
                                 </View>
                                 <View
@@ -1300,6 +1300,7 @@ const styles = StyleSheet.create({
         flexDirection: "column",
         justifyContent: "center",
         padding: 5,
+        overflow: "scroll",
     },
     portalSearchInput: {
         backgroundColor: "#FFFFFF",
