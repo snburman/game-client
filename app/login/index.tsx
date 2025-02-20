@@ -1,3 +1,7 @@
+import React, { useCallback, useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { every } from "lodash";
+import { Button, TextInput } from "react-native-paper";
 import {
     AuthError,
     AuthResponse,
@@ -5,24 +9,11 @@ import {
     useLoginUserMutation,
     useRegisterUserMutation,
 } from "@/redux/auth.slice";
-import { every } from "lodash";
-import React, { useCallback, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { Button, TextInput } from "react-native-paper";
 import { useAuth } from "../context/auth_context";
 import { useModals } from "../context/modal_context";
 import { LoadingSpinner } from "@/components/loading";
 import { Typography } from "@mui/joy";
-import { styled } from "styled-components";
 import { theme } from "../_theme";
-
-const Gradient = styled.div`
-    background: radial-gradient(
-        circle,
-        rgba(0, 168, 24, 1) 0%,
-        rgba(0, 70, 10, 1) 100%
-    );
-`;
 
 export default function Login() {
     const [username, setUsername] = useState("");
@@ -132,8 +123,8 @@ export default function Login() {
     }
 
     return (
-        <Gradient style={styles.container}>
-            <Typography style={styles.title}>bitscrawler</Typography>
+        <View style={styles.container}>
+            <Text style={styles.title}>bitscrawler</Text>
             <Text style={styles.subtitle}>
                 The multiplayer online pixel world created by players
             </Text>
@@ -205,7 +196,7 @@ export default function Login() {
                     &copy; 2025 bitscrawler
                 </Typography>
             </View>
-        </Gradient>
+        </View>
     );
 }
 
@@ -217,6 +208,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         height: "100%",
         width: "100%",
+        backgroundColor: "#008E16"
     },
     loginContainer: {
         backgroundColor: "#FFFFFF",
@@ -226,6 +218,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         padding: 25,
         borderRadius: 10,
+        ...theme.shadow.small,
     },
     title: {
         fontFamily: "PixelifySans",

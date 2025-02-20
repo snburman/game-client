@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { Filter } from "bad-words";
 import { ScrollView } from "react-native-gesture-handler";
 import { TextInput } from "react-native-paper";
@@ -9,10 +10,13 @@ import { useModals } from "../context/modal_context";
 const filter = new Filter();
 
 const commands = new Map<string, string>();
-commands.set("help", `
+commands.set(
+    "help",
+    `
 Commands:
 /help - show this message
-`);
+`
+);
 
 export default function Chat() {
     const { setMessageModal } = useModals();
@@ -20,6 +24,7 @@ export default function Chat() {
         useDispatch();
     const [inputText, setInputText] = useState("");
     const scrollViewRef = useRef<ScrollView>(null);
+    const [chatFocused, setChatFocused] = useState(false);
 
     useEffect(() => {
         initWebSocket();
@@ -34,13 +39,16 @@ export default function Chat() {
             }
         }
 
+        // chat input commands
         if (inputText.startsWith("/")) {
             const command = inputText.slice(1);
             if (commands.has(command)) {
                 const msg = commands.get(command);
                 msg && pushChatMessage(msg);
             } else {
-                pushChatMessage("Command not found. Type /help for a list of commands");
+                pushChatMessage(
+                    "Command not found. Type /help for a list of commands"
+                );
             }
             setInputText("");
             return;
@@ -57,59 +65,100 @@ export default function Chat() {
         text = text.length > 0 ? ":" + text : "";
         return (
             <Text>
-                <Text style={{ fontWeight: "bold" }}>{name}</Text>{text}
+                <Text style={{ fontWeight: "bold" }}>{name}</Text>
+                {text}
             </Text>
         );
     }
 
+    function handleFocus() {
+        setChatFocused(!chatFocused);
+    }
+
     return (
-        <View style={styles.container}>
-            {/* chat messages */}
-            <ScrollView
-                style={styles.messagesContainer}
-                onContentSizeChange={() => scrollViewRef.current?.scrollToEnd()}
-                ref={scrollViewRef}
+        <>
+            <View style={styles.container} />
+            <View
+                style={[
+                    styles.container,
+                    { position: "absolute" },
+                    chatFocused && { height: "50%" },
+                ]}
             >
-                {chatMessages.map((message, index) => (
-                    <View key={index}>
-                        {formatMessage(message)}
-                    </View>
-                ))}
-            </ScrollView>
-            {/* chat input */}
-            <View style={styles.inputContainer}>
-                <TextInput
-                    style={styles.textInput}
-                    mode="flat"
-                    placeholder="Type a message..."
-                    value={inputText}
-                    maxLength={50}
-                    onChangeText={(text) => setInputText(text)}
-                    right={
-                        <TextInput.Icon icon={"send"} onPress={handleSubmit} />
-                    }
-                    onKeyPress={(e) => {
-                        if (e.nativeEvent.key === "Enter") {
-                            handleSubmit();
+                <View style={styles.wrapper}>
+                    {/* chat messages */}
+                    <ScrollView
+                        style={styles.messagesContainer}
+                        onContentSizeChange={() =>
+                            scrollViewRef.current?.scrollToEnd()
                         }
-                    }}
-                />
+                        ref={scrollViewRef}
+                    >
+                        {chatMessages.map((message, index) => (
+                            <View key={index}>{formatMessage(message)}</View>
+                        ))}
+                    </ScrollView>
+                    {/* chat input */}
+                    <View style={styles.inputContainer}>
+                        <MaterialIcons
+                            name={chatFocused ? "expand-more" : "expand-less"}
+                            size={30}
+                            color="black"
+                            onPress={handleFocus}
+                            style={{
+                                position: "absolute",
+                                zIndex: 200,
+                                right: 10,
+                            }}
+                        />
+                        <TextInput
+                            style={styles.textInput}
+                            mode="flat"
+                            placeholder="Type a message..."
+                            value={inputText}
+                            maxLength={50}
+                            onChangeText={(text) => setInputText(text)}
+                            right={
+                                <TextInput.Icon
+                                    icon={"send"}
+                                    onPress={handleSubmit}
+                                    style={{ marginRight: 70 }}
+                                />
+                            }
+                            onKeyPress={(e) => {
+                                if (e.nativeEvent.key === "Enter") {
+                                    handleSubmit();
+                                }
+                            }}
+                        />
+                    </View>
+                </View>
             </View>
-        </View>
+        </>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         width: "100%",
+        height: 125,
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center",
+        bottom: 0,
+    },
+    wrapper: {
+        width: "100%",
+        height: "100%",
         maxWidth: 500,
         flexDirection: "column",
         justifyContent: "flex-start",
-        backgroundColor: "rgb(255 255 255)",
     },
     messagesContainer: {
+        borderTopLeftRadius: 10,
+        borderTopRightRadius: 10,
         width: "100%",
-        height: 70,
+        height: "100%",
         paddingVertical: 10,
         paddingHorizontal: 10,
         marginBottom: 1,
