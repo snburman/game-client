@@ -21,9 +21,9 @@ export default function HeaderBar({ navigation }: BottomTabHeaderProps) {
             <View style={styles.menuButtonContainer}>
                 <Pressable
                     onPress={() => handleNavigation("home")}
-                    style={[styles.menuButton, { paddingVertical: 6, paddingHorizontal: 10 }]}
+                    style={[styles.menuButton, { paddingVertical: 3, paddingHorizontal: 14 }]}
                 >
-                    <Typography style={styles.logo}>BC</Typography>
+                    <Typography style={styles.logo}>B</Typography>
                 </Pressable>
                 <Pressable
                     onPress={() => handleNavigation("create")}
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     },
     logo: {
         ...theme.typography.fonts.PixelifySans,
-        fontSize: 20,
+        fontSize: 24,
         color: "#0E0E0E",
         padding: 0,
         margin: 0,
