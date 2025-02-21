@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { every } from "lodash";
 import { Button, TextInput } from "react-native-paper";
 import {
@@ -191,6 +191,16 @@ export default function Login() {
                     </View>
                 </View>
             </View>
+            <View style={styles.guideButtonContainer}>
+                <Text style={[styles.guideText, {fontSize: 24}]}>New to bitscrawler?</Text>
+                <Text style={styles.guideText}>Read the player guide!</Text>
+                <Pressable
+                    onPress={() => Linking.openURL("http://docs.bitscrawler.com")}
+                    style={[styles.guideButton, { backgroundColor: "#EE6300" }]}
+                >
+                    <Typography style={styles.buttonText}>Player Guide</Typography>
+                </Pressable>
+            </View>
             <View style={styles.footer}>
                 <Typography style={styles.copy}>
                     &copy; 2025 bitscrawler
@@ -208,7 +218,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         height: "100%",
         width: "100%",
-        backgroundColor: "#008E16"
+        backgroundColor: "#008E16",
     },
     loginContainer: {
         backgroundColor: "#FFFFFF",
@@ -250,6 +260,31 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#FFFFFF",
         ...theme.shadow.small,
+    },
+    guideButtonContainer: {
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        gap: 10,
+        marginTop: 30,
+    },
+    guideText: {
+        ...theme.typography.fonts.PixelifySans,
+        color: "#000000",
+        fontSize: 18,
+    },
+    guideButton: {
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 5,
+        textAlign: "center",
+        width: 250,
+    },
+    buttonText: {
+        ...theme.typography.fonts.PixelifySans,
+        color: "#FFFFFF",
+        fontSize: 18,
     },
     message: {
         color: "red",
