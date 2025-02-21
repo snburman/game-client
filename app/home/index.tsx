@@ -3,7 +3,6 @@ import { Linking, Pressable, StyleSheet, View } from "react-native";
 import { HomeProps } from "../types/navigation";
 import { theme } from "../_theme";
 import { useGame } from "../context/game_context";
-import { Link } from "expo-router";
 
 export default function Home({ navigation }: HomeProps) {
     const { setIsPlaying } = useGame();

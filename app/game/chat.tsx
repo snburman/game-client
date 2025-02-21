@@ -19,7 +19,7 @@ Commands:
 );
 
 export default function Chat() {
-    const { setMessageModal } = useModals();
+    const { setAlert } = useModals();
     const { initWebSocket, chatMessages, pushChatMessage, sendChatMessage } =
         useDispatch();
     const [inputText, setInputText] = useState("");
@@ -34,7 +34,7 @@ export default function Chat() {
         if (inputText.length > 0) {
             const filtered = filter.clean(inputText);
             if (filtered !== inputText) {
-                setMessageModal("Please avoid using bad words");
+                setAlert("danger", "Please avoid using bad words");
                 return;
             }
         }

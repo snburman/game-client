@@ -25,7 +25,7 @@ export default function Login() {
     const [registerUser, { isLoading: registerLoading }] =
         useRegisterUserMutation();
     const { setToken, setRefreshTokenStorage } = useAuth();
-    const { setMessageModal } = useModals();
+    const { setAlert } = useModals();
 
     const requiredFields = useCallback(() => {
         const error_msg = "Please fill out all fields";
@@ -33,11 +33,11 @@ export default function Login() {
             register &&
             (username == "" || password == "" || confirmPassword == "")
         ) {
-            setMessageModal(error_msg);
+            setAlert("danger", error_msg);
             return false;
         }
         if (!register && !every([username, password])) {
-            setMessageModal(error_msg);
+            setAlert("danger", error_msg);
             return false;
         }
         return true;
@@ -61,20 +61,20 @@ export default function Login() {
                 const err = res.error as { data: AuthResponse };
                 switch (err.data?.error) {
                     case "user_banned":
-                        setMessageModal("Account disabled");
+                        setAlert("danger", "Account disabled");
                         break;
                     case "invalid_credentials":
-                        setMessageModal("Invalid username / password");
+                        setAlert("danger", "Invalid username / password");
                         break;
                     default:
-                        setMessageModal("Error logging in");
+                        setAlert("danger", "Error logging in");
                 }
                 return;
             }
             if (res.data) {
                 setTokens(res.data);
             } else {
-                setMessageModal("Error logging in");
+                setAlert("danger", "Error logging in");
             }
         });
     }
@@ -86,7 +86,7 @@ export default function Login() {
         }
         if (!requiredFields()) return;
         if (password !== confirmPassword) {
-            setMessageModal("Passwords do not match");
+            setAlert("danger", "Passwords do not match");
             return;
         }
         registerUser({
@@ -98,18 +98,18 @@ export default function Login() {
                 if (err.data?.error)
                     switch (err.data?.error) {
                         case AuthError.UserExists:
-                            setMessageModal("Username already exists");
+                            setAlert("danger", "Username already exists");
                             break;
                         case AuthError.WeakPassword:
-                            setMessageModal(PASSWORD_REQUIREMENTS);
+                            setAlert("danger", PASSWORD_REQUIREMENTS);
                             break;
                         default:
-                            setMessageModal("Error creating user");
+                            setAlert("danger", "Error creating user");
                     }
             } else if (res.data) {
                 setTokens(res.data);
             } else {
-                setMessageModal("Error creating user");
+                setAlert("danger", "Error creating user");
             }
         });
     }

@@ -30,7 +30,7 @@ const ImagesContext = createContext<ImagesData | undefined>(undefined);
 
 export default function ImagesProvider({ children }: React.PropsWithChildren) {
     const { token, user } = useAuth();
-    const { setMessageModal, setConfirmModal } = useModals();
+    const { setConfirmModal, setAlert } = useModals();
     const [fetchImages, imageData] = useLazyGetUserImagesQuery();
     const [postImage] = usePostImageMutation();
     const [updateImage] = useUpdateImageMutation();
@@ -47,7 +47,7 @@ export default function ImagesProvider({ children }: React.PropsWithChildren) {
         if (!token) return;
         fetchImages(token).then((res) => {
             if (res.error) {
-                setMessageModal("Error getting images");
+                setAlert("danger", "Failed to fetch images");
             } else {
                 if (res.data) {
                     setImages(res.data);
@@ -97,12 +97,14 @@ export default function ImagesProvider({ children }: React.PropsWithChildren) {
                                     updateImage({ token, image }).then(
                                         (res) => {
                                             if (res.error) {
-                                                setMessageModal(
+                                                setAlert(
+                                                    "danger",
                                                     "Failed to update image"
                                                 );
                                             } else {
                                                 getImages();
-                                                setMessageModal(
+                                                setAlert(
+                                                    "success",
                                                     "Image saved successfully"
                                                 );
                                             }
@@ -112,11 +114,11 @@ export default function ImagesProvider({ children }: React.PropsWithChildren) {
                             }
                         );
                     } else {
-                        setMessageModal("Failed to save image");
+                        setAlert("danger", "Failed to save image");
                     }
                 } else {
                     getImages();
-                    setMessageModal("Image saved successfully");
+                    setAlert("success", "Image saved successfully");
                 }
             });
         },
@@ -135,7 +137,7 @@ export default function ImagesProvider({ children }: React.PropsWithChildren) {
         if (!token) return;
         _deleteImage({ token, id }).then((res) => {
             if (!res.error) {
-                setMessageModal("Image deleted successfully");
+                setAlert("success", "Image deleted successfully");
                 getImages();
             }
         });

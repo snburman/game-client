@@ -15,10 +15,7 @@ type ModalData = {
     plainModal: React.JSX.Element | undefined;
     setPlainModal: (children: ReactNode, style?: StyleProp<ViewStyle>) => void;
     alert: React.JSX.Element | undefined;
-    setAlert: (
-        severity: AlertSeverity,
-        children: ReactNode
-    ) => void;
+    setAlert: (severity: AlertSeverity, children: ReactNode) => void;
 };
 
 const ModalContext = createContext<ModalData | undefined>(undefined);
@@ -82,6 +79,9 @@ export default function ModalProvider({ children }: React.PropsWithChildren) {
         severity: AlertSeverity = "neutral",
         children: ReactNode
     ) => {
+        setTimeout(() => {
+            _setAlert(undefined);
+        }, 5000);
         _setAlert(<AlertMessage severity={severity}>{children}</AlertMessage>);
     };
 

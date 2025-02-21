@@ -72,7 +72,7 @@ const MapContext = createContext<MapData | undefined>(undefined);
 
 export default function MapsProvider({ children }: React.PropsWithChildren) {
     const { token, user } = useAuth();
-    const { setConfirmModal, setMessageModal } = useModals();
+    const { setConfirmModal, setMessageModal, setAlert } = useModals();
 
     // API
     const [postMap] = usePostMapMutation();
@@ -112,12 +112,12 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
         if (!token) return;
         getUserMaps(token).then((res) => {
             if (res.error) {
-                setMessageModal("Error retrieving maps");
+                setAlert("danger", "Error retrieving maps");
             } else {
                 setAllMaps(res.data);
                 getPortalMaps(token).then((res) => {
                     if (res.error) {
-                        setMessageModal("Error retrieving portal maps");
+                        setAlert("danger", "Error retrieving portal maps");
                     } else {
                         const data = res.data as SetStateAction<
                             MapDTO<Image<CellData[][]>[]>[] | undefined
@@ -310,14 +310,16 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
                                         updateMap({ token, map: mapDTO }).then(
                                             (res) => {
                                                 if (res.error) {
-                                                    setMessageModal(
+                                                    setAlert(
+                                                        "danger",
                                                         "Error saving map"
                                                     );
                                                 } else {
-                                                    setMessageModal(
-                                                        "Map saved successfully",
-                                                        () => getMaps()
+                                                    setAlert(
+                                                        "success",
+                                                        "Map saved successfully"
                                                     );
+                                                    getMaps();
                                                 }
                                             }
                                         );
@@ -326,11 +328,12 @@ export default function MapsProvider({ children }: React.PropsWithChildren) {
                             );
                             break;
                         case MapError.ErrorUpdatingMap:
-                            setMessageModal("Error saving map");
+                            setAlert("danger", "Error saving map");
                     }
                 }
             } else {
-                setMessageModal("Map saved successfully", () => getMaps());
+                setAlert("success", "Map saved successfully");
+                getMaps();
             }
         });
     }

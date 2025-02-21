@@ -47,7 +47,7 @@ export default function Map({ navigation }: MapProps) {
         changeYPosition,
         changeImageType,
     } = useMaps();
-    const { setMessageModal, setConfirmModal } = useModals();
+    const { setMessageModal, setConfirmModal, setAlert } = useModals();
     const [imagesModalVisible, setImagesModalVisible] = useState(false);
     // indicates that pressing a tile will trigger editing of the contents
     const [editDetailsOn, setEditDetailsOn] = useState(false);
@@ -61,9 +61,8 @@ export default function Map({ navigation }: MapProps) {
     // select image to be placed on map
     function handleSelectImage(image: Image<CellData[][]>) {
         if (![ImageType.Object, ImageType.Tile].includes(image.asset_type)) {
-            setMessageModal("Please select a tile or object", () => {
-                setImagesModalVisible(true);
-            });
+            setAlert("warning", "Please select a tile or object");
+            setImagesModalVisible(true);
             return;
         }
         setImagesModalVisible(false);
@@ -76,15 +75,15 @@ export default function Map({ navigation }: MapProps) {
     function handlePressTile(x: number, y: number) {
         if (selectedPortal) {
             if (containsPortal(x, y)) {
-                setMessageModal("Portal already exists in this area");
+                setAlert("danger", "Portal already exists in this area");
                 return;
             }
             if (containsEntrance(x, y)) {
-                setMessageModal("Cannot place portal on entrance");
+                setAlert("danger", "Cannot place portal on entrance");
                 return;
             }
             if (portals?.length == 4) {
-                setMessageModal("Maximum of 4 portals allowed");
+                setAlert("danger", "Maximum of 4 portals allowed");
                 return;
             }
             setPortals([...(portals || []), { ...selectedPortal, x, y }]);
@@ -94,11 +93,11 @@ export default function Map({ navigation }: MapProps) {
         }
         if (editEntranceOn) {
             if (containsObject(x, y)) {
-                setMessageModal("Cannot place entrance on object");
+                setAlert("danger", "Cannot place entrance on object");
                 return;
             }
             if (containsPortal(x, y)) {
-                setMessageModal("Cannot place entrance on portal");
+                setAlert("danger", "Cannot place entrance on portal");
                 return;
             }
             setEntrance({ x, y });
@@ -107,7 +106,7 @@ export default function Map({ navigation }: MapProps) {
         }
         if (!editDetailsOn && containsEntrance(x, y)) {
             if (selectedImage?.asset_type == ImageType.Object) {
-                setMessageModal("Cannot place object on entrance");
+                setAlert("danger", "Cannot place object on entrance");
                 return;
             }
         }
@@ -118,15 +117,14 @@ export default function Map({ navigation }: MapProps) {
 
         // cannot place empty image
         if (!selectedImage) {
-            setMessageModal("Select an image to put on the map", () =>
-                setImagesModalVisible(true)
-            );
+            setAlert("neutral", "Select an image to put on the map");
+            setImagesModalVisible(true);
             return;
         }
         // maximum two images per cell
         const coords = imageMap[y][x];
         if (coords.images.length > 1) {
-            setMessageModal("This area already has two (2) images");
+            setAlert("warning", "This area already has two (2) images");
             return;
         }
         placeSelectedImage(x, y);
@@ -147,7 +145,7 @@ export default function Map({ navigation }: MapProps) {
     // toggle entrance selection
     function handleSelectEntranceButton() {
         if (!editEntranceOn) {
-            setMessageModal("Select an entrance location");
+            setAlert("neutral", "Select an entrance location");
         }
         setSelectedPortal(undefined);
         setEditDetailsOn(false);
@@ -692,7 +690,8 @@ const LoadMapButton = () => {
     const { token, user } = useAuth();
     const { getMaps, loadMap, allMaps, name, setName, eraseMap, setPrimary } =
         useMaps();
-    const { setPlainModal, setMessageModal, setConfirmModal } = useModals();
+    const { setPlainModal, setMessageModal, setConfirmModal, setAlert } =
+        useModals();
     const [deleteMap] = useDeleteMapMutation();
 
     function handleDeleteMap(id: string) {
@@ -701,19 +700,18 @@ const LoadMapButton = () => {
             if (confirm) {
                 deleteMap({ token, id }).then((res) => {
                     if (res.error) {
-                        setMessageModal("Error deleting map");
+                        setAlert("danger", "Error deleting map");
                     } else {
-                        setMessageModal("Map deleted successfully", () => {
-                            const deletedMap = allMaps?.find(
-                                (map) => map._id === id
-                            );
-                            if (deletedMap?.name === name) {
-                                eraseMap();
-                                setName("");
-                                setPrimary(false);
-                            }
-                            getMaps();
-                        });
+                        setAlert("success", "Map deleted successfully");
+                        const deletedMap = allMaps?.find(
+                            (map) => map._id === id
+                        );
+                        if (deletedMap?.name === name) {
+                            eraseMap();
+                            setName("");
+                            setPrimary(false);
+                        }
+                        getMaps();
                     }
                 });
                 setPlainModal(undefined);
@@ -732,7 +730,7 @@ const LoadMapButton = () => {
                     style={{ width: 250, maxHeight: 300, paddingRight: 10 }}
                 >
                     {allMaps
-                    // filter maps belonging to user
+                        // filter maps belonging to user
                         ?.filter((map) => map.user_id === user?._id)
                         .map((map, i) => (
                             <View

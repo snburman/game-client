@@ -13,7 +13,7 @@ import DispatchProvider from "../context/dispatch_context";
 export default function Game({ navigation }: GameProps) {
     const { token } = useAuth();
     const { isPlaying, setIsPlaying } = useGame();
-    const { setMessageModal } = useModals();
+    const { setMessageModal, setAlert} = useModals();
     const [getMaps] = useLazyGetUserMapsQuery();
     const ref = useRef();
 
@@ -24,7 +24,7 @@ export default function Game({ navigation }: GameProps) {
         token &&
             getMaps(token).then((res) => {
                 if (res.error) {
-                    setMessageModal("Error connecting to server");
+                    setAlert("danger", "Error connecting to server");
                     return;
                 } else if (!res.data || res.data?.length === 0) {
                     setMessageModal("Create a map to start playing", () => {

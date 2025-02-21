@@ -20,7 +20,7 @@ export default function Settings(_: SettingsProps) {
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [updateUser] = useUpdateUserMutation();
     const [deleteUser] = useDeleteUserMutation();
-    const { setMessageModal, setConfirmModal } = useModals();
+    const { setConfirmModal, setAlert } = useModals();
 
     function togglePasswordVisible() {
         setPasswordVisible(!passwordVisible);
@@ -35,11 +35,11 @@ export default function Settings(_: SettingsProps) {
     function handleUpdateUser() {
         // currently only passwords are updated in settings
         if(password == "" || confirmPassword == "") {
-            setMessageModal("Please fill out all fields");
+            setAlert("danger", "Please fill out all fields");
             return;
         }
         if(password !== confirmPassword) {
-            setMessageModal("Passwords do not match");
+            setAlert("danger", "Passwords do not match");
             return;
         }
         setConfirmModal("Change password?", (confirm) => {
@@ -51,10 +51,10 @@ export default function Settings(_: SettingsProps) {
                 if (res.error) {
                     const err = res.error as { data: { error: string } };
                     if (err.data.error === "weak_password") {
-                        setMessageModal(PASSWORD_REQUIREMENTS);
+                        setAlert("danger", PASSWORD_REQUIREMENTS);
                     }
                 } else {
-                    setMessageModal("Password changed successfully");
+                    setAlert("success", "Password changed successfully");
                 }
             });
         })
@@ -67,10 +67,11 @@ export default function Settings(_: SettingsProps) {
                 if (res.error) {
                     const err = res.error as { data: { error: string } };
                     if (err.data.error) {
-                        setMessageModal("Error deleting account");
+                        setAlert("danger", "Error deleting account");
                     }
                 } else {
-                    setMessageModal("Account deleted successfully", logOut);
+                    setAlert("success", "Account deleted successfully");
+                    logOut();
                 }
             });
         })

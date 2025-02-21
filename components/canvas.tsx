@@ -428,7 +428,7 @@ export const RedoButton = () => {
 
 export const NewCanvasButton = () => {
     const { newCanvas } = useCanvas();
-    const { setMessageModal } = useModals();
+    const { setAlert } = useModals();
     const [modalVisible, setModalVisible] = useState(false);
     const [width, setWidth] = useState(16);
     const [height, setHeight] = useState(16);
@@ -439,11 +439,11 @@ export const NewCanvasButton = () => {
 
     function handleSubmit() {
         if (width > 16 ||  width < 4) {
-            setMessageModal("Width must be between 4 and 16");
+            setAlert("danger", "Width must be between 4 and 16");
             return
         }
         if (height > 16 || height < 4) {
-            setMessageModal("Height must be between 4 and 16");
+            setAlert("danger", "Height must be between 4 and 16");
             return;
         }
         newCanvas(width, height);
