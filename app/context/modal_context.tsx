@@ -1,9 +1,6 @@
+import AlertMessage, { AlertSeverity } from "@/components/alert";
 import PlainModal, { MessageModal, ConfirmModal } from "@/components/modal";
-import React, {
-    ReactNode,
-    useContext,
-    useState,
-} from "react";
+import React, { ReactNode, useContext, useState } from "react";
 import { createContext } from "react";
 import { StyleProp, ViewStyle } from "react-native";
 
@@ -17,6 +14,11 @@ type ModalData = {
     ) => void;
     plainModal: React.JSX.Element | undefined;
     setPlainModal: (children: ReactNode, style?: StyleProp<ViewStyle>) => void;
+    alert: React.JSX.Element | undefined;
+    setAlert: (
+        severity: AlertSeverity,
+        children: ReactNode
+    ) => void;
 };
 
 const ModalContext = createContext<ModalData | undefined>(undefined);
@@ -31,6 +33,7 @@ export default function ModalProvider({ children }: React.PropsWithChildren) {
     const [plainModal, _setPlainModal] = useState<
         React.JSX.Element | undefined
     >();
+    const [alert, _setAlert] = useState<React.JSX.Element | undefined>();
 
     const setMessageModal = (message: string, callback?: () => void) => {
         _setMessageModal(
@@ -75,6 +78,13 @@ export default function ModalProvider({ children }: React.PropsWithChildren) {
         );
     };
 
+    const setAlert = (
+        severity: AlertSeverity = "neutral",
+        children: ReactNode
+    ) => {
+        _setAlert(<AlertMessage severity={severity}>{children}</AlertMessage>);
+    };
+
     const initialValue: ModalData = {
         messageModal,
         setMessageModal,
@@ -82,6 +92,8 @@ export default function ModalProvider({ children }: React.PropsWithChildren) {
         setConfirmModal,
         plainModal,
         setPlainModal,
+        alert,
+        setAlert,
     };
 
     return (

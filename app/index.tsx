@@ -10,11 +10,12 @@ import "./styles.css";
 export default function Index() {
     const Stack = createStackNavigator<RootStackParamList>();
     const { user } = useAuth();
-    const { messageModal, confirmModal, plainModal } = useModals();
+    const { messageModal, confirmModal, plainModal, alert } = useModals();
 
     return (
         <>
             {/* global modals */}
+            {alert}
             {messageModal}
             {confirmModal}
             {plainModal}
