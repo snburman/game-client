@@ -193,12 +193,12 @@ export default function Login() {
             </View>
             <View style={styles.guideButtonContainer}>
                 <Text style={[styles.guideText, {fontSize: 24}]}>New to bitscrawler?</Text>
-                <Text style={styles.guideText}>Read the player guide!</Text>
+                <Text style={styles.guideText}>Read the player's guide!</Text>
                 <Pressable
                     onPress={() => Linking.openURL("http://docs.bitscrawler.com")}
                     style={[styles.guideButton, { backgroundColor: "#EE6300" }]}
                 >
-                    <Typography style={styles.buttonText}>Player Guide</Typography>
+                    <Typography style={styles.buttonText}>Player's Guide</Typography>
                 </Pressable>
             </View>
             <View style={styles.footer}>

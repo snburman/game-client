@@ -30,7 +30,7 @@ export default function Home({ navigation }: HomeProps) {
                     style={[styles.button, { backgroundColor: "#EE6300" }]}
                 >
                     <Typography style={styles.buttonText}>
-                        Player Guide
+                        Player's Guide
                     </Typography>
                 </Pressable>
                 <Pressable
