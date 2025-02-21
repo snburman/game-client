@@ -513,7 +513,7 @@ export default function Map({ navigation }: MapProps) {
                                                     styles.rowContainer,
                                                     {
                                                         opacity:
-                                                            image.width ==
+                                                            image.height ==
                                                             DEFAULT_CANVAS_SIZE
                                                                 ? 0.3
                                                                 : 1,
@@ -689,7 +689,7 @@ const NewMapButton = () => {
 };
 
 const LoadMapButton = () => {
-    const { token } = useAuth();
+    const { token, user } = useAuth();
     const { getMaps, loadMap, allMaps, name, setName, eraseMap, setPrimary } =
         useMaps();
     const { setPlainModal, setMessageModal, setConfirmModal } = useModals();
@@ -731,67 +731,70 @@ const LoadMapButton = () => {
                 <ScrollView
                     style={{ width: 250, maxHeight: 300, paddingRight: 10 }}
                 >
-                    {allMaps?.map((map, i) => (
-                        <View
-                            key={i}
-                            style={{
-                                alignItems: "center",
-                                justifyContent: "center",
-                                flexDirection: "row",
-                                paddingRight: 5,
-                                marginBottom: 15,
-                            }}
-                        >
-                            {map.primary && (
-                                <MaterialCommunityIcons
-                                    name="home"
-                                    size={20}
-                                    style={{
-                                        color: "#138007",
-                                        marginRight: 5,
-                                    }}
-                                />
-                            )}
-                            <Typography
+                    {allMaps
+                    // filter maps belonging to user
+                        ?.filter((map) => map.user_id === user?._id)
+                        .map((map, i) => (
+                            <View
+                                key={i}
                                 style={{
-                                    flex: 1,
-                                    ...theme.typography.fonts.PixelifySans,
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    flexDirection: "row",
+                                    paddingRight: 5,
+                                    marginBottom: 15,
                                 }}
                             >
-                                {map.name}
-                            </Typography>
-                            <Pressable
-                                onPress={() => {
-                                    if (!map._id) return;
-                                    loadMap(map);
-                                    setPlainModal(undefined);
-                                }}
-                                style={styles.savedEditButton}
-                            >
-                                <MaterialCommunityIcons
-                                    name="folder-open-outline"
-                                    size={20}
-                                    style={{ color: "rgb(204 184 3)" }}
-                                />
-                            </Pressable>
-                            <Pressable
-                                onPress={() => {
-                                    if (!map._id) return;
-                                    handleDeleteMap(map._id);
-                                }}
-                                style={[
-                                    styles.savedEditButton,
-                                    { marginLeft: 10 },
-                                ]}
-                            >
-                                <MaterialCommunityIcons
-                                    name="delete"
-                                    size={20}
-                                    style={{ color: "#D2042D" }}
-                                />
-                            </Pressable>
-                        </View>
-                    ))}
+                                {map.primary && (
+                                    <MaterialCommunityIcons
+                                        name="home"
+                                        size={20}
+                                        style={{
+                                            color: "#138007",
+                                            marginRight: 5,
+                                        }}
+                                    />
+                                )}
+                                <Typography
+                                    style={{
+                                        flex: 1,
+                                        ...theme.typography.fonts.PixelifySans,
+                                    }}
+                                >
+                                    {map.name}
+                                </Typography>
+                                <Pressable
+                                    onPress={() => {
+                                        if (!map._id) return;
+                                        loadMap(map);
+                                        setPlainModal(undefined);
+                                    }}
+                                    style={styles.savedEditButton}
+                                >
+                                    <MaterialCommunityIcons
+                                        name="folder-open-outline"
+                                        size={20}
+                                        style={{ color: "rgb(204 184 3)" }}
+                                    />
+                                </Pressable>
+                                <Pressable
+                                    onPress={() => {
+                                        if (!map._id) return;
+                                        handleDeleteMap(map._id);
+                                    }}
+                                    style={[
+                                        styles.savedEditButton,
+                                        { marginLeft: 10 },
+                                    ]}
+                                >
+                                    <MaterialCommunityIcons
+                                        name="delete"
+                                        size={20}
+                                        style={{ color: "#D2042D" }}
+                                    />
+                                </Pressable>
+                            </View>
+                        ))}
                 </ScrollView>
                 <Button
                     mode="outlined"
@@ -1051,7 +1054,12 @@ const PortalButton = ({
                                     Name
                                 </Typography>
                             </View>
-                            <View style={[styles.portalColumn, { paddingLeft: 10 }]}>
+                            <View
+                                style={[
+                                    styles.portalColumn,
+                                    { paddingLeft: 10 },
+                                ]}
+                            >
                                 <Typography fontWeight={"bold"}>
                                     Username
                                 </Typography>
@@ -1069,10 +1077,20 @@ const PortalButton = ({
                         {!portalMapsFilitered && <LoadingSpinner />}
                         {portalMapsFilitered?.map((_map, i) => (
                             <View style={styles.portalRow} key={i}>
-                                <View style={[styles.portalColumn, {overflow: "scroll"}]}>
+                                <View
+                                    style={[
+                                        styles.portalColumn,
+                                        { overflow: "scroll" },
+                                    ]}
+                                >
                                     <Typography>{_map.name}</Typography>
                                 </View>
-                                <View style={[styles.portalColumn, {paddingLeft: 10}]}>
+                                <View
+                                    style={[
+                                        styles.portalColumn,
+                                        { paddingLeft: 10 },
+                                    ]}
+                                >
                                     <Typography>{_map.username}</Typography>
                                 </View>
                                 <View

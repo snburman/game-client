@@ -71,7 +71,8 @@ export default function Chat() {
         );
     }
 
-    function handleFocus() {
+    function handleToggleOpen() {
+        scrollViewRef.current?.scrollToEnd();
         setChatFocused(!chatFocused);
     }
 
@@ -104,7 +105,7 @@ export default function Chat() {
                             name={chatFocused ? "expand-more" : "expand-less"}
                             size={30}
                             color="black"
-                            onPress={handleFocus}
+                            onPress={handleToggleOpen}
                             style={{
                                 position: "absolute",
                                 zIndex: 200,
