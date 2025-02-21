@@ -501,7 +501,7 @@ export default function Map({ navigation }: MapProps) {
                                                             editCoords.x,
                                                             editCoords.y,
                                                             i,
-                                                            value
+                                                            Math.floor(value)
                                                         )
                                                     }
                                                     thumbTintColor={"#019B0B"}
@@ -542,7 +542,7 @@ export default function Map({ navigation }: MapProps) {
                                                             editCoords.x,
                                                             editCoords.y,
                                                             i,
-                                                            value
+                                                            Math.floor(value)
                                                         )
                                                     }
                                                     thumbTintColor={"#019B0B"}
